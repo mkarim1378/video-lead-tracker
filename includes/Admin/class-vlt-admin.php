@@ -70,41 +70,52 @@ class VLT_Admin {
 		global $wpdb;
 		$p = $wpdb->prefix;
 
-		// KPI queries — no user input, no prepare needed.
-		$total_leads    = (int)   $wpdb->get_var( "SELECT COUNT(*) FROM {$p}vlt_leads" );
-		$verified_leads = (int)   $wpdb->get_var( "SELECT COUNT(*) FROM {$p}vlt_leads WHERE is_verified = 1" );
-		$total_sessions = (int)   $wpdb->get_var( "SELECT COUNT(*) FROM {$p}vlt_sessions" );
-		$active_videos  = (int)   $wpdb->get_var( "SELECT COUNT(*) FROM {$p}vlt_videos WHERE is_active = 1" );
-		$watch_secs     = (float) $wpdb->get_var( "SELECT COALESCE( SUM(unique_watch_seconds), 0 ) FROM {$p}vlt_video_user_summary" );
-		$watch_hours    = number_format( $watch_secs / 3600, 1 );
+		$cache     = get_transient( 'vlt_overview_cache' );
+		$cache_hit = is_array( $cache );
 
-		// Recent leads — last 10, with average watch percent across all their videos.
-		$recent_leads = $wpdb->get_results(
-			"SELECT l.primary_name, l.normalized_mobile, l.is_verified, l.first_seen_at,
-			        COALESCE( AVG(s.unique_watch_percent), 0 ) AS avg_watch
-			 FROM {$p}vlt_leads l
-			 LEFT JOIN {$p}vlt_video_user_summary s ON s.lead_id = l.id
-			 GROUP BY l.id
-			 ORDER BY l.first_seen_at DESC
-			 LIMIT 10"
-		);
+		if ( $cache_hit ) {
+			[ $total_leads, $verified_leads, $total_sessions, $active_videos, $watch_hours,
+			  $recent_leads, $top_videos ] = $cache;
+		} else {
+			$total_leads    = (int)   $wpdb->get_var( "SELECT COUNT(*) FROM {$p}vlt_leads" );
+			$verified_leads = (int)   $wpdb->get_var( "SELECT COUNT(*) FROM {$p}vlt_leads WHERE is_verified = 1" );
+			$total_sessions = (int)   $wpdb->get_var( "SELECT COUNT(*) FROM {$p}vlt_sessions" );
+			$active_videos  = (int)   $wpdb->get_var( "SELECT COUNT(*) FROM {$p}vlt_videos WHERE is_active = 1" );
+			$watch_secs     = (float) $wpdb->get_var( "SELECT COALESCE( SUM(unique_watch_seconds), 0 ) FROM {$p}vlt_video_user_summary" );
+			$watch_hours    = number_format( $watch_secs / 3600, 1 );
 
-		// Top videos — ordered by total unique watch hours descending.
-		$top_videos = $wpdb->get_results(
-			"SELECT v.title, v.video_key, v.duration_seconds,
-			        COUNT( DISTINCT CASE WHEN s.lead_id IS NOT NULL
-			            THEN CONCAT( 'l', s.lead_id )
-			            ELSE s.visitor_uuid END )               AS viewers,
-			        COALESCE( AVG(s.unique_watch_percent), 0 )  AS avg_completion,
-			        COALESCE( SUM(s.unique_watch_seconds), 0 ) / 3600 AS watch_hours,
-			        COALESCE( SUM(s.reached_end), 0 )           AS completions
-			 FROM {$p}vlt_videos v
-			 LEFT JOIN {$p}vlt_video_user_summary s ON s.video_id = v.id
-			 WHERE v.is_active = 1
-			 GROUP BY v.id
-			 ORDER BY watch_hours DESC
-			 LIMIT 8"
-		);
+			$recent_leads = $wpdb->get_results(
+				"SELECT l.primary_name, l.normalized_mobile, l.is_verified, l.first_seen_at,
+				        COALESCE( AVG(s.unique_watch_percent), 0 ) AS avg_watch
+				 FROM {$p}vlt_leads l
+				 LEFT JOIN {$p}vlt_video_user_summary s ON s.lead_id = l.id
+				 GROUP BY l.id
+				 ORDER BY l.first_seen_at DESC
+				 LIMIT 10"
+			);
+
+			$top_videos = $wpdb->get_results(
+				"SELECT v.title, v.video_key, v.duration_seconds,
+				        COUNT( DISTINCT CASE WHEN s.lead_id IS NOT NULL
+				            THEN CONCAT( 'l', s.lead_id )
+				            ELSE s.visitor_uuid END )               AS viewers,
+				        COALESCE( AVG(s.unique_watch_percent), 0 )  AS avg_completion,
+				        COALESCE( SUM(s.unique_watch_seconds), 0 ) / 3600 AS watch_hours,
+				        COALESCE( SUM(s.reached_end), 0 )           AS completions
+				 FROM {$p}vlt_videos v
+				 LEFT JOIN {$p}vlt_video_user_summary s ON s.video_id = v.id
+				 WHERE v.is_active = 1
+				 GROUP BY v.id
+				 ORDER BY watch_hours DESC
+				 LIMIT 8"
+			);
+
+			set_transient( 'vlt_overview_cache',
+				[ $total_leads, $verified_leads, $total_sessions, $active_videos, $watch_hours,
+				  $recent_leads, $top_videos ],
+				5 * MINUTE_IN_SECONDS
+			);
+		}
 
 		?>
 		<div class="wrap vlt-overview">
@@ -957,22 +968,6 @@ class VLT_Admin {
 
 			<?php endif; ?>
 
-		</div>
-		<?php
-	}
-
-	// -------------------------------------------------------------------------
-	// Placeholder (pages implemented in later phases)
-	// -------------------------------------------------------------------------
-
-	public static function render_placeholder() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return;
-		}
-		?>
-		<div class="wrap">
-			<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
-			<p><?php esc_html_e( 'This section is under development.', 'video-lead-tracker' ); ?></p>
 		</div>
 		<?php
 	}

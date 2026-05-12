@@ -5,6 +5,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.0.0] - 2026-05-12
+
+### Added
+- Phase 20: Optimization & Release
+  - **Transient caching** for Overview dashboard — all 5 KPI queries + Recent Leads + Top Videos cached for 5 minutes (`vlt_overview_cache`). Cache is invalidated automatically after every `VLT_Aggregator::aggregate()` call, ensuring live data after each range commit.
+  - **Compound DB indexes** on `vlt_video_user_summary` — `KEY video_lead (video_id, lead_id)` and `KEY video_visitor (video_id, visitor_uuid)` — covering the two most-frequent upsert lookup patterns. Added to schema so both new installs (`dbDelta`) and existing installs (`VLT_DB_VERSION` 1.0 → 1.1 upgrade) receive the indexes automatically.
+
+### Changed
+- `VLT_DB_VERSION` bumped 1.0 → 1.1 to trigger schema upgrade on existing installs
+- Version bumped 0.21.0 → **1.0.0** (first stable release)
+
+### Removed
+- `VLT_Admin::render_placeholder()` — dead code, all 5 admin pages are now fully implemented
+
+---
+
 ## [0.21.0] - 2026-05-12
 
 ### Fixed

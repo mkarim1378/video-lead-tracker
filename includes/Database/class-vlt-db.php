@@ -214,6 +214,8 @@ class VLT_DB {
   KEY video_id (video_id),
   KEY lead_id (lead_id),
   KEY visitor_uuid (visitor_uuid),
+  KEY video_lead (video_id,lead_id),
+  KEY video_visitor (video_id,visitor_uuid),
   KEY started (started),
   KEY reached_end (reached_end),
   KEY unique_watch_percent (unique_watch_percent),

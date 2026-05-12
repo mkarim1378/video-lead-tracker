@@ -101,6 +101,8 @@ class VLT_Aggregator {
 			'merged_ranges_json'     => wp_json_encode( $merged ),
 			'updated_at'             => $now,
 		] );
+
+		delete_transient( 'vlt_overview_cache' );
 	}
 
 	/**
