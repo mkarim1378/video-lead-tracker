@@ -5,6 +5,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.16.0] - 2026-05-12
+
+### Added
+- Phase 14: per-second heatmap aggregation
+  - `VLT_Aggregator::update_heatmap()` — loops over every integer second covered by a committed range; calls two DB helpers per second
+  - `VLT_DB::heatmap_increment_total()` — `INSERT … ON DUPLICATE KEY UPDATE` to create or increment `total_views_count` for one second
+  - `VLT_DB::heatmap_try_unique()` — `INSERT IGNORE` into `vlt_video_heatmap_uniques` keyed by `(video_id, second_index, visitor_uuid)`; returns true when this is the viewer's first time watching that second
+  - `VLT_DB::heatmap_increment_unique()` — increments `unique_visitors_count` (always) and `unique_leads_count` (when viewer is identified) after a new unique is confirmed
+  - `vlt_video_heatmap_uniques` schema updated: unique key is now `(video_id, second_index, visitor_uuid)` — visitor_uuid is always present, lead_id stored as data column for reference
+  - `VLT_DB::create_heatmap_uniques_table()` now called from `VLT_Activator::activate()`
+  - `handle_track_video_range()` now calls both `aggregate()` and `update_heatmap()` after each successful range insert
+
+### Changed
+- Plugin version bumped to `0.16.0`
+
+---
+
 ## [0.15.0] - 2026-05-12
 
 ### Added

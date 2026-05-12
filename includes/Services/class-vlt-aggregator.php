@@ -102,4 +102,39 @@ class VLT_Aggregator {
 			'updated_at'             => $now,
 		] );
 	}
+
+	/**
+	 * Update per-second heatmap counts for a single newly committed watch range.
+	 *
+	 * Increments total_views_count for every integer second covered by [from, to].
+	 * On the first occurrence of each second for this visitor, also increments
+	 * unique_visitors_count (and unique_leads_count when a lead is identified).
+	 *
+	 * @param int         $video_id
+	 * @param int|null    $lead_id
+	 * @param string      $visitor_uuid
+	 * @param float       $from_second
+	 * @param float       $to_second
+	 */
+	public static function update_heatmap( $video_id, $lead_id, $visitor_uuid, $from_second, $to_second ) {
+		// second_index N covers the interval [N, N+1).
+		// A range [from, to] covers seconds floor(from) … ceil(to)-1.
+		$start_sec = (int) floor( $from_second );
+		$end_sec   = (int) ceil( $to_second ) - 1;
+
+		if ( $start_sec > $end_sec ) {
+			return;
+		}
+
+		$now      = current_time( 'mysql', true );
+		$has_lead = (bool) $lead_id;
+
+		for ( $sec = $start_sec; $sec <= $end_sec; $sec++ ) {
+			VLT_DB::heatmap_increment_total( $video_id, $sec, $now );
+
+			if ( VLT_DB::heatmap_try_unique( $video_id, $sec, $visitor_uuid, $lead_id, $now ) ) {
+				VLT_DB::heatmap_increment_unique( $video_id, $sec, $has_lead, $now );
+			}
+		}
+	}
 }

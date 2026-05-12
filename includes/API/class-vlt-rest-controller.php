@@ -516,6 +516,7 @@ class VLT_REST_Controller {
 		] );
 
 		VLT_Aggregator::aggregate( (int) $video->id, $lead_id, $visitor_uuid );
+		VLT_Aggregator::update_heatmap( (int) $video->id, $lead_id, $visitor_uuid, $from_second, $to_second );
 
 		return self::success();
 	}

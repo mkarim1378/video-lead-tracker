@@ -612,14 +612,77 @@ class VLT_DB {
   id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
   video_id bigint(20) UNSIGNED NOT NULL,
   second_index int(10) UNSIGNED NOT NULL,
+  visitor_uuid char(36) NOT NULL,
   lead_id bigint(20) UNSIGNED DEFAULT NULL,
-  visitor_uuid char(36) DEFAULT NULL,
   created_at datetime NOT NULL,
   PRIMARY KEY  (id),
-  UNIQUE KEY video_second_lead (video_id,second_index,lead_id),
+  UNIQUE KEY video_second_visitor (video_id,second_index,visitor_uuid),
   KEY video_id (video_id),
-  KEY lead_id (lead_id),
-  KEY visitor_uuid (visitor_uuid)
+  KEY lead_id (lead_id)
 ) $collate;" );
+	}
+
+	// -------------------------------------------------------------------------
+	// Heatmap (Phase 14)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Increment total_views_count for one second, creating the row if needed.
+	 */
+	public static function heatmap_increment_total( $video_id, $second_index, $now ) {
+		global $wpdb;
+		$table = $wpdb->prefix . 'vlt_video_heatmap';
+
+		$wpdb->query( $wpdb->prepare(
+			"INSERT INTO {$table}
+			 (video_id, second_index, total_views_count, unique_leads_count, unique_visitors_count, updated_at)
+			 VALUES (%d, %d, 1, 0, 0, %s)
+			 ON DUPLICATE KEY UPDATE total_views_count = total_views_count + 1, updated_at = VALUES(updated_at)",
+			(int) $video_id, (int) $second_index, $now
+		) );
+	}
+
+	/**
+	 * INSERT IGNORE the viewer into heatmap_uniques for one second.
+	 *
+	 * @return bool  True if this is the first time this visitor watched this second.
+	 */
+	public static function heatmap_try_unique( $video_id, $second_index, $visitor_uuid, $lead_id, $now ) {
+		global $wpdb;
+		$table = $wpdb->prefix . 'vlt_video_heatmap_uniques';
+
+		if ( $lead_id ) {
+			$wpdb->query( $wpdb->prepare(
+				"INSERT IGNORE INTO {$table} (video_id, second_index, visitor_uuid, lead_id, created_at)
+				 VALUES (%d, %d, %s, %d, %s)",
+				(int) $video_id, (int) $second_index, $visitor_uuid, (int) $lead_id, $now
+			) );
+		} else {
+			$wpdb->query( $wpdb->prepare(
+				"INSERT IGNORE INTO {$table} (video_id, second_index, visitor_uuid, created_at)
+				 VALUES (%d, %d, %s, %s)",
+				(int) $video_id, (int) $second_index, $visitor_uuid, $now
+			) );
+		}
+
+		return $wpdb->rows_affected > 0;
+	}
+
+	/**
+	 * Increment unique counters for one second.
+	 * Always increments unique_visitors_count; also unique_leads_count when $has_lead is true.
+	 */
+	public static function heatmap_increment_unique( $video_id, $second_index, $has_lead, $now ) {
+		global $wpdb;
+		$table = $wpdb->prefix . 'vlt_video_heatmap';
+
+		$set = $has_lead
+			? 'unique_visitors_count = unique_visitors_count + 1, unique_leads_count = unique_leads_count + 1'
+			: 'unique_visitors_count = unique_visitors_count + 1';
+
+		$wpdb->query( $wpdb->prepare(
+			"UPDATE {$table} SET {$set}, updated_at = %s WHERE video_id = %d AND second_index = %d",
+			$now, (int) $video_id, (int) $second_index
+		) );
 	}
 }
