@@ -16,6 +16,11 @@ class VLT_Plugin {
 	}
 
 	private function init() {
+		if ( VLT_DB::needs_upgrade() ) {
+			VLT_DB::create_tables();
+			update_option( 'vlt_db_version', VLT_DB_VERSION );
+		}
+
 		VLT_Settings::init();
 		VLT_Admin::init();
 		VLT_REST_Controller::init();
