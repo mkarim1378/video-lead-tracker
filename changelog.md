@@ -5,6 +5,33 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.18.0] - 2026-05-12
+
+### Added
+- Phase 16: Leads Report and Lead Detail page
+  - **`render_leads()`** — routes to list or detail view based on `?lead_id=` query param
+  - **Leads list** (`render_lead_list()`):
+    - Paginated table (20 per page) with full `paginate_links()` top + bottom navigation
+    - Columns: #, Name (link to detail), Mobile (masked), Verified badge, Videos Watched, Avg Watch (progress bar), Sessions, First Seen
+    - Sortable columns with `sort_link()` helper (ASC/DESC toggle, arrow indicator)
+    - Search by name or normalized mobile (`LIKE` via `$wpdb->esc_like()`)
+    - "Showing X to Y of Z" count display
+    - "Clear" button when search is active
+    - Whitelist-guarded `ORDER BY` to prevent SQL injection
+  - **Lead detail** (`render_lead_detail()`):
+    - Breadcrumb `← Leads` navigation
+    - Meta header: mobile (unmasked), verified badge, first seen, last seen
+    - **Video Watch History** table: watch %, unique watch seconds, sessions, completed badge, first play, last activity
+    - **Recent Sessions** table (last 20): UUID (truncated with full title tooltip), started, duration (last_activity - started), device, browser, OS, landing URL (path only with full URL as tooltip/link)
+  - `sort_link()` private helper — generates sortable `<th>` anchor with dashicon arrow
+  - CSS additions: search form, progress bar, row number column, lead detail header meta strip, section titles, URL cell truncation
+  - 24 new fa_IR translations; .mo recompiled (152 entries)
+
+### Changed
+- Plugin version bumped to `0.18.0`
+
+---
+
 ## [0.17.0] - 2026-05-12
 
 ### Added

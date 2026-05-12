@@ -140,6 +140,103 @@ msgstr "هنوز ویدیویی ثبت نشده است."
 msgid "View analytics →"
 msgstr "مشاهده آمار ←"
 
+#: includes/Admin/class-vlt-admin.php
+msgid "Search leads\xe2\x80\xa6"
+msgstr "جستجوی سرنخ\xe2\x80\xa6"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Search"
+msgstr "جستجو"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Clear"
+msgstr "پاک کردن"
+
+#: includes/Admin/class-vlt-admin.php
+#, php-format
+msgid "Showing %1$d to %2$d of %3$d"
+msgstr "نمایش %1$d تا %2$d از %3$d"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Videos Watched"
+msgstr "ویدیوهای تماشا شده"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "No leads found."
+msgstr "سرنخی یافت نشد."
+
+#: includes/Admin/class-vlt-admin.php
+msgid "(no name)"
+msgstr "(بدون نام)"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Lead not found."
+msgstr "سرنخ یافت نشد."
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Last Seen"
+msgstr "آخرین بازدید"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Video Watch History"
+msgstr "تاریخچه تماشای ویدیو"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Watch %"
+msgstr "درصد تماشا"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Unique Watch"
+msgstr "تماشای یکتا"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Completed"
+msgstr "تکمیل شده"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "First Play"
+msgstr "اولین پخش"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Last Activity"
+msgstr "آخرین فعالیت"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "No video watch history for this lead."
+msgstr "هیچ تاریخچه تماشایی برای این سرنخ وجود ندارد."
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Recent Sessions"
+msgstr "جلسات اخیر"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Started"
+msgstr "شروع شده"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Duration"
+msgstr "مدت زمان"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Device"
+msgstr "دستگاه"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Browser"
+msgstr "مرورگر"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "OS"
+msgstr "سیستم عامل"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Landing URL"
+msgstr "آدرس ورودی"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "No sessions recorded."
+msgstr "هیچ جلسه‌ای ثبت نشده است."
+
 #: includes/Settings/class-vlt-settings.php
 msgid "Video Lead Tracker — Settings"
 msgstr "ردیاب ویدیو و لید — تنظیمات"
