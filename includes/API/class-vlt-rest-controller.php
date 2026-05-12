@@ -248,8 +248,8 @@ class VLT_REST_Controller {
 
 		// ---- Attach visitor & bulk-migrate anonymous data ----
 		if ( $visitor_uuid ) {
-			// Bulk-update: sessions, page_visits, video_events, video_ranges → lead_id.
-			VLT_DB::attach_lead_to_visitor( $visitor_uuid, $lead_id );
+			// Bulk-update all tables; returns video IDs whose summaries were migrated.
+			$migrated_video_ids = VLT_DB::attach_lead_to_visitor( $visitor_uuid, $lead_id );
 
 			// Update visitor row with lead_id + new token hash.
 			$visitor = VLT_DB::get_visitor_by_uuid( $visitor_uuid );
@@ -260,6 +260,11 @@ class VLT_REST_Controller {
 					'last_seen_at'        => $now,
 					'updated_at'          => $now,
 				] );
+			}
+
+			// Re-aggregate migrated videos under the new lead_id so summaries are correct.
+			foreach ( $migrated_video_ids as $vid_id ) {
+				VLT_Aggregator::aggregate( $vid_id, $lead_id, $visitor_uuid );
 			}
 		}
 

@@ -289,6 +289,8 @@ class VLT_Admin {
 		);
 
 		$total_pages = max( 1, (int) ceil( $total / $per_page ) );
+		$paged       = min( $paged, $total_pages );
+		$offset      = ( $paged - 1 ) * $per_page;
 		$base_url    = admin_url( 'admin.php?page=vlt-leads' );
 		$sort_base   = add_query_arg( array_filter( [
 			's'       => $search ?: null,
@@ -835,11 +837,36 @@ class VLT_Admin {
 		$p = $wpdb->prefix;
 
 		$video_id = isset( $_GET['video_id'] ) ? absint( $_GET['video_id'] ) : 0;
-		$bucket   = max( 1, (int) VLT_Settings::get( 'heatmap_bucket_size' ) );
 
 		$all_videos = $wpdb->get_results(
 			"SELECT id, title, video_key, duration_seconds FROM {$p}vlt_videos WHERE is_active = 1 ORDER BY created_at DESC"
 		);
+
+		// Auto-calculate bucket size so the chart has at most ~120 bars.
+		$bucket = 1;
+		if ( $video_id ) {
+			$selected_video = null;
+			foreach ( $all_videos as $v ) {
+				if ( (int) $v->id === $video_id ) {
+					$selected_video = $v;
+					break;
+				}
+			}
+			$duration_s = $selected_video ? (int) $selected_video->duration_seconds : 0;
+			if ( $duration_s > 0 ) {
+				$ideal        = (int) ceil( $duration_s / 120 );
+				$bucket_steps = [ 1, 5, 10, 30, 60, 300, 600 ];
+				foreach ( $bucket_steps as $step ) {
+					if ( $step >= $ideal ) {
+						$bucket = $step;
+						break;
+					}
+				}
+				if ( $bucket === 1 && $ideal > 600 ) {
+					$bucket = (int) ceil( $ideal / 60 ) * 60;
+				}
+			}
+		}
 
 		$heatmap_data = [];
 		$max_total    = 1;

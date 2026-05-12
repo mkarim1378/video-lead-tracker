@@ -560,43 +560,61 @@ class VLT_DB {
 	 * Attach a lead_id to all anonymous records belonging to a visitor.
 	 * Used in Phase 8 when a visitor submits the form.
 	 */
+	/**
+	 * Attach a lead_id to all anonymous records belonging to a visitor.
+	 * Also migrates anonymous vlt_video_user_summary rows to the lead.
+	 *
+	 * @return int[]  Video IDs whose summary rows were migrated (caller should re-aggregate).
+	 */
 	public static function attach_lead_to_visitor( $visitor_uuid, $lead_id ) {
 		global $wpdb;
 
 		$lead_id      = (int) $lead_id;
 		$visitor_uuid = sanitize_text_field( $visitor_uuid );
+		$now          = current_time( 'mysql', true );
+		$p            = $wpdb->prefix;
 
 		$wpdb->query( $wpdb->prepare(
-			'UPDATE ' . $wpdb->prefix . 'vlt_visitors SET lead_id = %d, updated_at = %s WHERE visitor_uuid = %s',
-			$lead_id,
-			current_time( 'mysql', true ),
-			$visitor_uuid
+			"UPDATE {$p}vlt_visitors SET lead_id = %d, updated_at = %s WHERE visitor_uuid = %s",
+			$lead_id, $now, $visitor_uuid
 		) );
 
 		$wpdb->query( $wpdb->prepare(
-			'UPDATE ' . $wpdb->prefix . 'vlt_sessions SET lead_id = %d, updated_at = %s WHERE visitor_uuid = %s AND lead_id IS NULL',
-			$lead_id,
-			current_time( 'mysql', true ),
-			$visitor_uuid
+			"UPDATE {$p}vlt_sessions SET lead_id = %d, updated_at = %s WHERE visitor_uuid = %s AND lead_id IS NULL",
+			$lead_id, $now, $visitor_uuid
 		) );
 
 		$wpdb->query( $wpdb->prepare(
-			'UPDATE ' . $wpdb->prefix . 'vlt_page_visits SET lead_id = %d WHERE visitor_uuid = %s AND lead_id IS NULL',
-			$lead_id,
-			$visitor_uuid
+			"UPDATE {$p}vlt_page_visits SET lead_id = %d WHERE visitor_uuid = %s AND lead_id IS NULL",
+			$lead_id, $visitor_uuid
 		) );
 
 		$wpdb->query( $wpdb->prepare(
-			'UPDATE ' . $wpdb->prefix . 'vlt_video_events SET lead_id = %d WHERE visitor_uuid = %s AND lead_id IS NULL',
-			$lead_id,
-			$visitor_uuid
+			"UPDATE {$p}vlt_video_events SET lead_id = %d WHERE visitor_uuid = %s AND lead_id IS NULL",
+			$lead_id, $visitor_uuid
 		) );
 
 		$wpdb->query( $wpdb->prepare(
-			'UPDATE ' . $wpdb->prefix . 'vlt_video_ranges SET lead_id = %d WHERE visitor_uuid = %s AND lead_id IS NULL',
-			$lead_id,
+			"UPDATE {$p}vlt_video_ranges SET lead_id = %d WHERE visitor_uuid = %s AND lead_id IS NULL",
+			$lead_id, $visitor_uuid
+		) );
+
+		// Collect video IDs with anonymous summary rows before migrating them.
+		$migrated_video_ids = $wpdb->get_col( $wpdb->prepare(
+			"SELECT DISTINCT video_id FROM {$p}vlt_video_user_summary
+			 WHERE visitor_uuid = %s AND lead_id IS NULL",
 			$visitor_uuid
 		) );
+
+		if ( $migrated_video_ids ) {
+			$wpdb->query( $wpdb->prepare(
+				"UPDATE {$p}vlt_video_user_summary SET lead_id = %d, updated_at = %s
+				 WHERE visitor_uuid = %s AND lead_id IS NULL",
+				$lead_id, $now, $visitor_uuid
+			) );
+		}
+
+		return array_map( 'intval', $migrated_video_ids );
 	}
 
 	// -------------------------------------------------------------------------

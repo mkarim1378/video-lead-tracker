@@ -5,6 +5,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.21.0] - 2026-05-12
+
+### Fixed
+- Phase 19: QA & Edge Cases
+  - **Bug — Heatmap JS key mismatch**: `drawBars()` read `b.bucket_start` but PHP emits `b.second` → bars had no tooltip text and axis labels were blank. Fixed JS to use `b.second`.
+  - **Bug — Double-counting after lead identification**: `attach_lead_to_visitor()` updated ranges/events/sessions but left `vlt_video_user_summary` rows as anonymous (`lead_id IS NULL`). Subsequent aggregations created a second summary row for the same viewer, inflating viewer counts and averages.
+    - `VLT_DB::attach_lead_to_visitor()` now collects affected `video_id`s, migrates summary rows (`SET lead_id = %d`), and returns the list.
+    - `handle_lead_submit()` uses the returned list to re-run `VLT_Aggregator::aggregate()` for each migrated video, ensuring merged ranges are recomputed under the correct `lead_id`.
+  - **Edge case — Heatmap bucket size**: `VLT_Settings::get('heatmap_bucket_size')` is not a defined setting → always 0 → `max(1, 0) = 1` → 1-second buckets → up to 7200 bars for a 2-hour video. `render_heatmap()` now auto-calculates bucket size to target ≤ 120 bars, stepping through `[1, 5, 10, 30, 60, 300, 600]` seconds.
+  - **Edge case — Leads pagination overflow**: manually entering `?paged=999` beyond the last page showed an empty table with "Showing X to 0 of N". `$paged` is now clamped to `$total_pages` after computing it, and `$offset` is recalculated accordingly.
+
+### Changed
+- Version bumped 0.20.0 → 0.21.0
+
+---
+
 ## [0.20.0] - 2026-05-12
 
 ### Added

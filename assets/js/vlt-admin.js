@@ -106,7 +106,7 @@
 			var bar    = document.createElement( 'div' );
 			bar.className   = 'vlt-hm-bar';
 			bar.style.height = pct + '%';
-			bar.title = formatTime( b.bucket_start ) + '–' + formatTime( b.bucket_start + bucketSize ) + ': ' + val;
+			bar.title = formatTime( b.second ) + '–' + formatTime( b.second + bucketSize ) + ': ' + val;
 			chart.appendChild( bar );
 
 			if ( axis ) {
@@ -114,7 +114,7 @@
 				tick.className = 'vlt-hm-tick';
 				if ( i % labelEvery === 0 ) {
 					tick.className += ' vlt-hm-tick--label';
-					tick.textContent = formatTime( b.bucket_start );
+					tick.textContent = formatTime( b.second );
 				}
 				axis.appendChild( tick );
 			}
