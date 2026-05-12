@@ -5,6 +5,27 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.4.0] - 2026-05-12
+
+### Added
+- `VLT_Frontend`: full shortcode `[vlt_video_lead_gate]` implementation with `video_key`, `src`, `poster`, `title` attributes
+- PHP HTML renderer outputs loading spinner, lead form, and hidden video player as distinct containers
+- `assets/css/vlt-frontend.css`: responsive, RTL-aware styles for form, spinner, video, error messages
+- `assets/js/vlt-frontend.js`: complete browser-side state machine
+  - Identity load from `localStorage` with cookie fallback
+  - `saveIdentity()` / `clearIdentity()` — stores `visitor_uuid`, `lead_id`, `identity_token`
+  - `initSession()` — calls `POST /vlt/v1/session/init`; shows form or video based on response
+  - Form submit handler — calls `POST /vlt/v1/lead/submit`; saves identity, reveals video
+  - Dispatches `vlt:videoReady` custom event so Phase 11 video tracker can hook in
+  - Exposes `window.vltState`, `window.vltSaveIdentity`, `window.vltApiFetch` for later modules
+- `wp_localize_script` passes `vltConfig` (REST base, nonce, video key, settings, i18n strings)
+- Scripts/styles registered globally but enqueued only when shortcode is present on the page
+
+### Changed
+- Plugin version bumped to `0.4.0`
+
+---
+
 ## [0.3.0] - 2026-05-12
 
 ### Added
