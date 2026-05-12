@@ -5,6 +5,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.3.0] - 2026-05-12
+
+### Added
+- Full Settings system via WordPress Settings API (`register_setting`, `add_settings_section`, `add_settings_field`)
+- Tabbed settings UI in admin: **General**, **Lead Form**, **Tracking**, **OTP**, **Export**
+- 27 configurable settings fields with sanitization per field type (checkbox, text, number, url, select, textarea, password, page_select)
+- `VLT_Settings::render_page()` — tabbed settings page with WP `nav-tab` UI and inline save confirmation
+- `VLT_Settings::sanitize()` — config-driven sanitizer, validates select options against allowed values
+- OTP settings fields added to defaults (provider, api_key, sender, template, expiry, cooldown, max_attempts)
+
+### Changed
+- `VLT_Admin` settings submenu now routes to `VLT_Settings::render_page()` instead of placeholder
+- Plugin version bumped to `0.3.0`
+
+---
+
 ## [0.2.0] - 2026-05-12
 
 ### Added

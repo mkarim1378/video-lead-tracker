@@ -29,7 +29,7 @@ class VLT_Admin {
 			[ 'vlt-video-analytics', __( 'Video Analytics', 'video-lead-tracker' ), [ self::class, 'render_placeholder' ] ],
 			[ 'vlt-heatmap',         __( 'Heatmap', 'video-lead-tracker' ),         [ self::class, 'render_placeholder' ] ],
 			[ 'vlt-exports',         __( 'Exports', 'video-lead-tracker' ),         [ self::class, 'render_placeholder' ] ],
-			[ 'vlt-settings',        __( 'Settings', 'video-lead-tracker' ),        [ self::class, 'render_placeholder' ] ],
+			[ 'vlt-settings',        __( 'Settings', 'video-lead-tracker' ),        [ 'VLT_Settings', 'render_page' ] ],
 			[ 'vlt-logs',            __( 'Logs', 'video-lead-tracker' ),            [ self::class, 'render_placeholder' ] ],
 		];
 
