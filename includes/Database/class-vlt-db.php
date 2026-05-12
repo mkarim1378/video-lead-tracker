@@ -376,6 +376,10 @@ class VLT_DB {
 		return self::update_where( 'vlt_leads', $data, [ 'id' => $id ] );
 	}
 
+	public static function create_lead_name( array $data ) {
+		return self::insert( 'vlt_lead_names', $data );
+	}
+
 	// -------------------------------------------------------------------------
 	// Bulk lead attachment (after form submit)
 	// -------------------------------------------------------------------------

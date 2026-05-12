@@ -5,6 +5,27 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.9.0] - 2026-05-12
+
+### Added
+- `POST /vlt/v1/lead/submit` fully implemented (Phase 8):
+  - Rate-limited to 10 req/5min per IP
+  - Validates required `name` and `mobile` fields
+  - Normalizes Iranian mobile numbers via `VLT_REST_Controller::normalize_mobile()`
+  - Finds or creates lead by `normalized_mobile`; promotes `primary_name` only if previously blank
+  - Always inserts a `vlt_lead_names` history row (tracks every submission)
+  - Generates a new `identity_token` on every successful submit
+  - Calls `VLT_DB::attach_lead_to_visitor()` to bulk-migrate anonymous sessions/events to the lead
+  - Updates visitor row with `lead_id` + new `identity_token_hash`
+  - Returns `{ lead_id, identity_token, normalized_mobile, mobile_hash, show_video: true }`
+- `VLT_REST_Controller::normalize_mobile()` — converts `09xxxxxxxxx`, `9xxxxxxxxx`, `+98xxxxxxxxxx`, `0098xxxxxxxxxx` to canonical `98xxxxxxxxxx`; returns `null` on invalid input
+- `VLT_DB::create_lead_name()` — inserts into `vlt_lead_names` (name history)
+
+### Changed
+- Plugin version bumped to `0.9.0`
+
+---
+
 ## [0.8.0] - 2026-05-12
 
 ### Added

@@ -155,8 +155,109 @@ class VLT_REST_Controller {
 	}
 
 	public static function handle_lead_submit( WP_REST_Request $request ) {
-		// Full implementation: Phase 8
-		return self::error( 'not_implemented', 'Lead submit coming in Phase 8.', 501 );
+		// Rate limit: 10 submissions / 5 min per IP.
+		$ip = self::get_client_ip();
+		if ( ! self::check_rate_limit( 'lead_submit', $ip, 10, 300 ) ) {
+			return self::error( 'rate_limited', 'Too many requests.', 429 );
+		}
+
+		$body         = $request->get_json_params() ?: [];
+		$visitor_uuid = sanitize_text_field( $body['visitor_uuid'] ?? '' );
+		$session_uuid = sanitize_text_field( $body['session_uuid'] ?? '' );
+		$name         = sanitize_text_field( $body['name']         ?? '' );
+		$mobile_raw   = sanitize_text_field( $body['mobile']       ?? '' );
+
+		// ---- Validate ----
+		if ( '' === $name ) {
+			return self::error( 'missing_name', 'Name is required.', 422 );
+		}
+		if ( '' === $mobile_raw ) {
+			return self::error( 'missing_mobile', 'Mobile number is required.', 422 );
+		}
+
+		$normalized_mobile = self::normalize_mobile( $mobile_raw );
+		if ( ! $normalized_mobile ) {
+			return self::error( 'invalid_mobile', 'Invalid mobile number format.', 422 );
+		}
+
+		$mobile_hash = hash( 'sha256', $normalized_mobile );
+		$ip_hash     = self::hash_ip( $ip );
+		$ua_raw      = $_SERVER['HTTP_USER_AGENT'] ?? '';
+		$ua_hash     = self::hash_user_agent( $ua_raw );
+		$now         = current_time( 'mysql', true );
+
+		// ---- Find or create lead ----
+		$lead    = VLT_DB::get_lead_by_mobile( $normalized_mobile );
+		$lead_id = null;
+
+		if ( $lead ) {
+			$lead_id = (int) $lead->id;
+			$update  = [ 'last_seen_at' => $now, 'updated_at' => $now ];
+
+			// Promote primary_name only if it was blank.
+			if ( empty( $lead->primary_name ) ) {
+				$update['primary_name'] = $name;
+			}
+			VLT_DB::update_lead( $lead_id, $update );
+
+		} else {
+			$lead_id = VLT_DB::create_lead( [
+				'primary_name'      => $name,
+				'normalized_mobile' => $normalized_mobile,
+				'mobile_hash'       => $mobile_hash,
+				'is_verified'       => 0,
+				'first_seen_at'     => $now,
+				'last_seen_at'      => $now,
+				'created_at'        => $now,
+				'updated_at'        => $now,
+			] );
+
+			if ( ! $lead_id ) {
+				VLT_Logger::error( 'Failed to create lead', 'lead_submit', [ 'mobile_hash' => $mobile_hash ] );
+				return self::error( 'db_error', 'Could not create lead record.', 500 );
+			}
+		}
+
+		// ---- Always record the submitted name in history ----
+		VLT_DB::create_lead_name( [
+			'lead_id'          => $lead_id,
+			'submitted_name'   => $name,
+			'normalized_mobile'=> $normalized_mobile,
+			'visitor_uuid'     => $visitor_uuid ?: null,
+			'session_uuid'     => $session_uuid ?: null,
+			'ip_hash'          => $ip_hash,
+			'user_agent_hash'  => $ua_hash,
+			'submitted_at'     => $now,
+		] );
+
+		// ---- Generate fresh identity token ----
+		$new_token  = self::generate_identity_token();
+		$token_hash = self::hash_token( $new_token );
+
+		// ---- Attach visitor & bulk-migrate anonymous data ----
+		if ( $visitor_uuid ) {
+			// Bulk-update: sessions, page_visits, video_events, video_ranges → lead_id.
+			VLT_DB::attach_lead_to_visitor( $visitor_uuid, $lead_id );
+
+			// Update visitor row with lead_id + new token hash.
+			$visitor = VLT_DB::get_visitor_by_uuid( $visitor_uuid );
+			if ( $visitor ) {
+				VLT_DB::update_visitor( (int) $visitor->id, [
+					'lead_id'             => $lead_id,
+					'identity_token_hash' => $token_hash,
+					'last_seen_at'        => $now,
+					'updated_at'          => $now,
+				] );
+			}
+		}
+
+		return self::success( [
+			'lead_id'           => $lead_id,
+			'identity_token'    => $new_token,
+			'normalized_mobile' => $normalized_mobile,
+			'mobile_hash'       => $mobile_hash,
+			'show_video'        => true,
+		] );
 	}
 
 	public static function handle_track_page( WP_REST_Request $request ) {
@@ -377,6 +478,42 @@ class VLT_REST_Controller {
 		}
 
 		return $result;
+	}
+
+	// -------------------------------------------------------------------------
+	// Mobile normalization
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Normalize an Iranian mobile number to the canonical 98xxxxxxxxxx (12-digit) format.
+	 * Accepts: 09xxxxxxxxx, 9xxxxxxxxx, +98xxxxxxxxxx, 0098xxxxxxxxxx, 98xxxxxxxxxx.
+	 *
+	 * @return string|null  Normalized number or null if invalid.
+	 */
+	public static function normalize_mobile( $mobile ) {
+		$mobile = preg_replace( '/[^\d+]/', '', trim( (string) $mobile ) );
+
+		// Strip leading + sign.
+		if ( substr( $mobile, 0, 1 ) === '+' ) {
+			$mobile = substr( $mobile, 1 );
+		}
+
+		// Strip leading 00 country-code prefix.
+		if ( substr( $mobile, 0, 2 ) === '00' ) {
+			$mobile = substr( $mobile, 2 );
+		}
+
+		// 09xxxxxxxxx (11 digits, local format) → 98xxxxxxxxxx
+		if ( substr( $mobile, 0, 2 ) === '09' && strlen( $mobile ) === 11 ) {
+			$mobile = '98' . substr( $mobile, 1 );
+		}
+
+		// 9xxxxxxxxx (10 digits, no leading 0) → 98xxxxxxxxxx
+		if ( substr( $mobile, 0, 1 ) === '9' && strlen( $mobile ) === 10 ) {
+			$mobile = '98' . $mobile;
+		}
+
+		return preg_match( '/^98\d{10}$/', $mobile ) ? $mobile : null;
 	}
 
 	// -------------------------------------------------------------------------
