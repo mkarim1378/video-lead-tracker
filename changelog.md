@@ -5,6 +5,29 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.8.0] - 2026-05-12
+
+### Added
+- `POST /vlt/v1/session/init` fully implemented (Phase 7):
+  - Rate-limited to 60 req/min per IP
+  - Validates `visitor_uuid` + `identity_token` pair against DB hash
+  - Known visitor: refreshes `last_seen_at`, reuses token, resolves `lead_id`
+  - New visitor: generates `visitor_uuid`, creates identity token, stores SHA-256 hash
+  - Creates a fresh `session_uuid` on every call with UTM, referrer, IP hash, UA, device/browser/OS
+  - Returns `{ visitor_uuid, session_uuid, known_lead, lead_id, identity_token, show_form, identity_invalid }`
+- `VLT_REST_Controller::detect_browser()` — Opera / Edge / Chrome / Firefox / Safari / IE detection
+- `VLT_REST_Controller::detect_os()` — iOS / Android / Windows / macOS / Linux detection
+- `VLT_DB` generic helpers: `insert()` (skips null fields) and `update_where()`
+- `VLT_DB` visitor CRUD: `create_visitor()`, `get_visitor_by_uuid()`, `update_visitor()`
+- `VLT_DB` session CRUD: `create_session()`, `update_session()`
+- `VLT_DB` lead stubs: `get_lead_by_mobile()`, `create_lead()`, `update_lead()` (used in Phase 8)
+- `VLT_DB::attach_lead_to_visitor()` — bulk UPDATE across 5 tables when anonymous data is merged into a lead
+
+### Changed
+- Plugin version bumped to `0.8.0`
+
+---
+
 ## [0.7.0] - 2026-05-12
 
 ### Added

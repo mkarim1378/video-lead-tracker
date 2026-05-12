@@ -280,6 +280,151 @@ class VLT_DB {
 ) $collate;" );
 	}
 
+	// -------------------------------------------------------------------------
+	// Generic helpers
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Insert a row, automatically skipping null values so DB columns keep their DEFAULT NULL.
+	 * All values are treated as strings (%s); MySQL coerces types correctly on insert.
+	 *
+	 * @return int|false  New row ID or false on failure.
+	 */
+	private static function insert( $table, array $data ) {
+		global $wpdb;
+
+		$clean  = array_filter( $data, function ( $v ) { return $v !== null; } );
+		$format = array_fill( 0, count( $clean ), '%s' );
+
+		$wpdb->insert( $wpdb->prefix . $table, $clean, $format );
+
+		return $wpdb->insert_id ? (int) $wpdb->insert_id : false;
+	}
+
+	/**
+	 * Update rows matching $where, skipping null values in $data.
+	 *
+	 * @return bool
+	 */
+	private static function update_where( $table, array $data, array $where ) {
+		global $wpdb;
+
+		$clean        = array_filter( $data, function ( $v ) { return $v !== null; } );
+		$data_format  = array_fill( 0, count( $clean ), '%s' );
+		$where_format = array_fill( 0, count( $where ), '%s' );
+
+		return false !== $wpdb->update( $wpdb->prefix . $table, $clean, $where, $data_format, $where_format );
+	}
+
+	// -------------------------------------------------------------------------
+	// Visitors
+	// -------------------------------------------------------------------------
+
+	public static function create_visitor( array $data ) {
+		return self::insert( 'vlt_visitors', $data );
+	}
+
+	/**
+	 * @return object|null
+	 */
+	public static function get_visitor_by_uuid( $visitor_uuid ) {
+		global $wpdb;
+
+		return $wpdb->get_row( $wpdb->prepare(
+			'SELECT * FROM ' . $wpdb->prefix . 'vlt_visitors WHERE visitor_uuid = %s LIMIT 1',
+			$visitor_uuid
+		) );
+	}
+
+	public static function update_visitor( $id, array $data ) {
+		return self::update_where( 'vlt_visitors', $data, [ 'id' => $id ] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Sessions
+	// -------------------------------------------------------------------------
+
+	public static function create_session( array $data ) {
+		return self::insert( 'vlt_sessions', $data );
+	}
+
+	public static function update_session( $session_uuid, array $data ) {
+		return self::update_where( 'vlt_sessions', $data, [ 'session_uuid' => $session_uuid ] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Leads (stubs — full implementation Phase 8)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * @return object|null
+	 */
+	public static function get_lead_by_mobile( $normalized_mobile ) {
+		global $wpdb;
+
+		return $wpdb->get_row( $wpdb->prepare(
+			'SELECT * FROM ' . $wpdb->prefix . 'vlt_leads WHERE normalized_mobile = %s LIMIT 1',
+			$normalized_mobile
+		) );
+	}
+
+	public static function create_lead( array $data ) {
+		return self::insert( 'vlt_leads', $data );
+	}
+
+	public static function update_lead( $id, array $data ) {
+		return self::update_where( 'vlt_leads', $data, [ 'id' => $id ] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Bulk lead attachment (after form submit)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Attach a lead_id to all anonymous records belonging to a visitor.
+	 * Used in Phase 8 when a visitor submits the form.
+	 */
+	public static function attach_lead_to_visitor( $visitor_uuid, $lead_id ) {
+		global $wpdb;
+
+		$lead_id      = (int) $lead_id;
+		$visitor_uuid = sanitize_text_field( $visitor_uuid );
+
+		$wpdb->query( $wpdb->prepare(
+			'UPDATE ' . $wpdb->prefix . 'vlt_visitors SET lead_id = %d, updated_at = %s WHERE visitor_uuid = %s',
+			$lead_id,
+			current_time( 'mysql', true ),
+			$visitor_uuid
+		) );
+
+		$wpdb->query( $wpdb->prepare(
+			'UPDATE ' . $wpdb->prefix . 'vlt_sessions SET lead_id = %d, updated_at = %s WHERE visitor_uuid = %s AND lead_id IS NULL',
+			$lead_id,
+			current_time( 'mysql', true ),
+			$visitor_uuid
+		) );
+
+		$wpdb->query( $wpdb->prepare(
+			'UPDATE ' . $wpdb->prefix . 'vlt_page_visits SET lead_id = %d WHERE visitor_uuid = %s AND lead_id IS NULL',
+			$lead_id,
+			$visitor_uuid
+		) );
+
+		$wpdb->query( $wpdb->prepare(
+			'UPDATE ' . $wpdb->prefix . 'vlt_video_events SET lead_id = %d WHERE visitor_uuid = %s AND lead_id IS NULL',
+			$lead_id,
+			$visitor_uuid
+		) );
+
+		$wpdb->query( $wpdb->prepare(
+			'UPDATE ' . $wpdb->prefix . 'vlt_video_ranges SET lead_id = %d WHERE visitor_uuid = %s AND lead_id IS NULL',
+			$lead_id,
+			$visitor_uuid
+		) );
+	}
+
+	// -------------------------------------------------------------------------
+
 	public static function create_heatmap_uniques_table() {
 		global $wpdb;
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';

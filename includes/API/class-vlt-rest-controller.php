@@ -58,8 +58,100 @@ class VLT_REST_Controller {
 	// -------------------------------------------------------------------------
 
 	public static function handle_session_init( WP_REST_Request $request ) {
-		// Full implementation: Phase 7
-		return self::error( 'not_implemented', 'Session init coming in Phase 7.', 501 );
+		// Rate limit: 60 requests / 60 s per IP.
+		$ip = self::get_client_ip();
+		if ( ! self::check_rate_limit( 'session_init', $ip, 60, 60 ) ) {
+			return self::error( 'rate_limited', 'Too many requests.', 429 );
+		}
+
+		$body           = $request->get_json_params() ?: [];
+		$visitor_uuid   = sanitize_text_field( $body['visitor_uuid']   ?? '' );
+		$identity_token = sanitize_text_field( $body['identity_token'] ?? '' );
+		$page_url       = esc_url_raw( $body['page_url']  ?? '' );
+		$referrer       = esc_url_raw( $body['referrer']  ?? '' );
+		$utm            = self::extract_utm( $body );
+
+		$raw_ua    = $_SERVER['HTTP_USER_AGENT'] ?? '';
+		$ip_hash   = self::hash_ip( $ip );
+		$ua_stored = self::get_user_agent();
+		$device    = self::detect_device( $raw_ua );
+		$browser   = self::detect_browser( $raw_ua );
+		$os        = self::detect_os( $raw_ua );
+		$now       = current_time( 'mysql', true );
+
+		$identity_invalid = false;
+		$visitor_row      = null;
+		$lead_id          = null;
+		$token_to_return  = null;
+
+		// ---- Attempt to restore existing visitor ----
+		if ( $visitor_uuid && $identity_token ) {
+			$visitor_row = self::validate_token( $visitor_uuid, $identity_token );
+			if ( ! $visitor_row ) {
+				$identity_invalid = true;
+				$visitor_uuid     = '';
+			}
+		}
+
+		if ( $visitor_row ) {
+			// Known visitor — refresh last_seen_at, reuse token.
+			$lead_id         = $visitor_row->lead_id ? (int) $visitor_row->lead_id : null;
+			$token_to_return = $identity_token;
+
+			VLT_DB::update_visitor( (int) $visitor_row->id, [
+				'last_seen_at' => $now,
+				'updated_at'   => $now,
+			] );
+		} else {
+			// New visitor — generate fresh identity.
+			$visitor_uuid    = self::generate_uuid();
+			$token_to_return = self::generate_identity_token();
+
+			VLT_DB::create_visitor( [
+				'visitor_uuid'        => $visitor_uuid,
+				'identity_token_hash' => self::hash_token( $token_to_return ),
+				'first_seen_at'       => $now,
+				'last_seen_at'        => $now,
+				'created_at'          => $now,
+				'updated_at'          => $now,
+			] );
+		}
+
+		// ---- Always create a fresh session for this page load ----
+		$session_uuid = self::generate_uuid();
+
+		VLT_DB::create_session( [
+			'session_uuid'    => $session_uuid,
+			'visitor_uuid'    => $visitor_uuid,
+			'lead_id'         => $lead_id,
+			'started_at'      => $now,
+			'landing_url'     => $page_url,
+			'referrer'        => $referrer,
+			'utm_source'      => $utm['utm_source'],
+			'utm_medium'      => $utm['utm_medium'],
+			'utm_campaign'    => $utm['utm_campaign'],
+			'utm_content'     => $utm['utm_content'],
+			'utm_term'        => $utm['utm_term'],
+			'ip_hash'         => $ip_hash,
+			'user_agent'      => $ua_stored,
+			'device_type'     => $device,
+			'browser'         => $browser,
+			'os'              => $os,
+			'created_at'      => $now,
+			'updated_at'      => $now,
+		] );
+
+		$known_lead = ! is_null( $lead_id );
+
+		return self::success( [
+			'visitor_uuid'     => $visitor_uuid,
+			'session_uuid'     => $session_uuid,
+			'known_lead'       => $known_lead,
+			'lead_id'          => $lead_id,
+			'identity_token'   => $token_to_return,
+			'show_form'        => ! $known_lead,
+			'identity_invalid' => $identity_invalid,
+		] );
 	}
 
 	public static function handle_lead_submit( WP_REST_Request $request ) {
@@ -232,7 +324,7 @@ class VLT_REST_Controller {
 	}
 
 	// -------------------------------------------------------------------------
-	// Basic device detection
+	// Basic device / browser / OS detection
 	// -------------------------------------------------------------------------
 
 	public static function detect_device( $ua ) {
@@ -246,6 +338,29 @@ class VLT_REST_Controller {
 			return 'mobile';
 		}
 		return 'desktop';
+	}
+
+	public static function detect_browser( $ua ) {
+		$ua = strtolower( (string) $ua );
+
+		if ( strpos( $ua, 'opr/' ) !== false || strpos( $ua, 'opera' ) !== false ) return 'opera';
+		if ( strpos( $ua, 'edg/' ) !== false || strpos( $ua, 'edge/' ) !== false )  return 'edge';
+		if ( strpos( $ua, 'chrome/' ) !== false )                                   return 'chrome';
+		if ( strpos( $ua, 'firefox/' ) !== false )                                  return 'firefox';
+		if ( strpos( $ua, 'safari/' ) !== false )                                   return 'safari';
+		if ( strpos( $ua, 'msie' ) !== false || strpos( $ua, 'trident/' ) !== false ) return 'ie';
+		return 'other';
+	}
+
+	public static function detect_os( $ua ) {
+		$ua = strtolower( (string) $ua );
+
+		if ( strpos( $ua, 'iphone' ) !== false || strpos( $ua, 'ipad' ) !== false ) return 'ios';
+		if ( strpos( $ua, 'android' ) !== false )                                   return 'android';
+		if ( strpos( $ua, 'windows' ) !== false )                                   return 'windows';
+		if ( strpos( $ua, 'mac os' ) !== false || strpos( $ua, 'darwin' ) !== false ) return 'macos';
+		if ( strpos( $ua, 'linux' ) !== false )                                     return 'linux';
+		return 'other';
 	}
 
 	// -------------------------------------------------------------------------
