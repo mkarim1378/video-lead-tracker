@@ -5,6 +5,29 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.10.0] - 2026-05-12
+
+### Added
+- `VLT_OTP_Service` — full OTP module (Phase 9):
+  - `send()`: enforces per-mobile resend cooldown, generates a cryptographically random 6-digit code, stores SHA-256 hash + expiry in `vlt_otp_codes`, dispatches via configured provider
+  - `verify()`: fetches latest non-expired non-verified OTP, increments attempt counter before checking (brute-force safe), uses `hash_equals()`, marks code verified on success
+  - Provider dispatch: Kavenegar (`kavenegar`), SMS.ir (`sms_ir`), or generic fallback (logs code to `vlt_logs` for development)
+- `POST /vlt/v1/otp/send` — rate-limited 5 req/5min per IP; validates `normalized_mobile`; calls `VLT_OTP_Service::send()`
+- `POST /vlt/v1/otp/verify` — rate-limited 10 req/5min per IP; validates code format; calls `VLT_OTP_Service::verify()`; sets `is_verified = 1` on the lead row
+- OTP step UI in `vlt-frontend.js`:
+  - After form submit, if `vltConfig.otp.enabled`, shows OTP container instead of video
+  - Auto-sends OTP on step entry; displays masked mobile hint
+  - Resend button with live countdown timer (respects `otp_resend_cooldown` setting)
+  - On successful verify, transitions to video
+- OTP HTML container rendered by `VLT_Frontend::render_html()` (code input, verify button, resend section)
+- OTP config passed via `vltConfig.otp` (`enabled`, `cooldown`) and 6 new i18n keys
+- OTP step styles in `vlt-frontend.css` (hint, resend button, countdown)
+
+### Changed
+- Plugin version bumped to `0.10.0`
+
+---
+
 ## [0.9.0] - 2026-05-12
 
 ### Added

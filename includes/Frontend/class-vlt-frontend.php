@@ -91,11 +91,21 @@ class VLT_Frontend {
 					'heartbeatInterval' => (int) VLT_Settings::get( 'heartbeat_interval' ),
 					'trackAnonymous'    => (bool) VLT_Settings::get( 'track_anonymous' ),
 				],
+				'otp'        => [
+					'enabled'  => (bool) VLT_Settings::get( 'enable_otp' ),
+					'cooldown' => (int) VLT_Settings::get( 'otp_resend_cooldown' ),
+				],
 				'i18n'       => [
 					'fillAllFields' => __( 'Please fill in all fields.', 'video-lead-tracker' ),
 					'submitting'    => __( 'Please wait…', 'video-lead-tracker' ),
 					'submitError'   => __( 'Submission failed. Please try again.', 'video-lead-tracker' ),
 					'loadError'     => __( 'Could not connect. Please refresh the page.', 'video-lead-tracker' ),
+					'otpSentTo'     => __( 'A verification code was sent to', 'video-lead-tracker' ),
+					'enterCode'     => __( 'Please enter the verification code.', 'video-lead-tracker' ),
+					'otpSendError'  => __( 'Failed to send verification code. Please try again.', 'video-lead-tracker' ),
+					'otpInvalid'    => __( 'Invalid or expired code. Please try again.', 'video-lead-tracker' ),
+					'resend'        => __( 'Resend Code', 'video-lead-tracker' ),
+					'verify'        => __( 'Verify', 'video-lead-tracker' ),
 				],
 			]
 		);
@@ -152,6 +162,42 @@ class VLT_Frontend {
 
 						<div class="vlt-form-error" role="alert" style="display:none;"></div>
 					</form>
+				</div>
+			</div>
+
+			<?php /* OTP verification step — hidden until OTP is triggered */ ?>
+			<div class="vlt-otp-container" style="display:none;" aria-hidden="true">
+				<div class="vlt-form-inner">
+					<h2 class="vlt-form-title"><?php esc_html_e( 'Enter Verification Code', 'video-lead-tracker' ); ?></h2>
+					<p class="vlt-otp-hint"></p>
+
+					<form class="vlt-otp-form" novalidate>
+						<div class="vlt-field">
+							<label for="vlt-otp-code"><?php esc_html_e( 'Verification Code', 'video-lead-tracker' ); ?></label>
+							<input
+								type="text"
+								id="vlt-otp-code"
+								name="otp_code"
+								inputmode="numeric"
+								autocomplete="one-time-code"
+								maxlength="6"
+								required
+							/>
+						</div>
+
+						<button type="submit" class="vlt-submit-btn">
+							<?php esc_html_e( 'Verify', 'video-lead-tracker' ); ?>
+						</button>
+
+						<div class="vlt-form-error" role="alert" style="display:none;"></div>
+					</form>
+
+					<div class="vlt-otp-resend">
+						<button type="button" class="vlt-resend-btn" disabled>
+							<?php esc_html_e( 'Resend Code', 'video-lead-tracker' ); ?>
+						</button>
+						<span class="vlt-resend-countdown"></span>
+					</div>
 				</div>
 			</div>
 

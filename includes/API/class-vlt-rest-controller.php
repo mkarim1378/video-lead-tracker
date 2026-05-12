@@ -51,6 +51,18 @@ class VLT_REST_Controller {
 			'callback'            => [ self::class, 'handle_track_video_range' ],
 			'permission_callback' => '__return_true',
 		] );
+
+		register_rest_route( $ns, '/otp/send', [
+			'methods'             => 'POST',
+			'callback'            => [ self::class, 'handle_otp_send' ],
+			'permission_callback' => '__return_true',
+		] );
+
+		register_rest_route( $ns, '/otp/verify', [
+			'methods'             => 'POST',
+			'callback'            => [ self::class, 'handle_otp_verify' ],
+			'permission_callback' => '__return_true',
+		] );
 	}
 
 	// -------------------------------------------------------------------------
@@ -258,6 +270,77 @@ class VLT_REST_Controller {
 			'mobile_hash'       => $mobile_hash,
 			'show_video'        => true,
 		] );
+	}
+
+	public static function handle_otp_send( WP_REST_Request $request ) {
+		if ( ! VLT_Settings::get( 'enable_otp' ) ) {
+			return self::error( 'otp_disabled', 'OTP verification is not enabled.', 400 );
+		}
+
+		$ip = self::get_client_ip();
+		if ( ! self::check_rate_limit( 'otp_send', $ip, 5, 300 ) ) {
+			return self::error( 'rate_limited', 'Too many requests.', 429 );
+		}
+
+		$body              = $request->get_json_params() ?: [];
+		$normalized_mobile = sanitize_text_field( $body['normalized_mobile'] ?? '' );
+		$visitor_uuid      = sanitize_text_field( $body['visitor_uuid']      ?? '' );
+		$session_uuid      = sanitize_text_field( $body['session_uuid']      ?? '' );
+
+		if ( ! preg_match( '/^98\d{10}$/', $normalized_mobile ) ) {
+			return self::error( 'invalid_mobile', 'Invalid mobile number.', 422 );
+		}
+
+		$result = VLT_OTP_Service::send(
+			$normalized_mobile,
+			$visitor_uuid ?: null,
+			$session_uuid ?: null,
+			self::hash_ip( $ip )
+		);
+
+		if ( is_wp_error( $result ) ) {
+			return self::error( $result->get_error_code(), $result->get_error_message(), 422 );
+		}
+
+		return self::success( [ 'sent' => true ] );
+	}
+
+	public static function handle_otp_verify( WP_REST_Request $request ) {
+		if ( ! VLT_Settings::get( 'enable_otp' ) ) {
+			return self::error( 'otp_disabled', 'OTP verification is not enabled.', 400 );
+		}
+
+		$ip = self::get_client_ip();
+		if ( ! self::check_rate_limit( 'otp_verify', $ip, 10, 300 ) ) {
+			return self::error( 'rate_limited', 'Too many requests.', 429 );
+		}
+
+		$body              = $request->get_json_params() ?: [];
+		$normalized_mobile = sanitize_text_field( $body['normalized_mobile'] ?? '' );
+		$code              = sanitize_text_field( $body['code']              ?? '' );
+
+		if ( ! preg_match( '/^98\d{10}$/', $normalized_mobile ) ) {
+			return self::error( 'invalid_mobile', 'Invalid mobile number.', 422 );
+		}
+		if ( ! preg_match( '/^\d{4,8}$/', $code ) ) {
+			return self::error( 'invalid_code', 'Invalid code format.', 422 );
+		}
+
+		$result = VLT_OTP_Service::verify( $normalized_mobile, $code );
+		if ( is_wp_error( $result ) ) {
+			return self::error( $result->get_error_code(), $result->get_error_message(), 422 );
+		}
+
+		// Mark the lead as verified.
+		$lead = VLT_DB::get_lead_by_mobile( $normalized_mobile );
+		if ( $lead && ! $lead->is_verified ) {
+			VLT_DB::update_lead( (int) $lead->id, [
+				'is_verified' => 1,
+				'updated_at'  => current_time( 'mysql', true ),
+			] );
+		}
+
+		return self::success( [ 'verified' => true ] );
 	}
 
 	public static function handle_track_page( WP_REST_Request $request ) {

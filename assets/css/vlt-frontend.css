@@ -154,6 +154,53 @@
 	}
 }
 
+/* ---- OTP step ---- */
+
+.vlt-otp-container {
+	width: 100%;
+}
+
+.vlt-otp-hint {
+	margin: 0 0 20px;
+	color: #555;
+	font-size: 0.95em;
+}
+
+.vlt-otp-form {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.vlt-otp-resend {
+	margin-top: 16px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.vlt-resend-btn {
+	background: none;
+	border: none;
+	color: #0073aa;
+	font-size: 0.9em;
+	cursor: pointer;
+	padding: 0;
+	text-decoration: underline;
+	font-family: inherit;
+}
+
+.vlt-resend-btn:disabled {
+	color: #999;
+	cursor: not-allowed;
+	text-decoration: none;
+}
+
+.vlt-resend-countdown {
+	color: #999;
+	font-size: 0.85em;
+}
+
 /* ---- RTL support ---- */
 
 [dir="rtl"] .vlt-field input {

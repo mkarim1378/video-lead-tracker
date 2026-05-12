@@ -15,17 +15,19 @@
 
 	// Live state object — mutated in place so external modules share the reference.
 	var vltState = {
-		visitorUuid:   null,
-		sessionUuid:   null,
-		leadId:        null,
-		identityToken: null,
-		mobileHash:    null,
+		visitorUuid:      null,
+		sessionUuid:      null,
+		leadId:           null,
+		identityToken:    null,
+		mobileHash:       null,
+		normalizedMobile: null,
 	};
 	window.vltState = vltState;
 
 	// DOM refs
 	var wrapper, formContainer, videoContainer, loadingEl;
 	var formEl, nameInput, mobileInput, submitBtn, errorEl;
+	var otpContainer, otpForm, otpInput, otpSubmitBtn, otpErrorEl, resendBtn, resendCountdownEl;
 
 	// -------------------------------------------------------------------------
 	// Boot
@@ -38,11 +40,18 @@
 		formContainer  = wrapper.querySelector( '.vlt-form-container' );
 		videoContainer = wrapper.querySelector( '.vlt-video-container' );
 		loadingEl      = wrapper.querySelector( '.vlt-loading' );
-		formEl         = wrapper.querySelector( '.vlt-lead-form' );
-		nameInput      = wrapper.querySelector( '#vlt-name' );
-		mobileInput    = wrapper.querySelector( '#vlt-mobile' );
-		submitBtn      = wrapper.querySelector( '.vlt-submit-btn' );
-		errorEl        = wrapper.querySelector( '.vlt-form-error' );
+		formEl             = wrapper.querySelector( '.vlt-lead-form' );
+		nameInput          = wrapper.querySelector( '#vlt-name' );
+		mobileInput        = wrapper.querySelector( '#vlt-mobile' );
+		submitBtn          = wrapper.querySelector( '.vlt-lead-form .vlt-submit-btn' );
+		errorEl            = wrapper.querySelector( '.vlt-lead-form .vlt-form-error' );
+		otpContainer       = wrapper.querySelector( '.vlt-otp-container' );
+		otpForm            = wrapper.querySelector( '.vlt-otp-form' );
+		otpInput           = wrapper.querySelector( '#vlt-otp-code' );
+		otpSubmitBtn       = wrapper.querySelector( '.vlt-otp-form .vlt-submit-btn' );
+		otpErrorEl         = wrapper.querySelector( '.vlt-otp-form .vlt-form-error' );
+		resendBtn          = wrapper.querySelector( '.vlt-resend-btn' );
+		resendCountdownEl  = wrapper.querySelector( '.vlt-resend-countdown' );
 
 		loadIdentity();
 		showLoading();
@@ -50,6 +59,12 @@
 
 		if ( formEl ) {
 			formEl.addEventListener( 'submit', handleFormSubmit );
+		}
+		if ( otpForm ) {
+			otpForm.addEventListener( 'submit', handleOtpSubmit );
+		}
+		if ( resendBtn ) {
+			resendBtn.addEventListener( 'click', handleOtpResend );
 		}
 	} );
 
@@ -196,21 +211,136 @@
 			mobile:       mobile,
 		} )
 			.then( function ( res ) {
-				vltState.leadId        = res.lead_id;
-				vltState.identityToken = res.identity_token;
+				vltState.leadId           = res.lead_id;
+				vltState.identityToken    = res.identity_token;
+				vltState.normalizedMobile = res.normalized_mobile || null;
 
 				saveIdentity( {
 					visitor_uuid:   vltState.visitorUuid,
 					lead_id:        res.lead_id,
 					identity_token: res.identity_token,
+					mobile_hash:    res.mobile_hash || null,
 				} );
 
-				showVideo();
+				if ( cfg.otp && cfg.otp.enabled ) {
+					showOtpStep();
+				} else {
+					showVideo();
+				}
 			} )
 			.catch( function ( err ) {
 				showError( ( err && err.message ) || i18n.submitError || 'Submission failed.' );
 				setSubmitting( false );
 			} );
+	}
+
+	// -------------------------------------------------------------------------
+	// OTP step
+	// -------------------------------------------------------------------------
+
+	function showOtpStep() {
+		var hint = otpContainer && otpContainer.querySelector( '.vlt-otp-hint' );
+		if ( hint ) {
+			hint.textContent = ( i18n.otpSentTo || 'A verification code was sent to' )
+				+ ' ' + maskMobile( vltState.normalizedMobile );
+		}
+
+		if ( loadingEl      ) loadingEl.style.display      = 'none';
+		if ( formContainer  ) formContainer.style.display  = 'none';
+		if ( videoContainer ) videoContainer.style.display = 'none';
+		setAriaHidden( formContainer,  true );
+		setAriaHidden( videoContainer, true );
+
+		if ( otpContainer ) {
+			otpContainer.style.display = '';
+			setAriaHidden( otpContainer, false );
+		}
+
+		sendOtp();
+		if ( otpInput ) otpInput.focus();
+	}
+
+	function sendOtp() {
+		apiFetch( 'otp/send', {
+			normalized_mobile: vltState.normalizedMobile,
+			visitor_uuid:      vltState.visitorUuid,
+			session_uuid:      vltState.sessionUuid,
+		} )
+			.then( function () {
+				startResendCountdown( ( cfg.otp && cfg.otp.cooldown ) || 60 );
+			} )
+			.catch( function ( err ) {
+				showOtpError( ( err && err.message ) || i18n.otpSendError || 'Failed to send code.' );
+			} );
+	}
+
+	function handleOtpSubmit( e ) {
+		e.preventDefault();
+		hideOtpError();
+		if ( otpSubmitBtn ) otpSubmitBtn.disabled = true;
+
+		var code = otpInput ? otpInput.value.trim() : '';
+		if ( ! code ) {
+			showOtpError( i18n.enterCode || 'Please enter the verification code.' );
+			if ( otpSubmitBtn ) otpSubmitBtn.disabled = false;
+			return;
+		}
+
+		apiFetch( 'otp/verify', {
+			normalized_mobile: vltState.normalizedMobile,
+			code:              code,
+			visitor_uuid:      vltState.visitorUuid,
+		} )
+			.then( function () {
+				if ( otpContainer ) {
+					otpContainer.style.display = 'none';
+					setAriaHidden( otpContainer, true );
+				}
+				showVideo();
+			} )
+			.catch( function ( err ) {
+				showOtpError( ( err && err.message ) || i18n.otpInvalid || 'Invalid code. Please try again.' );
+				if ( otpSubmitBtn ) otpSubmitBtn.disabled = false;
+			} );
+	}
+
+	function handleOtpResend() {
+		if ( resendBtn ) resendBtn.disabled = true;
+		hideOtpError();
+		sendOtp();
+	}
+
+	function startResendCountdown( seconds ) {
+		if ( resendBtn        ) resendBtn.disabled        = true;
+		if ( resendCountdownEl ) resendCountdownEl.textContent = '(' + seconds + 's)';
+
+		var remaining = seconds;
+		var timer = setInterval( function () {
+			remaining -= 1;
+			if ( remaining <= 0 ) {
+				clearInterval( timer );
+				if ( resendBtn         ) resendBtn.disabled         = false;
+				if ( resendCountdownEl ) resendCountdownEl.textContent = '';
+			} else {
+				if ( resendCountdownEl ) resendCountdownEl.textContent = '(' + remaining + 's)';
+			}
+		}, 1000 );
+	}
+
+	function maskMobile( mobile ) {
+		if ( ! mobile || mobile.length < 8 ) return mobile || '';
+		return mobile.slice( 0, 4 ) + '****' + mobile.slice( -4 );
+	}
+
+	function showOtpError( msg ) {
+		if ( otpErrorEl ) {
+			otpErrorEl.textContent  = msg;
+			otpErrorEl.style.display = '';
+		}
+	}
+
+	function hideOtpError() {
+		if ( otpErrorEl ) otpErrorEl.style.display = 'none';
 	}
 
 	// -------------------------------------------------------------------------
