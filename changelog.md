@@ -5,6 +5,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.12.0] - 2026-05-12
+
+### Added
+- Persian (`fa_IR`) translation — 106 strings covering all admin, settings, frontend, OTP, and REST API messages
+  - `languages/video-lead-tracker.pot` — translation template (gettext POT format)
+  - `languages/video-lead-tracker-fa_IR.po` — Persian source translations
+  - `languages/video-lead-tracker-fa_IR.mo` — compiled binary loaded by WordPress
+- `load_plugin_textdomain()` called in `VLT_Plugin::init()` pointing to `languages/` directory
+
+### Changed
+- All user-facing REST API error messages wrapped with `__()` (rate limit, validation, lead creation, mobile format)
+- All `VLT_OTP_Service` user-facing error messages wrapped with `__()` (cooldown, send failure, expired, locked, invalid)
+- Plugin version bumped to `0.12.0`
+
+---
+
 ## [0.11.0] - 2026-05-12
 
 ### Added

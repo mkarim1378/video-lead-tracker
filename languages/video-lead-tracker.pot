@@ -1,0 +1,439 @@
+# Translation template for Video Lead Tracker
+# Copyright (C) 2026 Mohamad Karim
+# This file is distributed under the same license as the Video Lead Tracker package.
+msgid ""
+msgstr ""
+"Project-Id-Version: Video Lead Tracker 0.11.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-12 00:00+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Claude Code\n"
+"Domain: video-lead-tracker\n"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Video Lead Tracker"
+msgstr ""
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Overview"
+msgstr ""
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Leads"
+msgstr ""
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Video Analytics"
+msgstr ""
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Heatmap"
+msgstr ""
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Exports"
+msgstr ""
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Settings"
+msgstr ""
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Logs"
+msgstr ""
+
+#: includes/Admin/class-vlt-admin.php
+#, php-format
+msgid "Plugin active — version %s. Dashboard will be built in Phase 15."
+msgstr ""
+
+#: includes/Admin/class-vlt-admin.php
+msgid "This section is under development."
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Video Lead Tracker — Settings"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Settings saved."
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Save Settings"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "— Select a page —"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Enable"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "General"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Enable Tracking"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Track visits, leads, and video events"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Master switch. Disable to stop all data collection without removing data."
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Tracking Page"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Page where the [vlt_video_lead_gate] shortcode is placed."
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Video Key"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Unique slug for the video. Must match the shortcode video_key attribute."
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Video Title"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Display name used in admin reports."
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Video URL"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Direct URL to the MP4 video file."
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Video Duration (seconds)"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Used to calculate unique watch percent. Set to 0 to auto-detect from the player."
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Delete Data on Uninstall"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Permanently delete all plugin tables and settings when the plugin is removed"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Warning: this is irreversible. Leave unchecked to preserve data across reinstalls."
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Lead Form"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Form Title"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Name Field Label"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Mobile Field Label"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Submit Button Text"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Success Message"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Shown briefly after a successful form submission."
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Tracking"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Minimum Valid Range (seconds)"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Watch segments shorter than this value are ignored. Recommended: 1."
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Heartbeat Interval (seconds)"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "How often the JS tracker commits the current watch range. Recommended: 10."
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Heatmap Default Bucket Size"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "1 second"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "5 seconds"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "10 seconds"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "30 seconds"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Default grouping size for the heatmap chart."
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Track Before Form Submit"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Track anonymous page and video events before the lead submits the form"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Anonymous events are attached to the lead record once the form is submitted."
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "IP Address Storage"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Do not store"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Store as SHA-256 hash (recommended)"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Store raw IP"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Store User Agent"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Save the full user agent string in session records"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "OTP (optional)"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Enable OTP Verification"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Require SMS OTP before showing the video"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "When enabled, the user must verify their mobile number via OTP before accessing the video."
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "SMS Provider"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Provider identifier, e.g. sms_ir, kavenegar, melipayamak."
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "API Key"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Stored encrypted. Leave blank to keep the existing value when saving."
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Sender Number / Line"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Message Template"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Use {code} as the placeholder for the OTP code."
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "OTP Expiry (seconds)"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "How long the OTP remains valid. Recommended: 120."
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Resend Cooldown (seconds)"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Minimum seconds between resend requests per mobile."
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Max Verification Attempts"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Max wrong OTP entries before the code is invalidated."
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Export"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Enable XLSX Export"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Generate Excel-compatible XLSX files"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Requires a PHP XLSX library. Implemented in Phase 18."
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Enable CSV Fallback"
+msgstr ""
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Always provide a CSV download option (UTF-8 with BOM)"
+msgstr ""
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Enter Verification Code"
+msgstr ""
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Verification Code"
+msgstr ""
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Verify"
+msgstr ""
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Resend Code"
+msgstr ""
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Your browser does not support the video tag."
+msgstr ""
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Please fill in all fields."
+msgstr ""
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Please wait\xe2\x80\xa6"
+msgstr ""
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Submission failed. Please try again."
+msgstr ""
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Could not connect. Please refresh the page."
+msgstr ""
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "A verification code was sent to"
+msgstr ""
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Please enter the verification code."
+msgstr ""
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Failed to send verification code. Please try again."
+msgstr ""
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Invalid or expired code. Please try again."
+msgstr ""
+
+#: includes/API/class-vlt-rest-controller.php
+msgid "Too many requests."
+msgstr ""
+
+#: includes/API/class-vlt-rest-controller.php
+msgid "Name is required."
+msgstr ""
+
+#: includes/API/class-vlt-rest-controller.php
+msgid "Mobile number is required."
+msgstr ""
+
+#: includes/API/class-vlt-rest-controller.php
+msgid "Invalid mobile number format."
+msgstr ""
+
+#: includes/API/class-vlt-rest-controller.php
+msgid "Could not create lead record."
+msgstr ""
+
+#: includes/API/class-vlt-rest-controller.php
+msgid "Invalid mobile number."
+msgstr ""
+
+#: includes/Services/class-vlt-otp-service.php
+#, php-format
+msgid "Please wait %d seconds before requesting a new code."
+msgstr ""
+
+#: includes/Services/class-vlt-otp-service.php
+msgid "Failed to send verification code. Please try again."
+msgstr ""
+
+#: includes/Services/class-vlt-otp-service.php
+msgid "Verification code has expired or does not exist."
+msgstr ""
+
+#: includes/Services/class-vlt-otp-service.php
+msgid "Maximum attempts exceeded. Please request a new code."
+msgstr ""
+
+#: includes/Services/class-vlt-otp-service.php
+msgid "Invalid verification code."
+msgstr ""

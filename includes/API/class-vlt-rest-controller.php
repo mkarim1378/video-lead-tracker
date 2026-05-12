@@ -73,7 +73,7 @@ class VLT_REST_Controller {
 		// Rate limit: 60 requests / 60 s per IP.
 		$ip = self::get_client_ip();
 		if ( ! self::check_rate_limit( 'session_init', $ip, 60, 60 ) ) {
-			return self::error( 'rate_limited', 'Too many requests.', 429 );
+			return self::error( 'rate_limited', __( 'Too many requests.', 'video-lead-tracker' ), 429 );
 		}
 
 		$body           = $request->get_json_params() ?: [];
@@ -170,7 +170,7 @@ class VLT_REST_Controller {
 		// Rate limit: 10 submissions / 5 min per IP.
 		$ip = self::get_client_ip();
 		if ( ! self::check_rate_limit( 'lead_submit', $ip, 10, 300 ) ) {
-			return self::error( 'rate_limited', 'Too many requests.', 429 );
+			return self::error( 'rate_limited', __( 'Too many requests.', 'video-lead-tracker' ), 429 );
 		}
 
 		$body         = $request->get_json_params() ?: [];
@@ -181,15 +181,15 @@ class VLT_REST_Controller {
 
 		// ---- Validate ----
 		if ( '' === $name ) {
-			return self::error( 'missing_name', 'Name is required.', 422 );
+			return self::error( 'missing_name', __( 'Name is required.', 'video-lead-tracker' ), 422 );
 		}
 		if ( '' === $mobile_raw ) {
-			return self::error( 'missing_mobile', 'Mobile number is required.', 422 );
+			return self::error( 'missing_mobile', __( 'Mobile number is required.', 'video-lead-tracker' ), 422 );
 		}
 
 		$normalized_mobile = self::normalize_mobile( $mobile_raw );
 		if ( ! $normalized_mobile ) {
-			return self::error( 'invalid_mobile', 'Invalid mobile number format.', 422 );
+			return self::error( 'invalid_mobile', __( 'Invalid mobile number format.', 'video-lead-tracker' ), 422 );
 		}
 
 		$mobile_hash = hash( 'sha256', $normalized_mobile );
@@ -226,7 +226,7 @@ class VLT_REST_Controller {
 
 			if ( ! $lead_id ) {
 				VLT_Logger::error( 'Failed to create lead', 'lead_submit', [ 'mobile_hash' => $mobile_hash ] );
-				return self::error( 'db_error', 'Could not create lead record.', 500 );
+				return self::error( 'db_error', __( 'Could not create lead record.', 'video-lead-tracker' ), 500 );
 			}
 		}
 
@@ -279,7 +279,7 @@ class VLT_REST_Controller {
 
 		$ip = self::get_client_ip();
 		if ( ! self::check_rate_limit( 'otp_send', $ip, 5, 300 ) ) {
-			return self::error( 'rate_limited', 'Too many requests.', 429 );
+			return self::error( 'rate_limited', __( 'Too many requests.', 'video-lead-tracker' ), 429 );
 		}
 
 		$body              = $request->get_json_params() ?: [];
@@ -288,7 +288,7 @@ class VLT_REST_Controller {
 		$session_uuid      = sanitize_text_field( $body['session_uuid']      ?? '' );
 
 		if ( ! preg_match( '/^98\d{10}$/', $normalized_mobile ) ) {
-			return self::error( 'invalid_mobile', 'Invalid mobile number.', 422 );
+			return self::error( 'invalid_mobile', __( 'Invalid mobile number.', 'video-lead-tracker' ), 422 );
 		}
 
 		$result = VLT_OTP_Service::send(
@@ -312,7 +312,7 @@ class VLT_REST_Controller {
 
 		$ip = self::get_client_ip();
 		if ( ! self::check_rate_limit( 'otp_verify', $ip, 10, 300 ) ) {
-			return self::error( 'rate_limited', 'Too many requests.', 429 );
+			return self::error( 'rate_limited', __( 'Too many requests.', 'video-lead-tracker' ), 429 );
 		}
 
 		$body              = $request->get_json_params() ?: [];
@@ -320,7 +320,7 @@ class VLT_REST_Controller {
 		$code              = sanitize_text_field( $body['code']              ?? '' );
 
 		if ( ! preg_match( '/^98\d{10}$/', $normalized_mobile ) ) {
-			return self::error( 'invalid_mobile', 'Invalid mobile number.', 422 );
+			return self::error( 'invalid_mobile', __( 'Invalid mobile number.', 'video-lead-tracker' ), 422 );
 		}
 		if ( ! preg_match( '/^\d{4,8}$/', $code ) ) {
 			return self::error( 'invalid_code', 'Invalid code format.', 422 );

@@ -1,0 +1,443 @@
+# Persian translation for Video Lead Tracker
+# Copyright (C) 2026 Mohamad Karim
+# This file is distributed under the same license as the Video Lead Tracker package.
+msgid ""
+msgstr ""
+"Project-Id-Version: Video Lead Tracker 0.11.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-12 00:00+0000\n"
+"PO-Revision-Date: 2026-05-12 00:00+0000\n"
+"Last-Translator: Mohamad Karim\n"
+"Language-Team: Persian\n"
+"Language: fa_IR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Claude Code\n"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Video Lead Tracker"
+msgstr "ردیاب ویدیو و لید"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Overview"
+msgstr "خلاصه"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Leads"
+msgstr "لیدها"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Video Analytics"
+msgstr "آنالیز ویدیو"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Heatmap"
+msgstr "نقشه حرارتی"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Exports"
+msgstr "خروجی‌ها"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Settings"
+msgstr "تنظیمات"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Logs"
+msgstr "گزارش‌ها"
+
+#: includes/Admin/class-vlt-admin.php
+#, php-format
+msgid "Plugin active — version %s. Dashboard will be built in Phase 15."
+msgstr "افزونه فعال است — نسخه %s. داشبورد در فاز ۱۵ ساخته خواهد شد."
+
+#: includes/Admin/class-vlt-admin.php
+msgid "This section is under development."
+msgstr "این بخش در حال توسعه است."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Video Lead Tracker — Settings"
+msgstr "ردیاب ویدیو و لید — تنظیمات"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Settings saved."
+msgstr "تنظیمات ذخیره شد."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Save Settings"
+msgstr "ذخیره تنظیمات"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "— Select a page —"
+msgstr "— یک صفحه انتخاب کنید —"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Enable"
+msgstr "فعال"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "General"
+msgstr "عمومی"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Enable Tracking"
+msgstr "فعال‌سازی ردیابی"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Track visits, leads, and video events"
+msgstr "ردیابی بازدیدها، لیدها و رویدادهای ویدیو"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Master switch. Disable to stop all data collection without removing data."
+msgstr "کلید اصلی. برای توقف جمع‌آوری داده بدون حذف آن‌ها، غیرفعال کنید."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Tracking Page"
+msgstr "صفحه ردیابی"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Page where the [vlt_video_lead_gate] shortcode is placed."
+msgstr "صفحه‌ای که شورت‌کد [vlt_video_lead_gate] در آن قرار دارد."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Video Key"
+msgstr "کلید ویدیو"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Unique slug for the video. Must match the shortcode video_key attribute."
+msgstr "شناسه یکتا برای ویدیو. باید با ویژگی video_key شورت‌کد یکسان باشد."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Video Title"
+msgstr "عنوان ویدیو"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Display name used in admin reports."
+msgstr "نامی که در گزارش‌های ادمین نمایش داده می‌شود."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Video URL"
+msgstr "آدرس ویدیو"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Direct URL to the MP4 video file."
+msgstr "آدرس مستقیم فایل MP4 ویدیو."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Video Duration (seconds)"
+msgstr "مدت زمان ویدیو (ثانیه)"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Used to calculate unique watch percent. Set to 0 to auto-detect from the player."
+msgstr "برای محاسبه درصد تماشای یکتا استفاده می‌شود. برای تشخیص خودکار از پلیر، مقدار صفر بگذارید."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Delete Data on Uninstall"
+msgstr "حذف داده‌ها هنگام حذف افزونه"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Permanently delete all plugin tables and settings when the plugin is removed"
+msgstr "حذف دائمی تمام جداول و تنظیمات افزونه هنگام حذف آن"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Warning: this is irreversible. Leave unchecked to preserve data across reinstalls."
+msgstr "هشدار: این عمل برگشت‌پذیر نیست. برای حفظ داده‌ها هنگام نصب مجدد، تیک نزنید."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Lead Form"
+msgstr "فرم لید"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Form Title"
+msgstr "عنوان فرم"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Name Field Label"
+msgstr "برچسب فیلد نام"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Mobile Field Label"
+msgstr "برچسب فیلد موبایل"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Submit Button Text"
+msgstr "متن دکمه ارسال"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Success Message"
+msgstr "پیام موفقیت"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Shown briefly after a successful form submission."
+msgstr "بلافاصله پس از ارسال موفق فرم نمایش داده می‌شود."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Tracking"
+msgstr "ردیابی"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Minimum Valid Range (seconds)"
+msgstr "حداقل بازه معتبر (ثانیه)"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Watch segments shorter than this value are ignored. Recommended: 1."
+msgstr "بازه‌های تماشا کوتاه‌تر از این مقدار نادیده گرفته می‌شوند. توصیه‌شده: ۱."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Heartbeat Interval (seconds)"
+msgstr "فاصله هارت‌بیت (ثانیه)"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "How often the JS tracker commits the current watch range. Recommended: 10."
+msgstr "فاصله زمانی ذخیره بازه تماشا توسط ردیاب JS. توصیه‌شده: ۱۰."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Heatmap Default Bucket Size"
+msgstr "اندازه پیش‌فرض بکت نقشه حرارتی"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "1 second"
+msgstr "۱ ثانیه"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "5 seconds"
+msgstr "۵ ثانیه"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "10 seconds"
+msgstr "۱۰ ثانیه"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "30 seconds"
+msgstr "۳۰ ثانیه"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Default grouping size for the heatmap chart."
+msgstr "اندازه گروه‌بندی پیش‌فرض برای نمودار نقشه حرارتی."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Track Before Form Submit"
+msgstr "ردیابی قبل از ارسال فرم"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Track anonymous page and video events before the lead submits the form"
+msgstr "ردیابی رویدادهای ناشناس صفحه و ویدیو قبل از ارسال فرم"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Anonymous events are attached to the lead record once the form is submitted."
+msgstr "رویدادهای ناشناس پس از ارسال فرم به رکورد لید متصل می‌شوند."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "IP Address Storage"
+msgstr "ذخیره‌سازی آدرس IP"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Do not store"
+msgstr "ذخیره نشود"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Store as SHA-256 hash (recommended)"
+msgstr "ذخیره به صورت هش SHA-256 (توصیه‌شده)"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Store raw IP"
+msgstr "ذخیره IP خام"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Store User Agent"
+msgstr "ذخیره User Agent"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Save the full user agent string in session records"
+msgstr "ذخیره رشته کامل user agent در رکوردهای سشن"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "OTP (optional)"
+msgstr "OTP (اختیاری)"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Enable OTP Verification"
+msgstr "فعال‌سازی تأیید OTP"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Require SMS OTP before showing the video"
+msgstr "الزام تأیید OTP قبل از نمایش ویدیو"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "When enabled, the user must verify their mobile number via OTP before accessing the video."
+msgstr "در صورت فعال بودن، کاربر باید قبل از دسترسی به ویدیو، شماره موبایل خود را از طریق OTP تأیید کند."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "SMS Provider"
+msgstr "ارائه‌دهنده SMS"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Provider identifier, e.g. sms_ir, kavenegar, melipayamak."
+msgstr "شناسه ارائه‌دهنده، مثلاً: sms_ir، kavenegar، melipayamak."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "API Key"
+msgstr "کلید API"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Stored encrypted. Leave blank to keep the existing value when saving."
+msgstr "رمزنگاری‌شده ذخیره می‌شود. برای حفظ مقدار فعلی هنگام ذخیره، خالی بگذارید."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Sender Number / Line"
+msgstr "شماره/خط ارسال‌کننده"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Message Template"
+msgstr "قالب پیام"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Use {code} as the placeholder for the OTP code."
+msgstr "از {code} به عنوان جای‌نگهدار کد OTP استفاده کنید."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "OTP Expiry (seconds)"
+msgstr "انقضای OTP (ثانیه)"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "How long the OTP remains valid. Recommended: 120."
+msgstr "مدت اعتبار OTP. توصیه‌شده: ۱۲۰ ثانیه."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Resend Cooldown (seconds)"
+msgstr "تأخیر ارسال مجدد (ثانیه)"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Minimum seconds between resend requests per mobile."
+msgstr "حداقل فاصله زمانی بین درخواست‌های ارسال مجدد برای هر موبایل."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Max Verification Attempts"
+msgstr "حداکثر تلاش‌های تأیید"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Max wrong OTP entries before the code is invalidated."
+msgstr "حداکثر تعداد ورود کد اشتباه قبل از باطل شدن."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Export"
+msgstr "خروجی"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Enable XLSX Export"
+msgstr "فعال‌سازی خروجی XLSX"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Generate Excel-compatible XLSX files"
+msgstr "تولید فایل‌های XLSX سازگار با Excel"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Requires a PHP XLSX library. Implemented in Phase 18."
+msgstr "نیاز به کتابخانه PHP XLSX دارد. در فاز ۱۸ پیاده‌سازی می‌شود."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Enable CSV Fallback"
+msgstr "فعال‌سازی خروجی پشتیبان CSV"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Always provide a CSV download option (UTF-8 with BOM)"
+msgstr "همیشه گزینه دانلود CSV (UTF-8 با BOM) را ارائه دهید"
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Enter Verification Code"
+msgstr "کد تأیید را وارد کنید"
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Verification Code"
+msgstr "کد تأیید"
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Verify"
+msgstr "تأیید"
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Resend Code"
+msgstr "ارسال مجدد کد"
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Your browser does not support the video tag."
+msgstr "مرورگر شما از تگ ویدیو پشتیبانی نمی‌کند."
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Please fill in all fields."
+msgstr "لطفاً تمام فیلدها را پر کنید."
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Please wait\xe2\x80\xa6"
+msgstr "لطفاً صبر کنید…"
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Submission failed. Please try again."
+msgstr "ارسال ناموفق بود. دوباره تلاش کنید."
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Could not connect. Please refresh the page."
+msgstr "اتصال برقرار نشد. صفحه را بارگذاری مجدد کنید."
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "A verification code was sent to"
+msgstr "کد تأیید ارسال شد به"
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Please enter the verification code."
+msgstr "لطفاً کد تأیید را وارد کنید."
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Failed to send verification code. Please try again."
+msgstr "ارسال کد تأیید ناموفق بود. دوباره تلاش کنید."
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Invalid or expired code. Please try again."
+msgstr "کد نامعتبر یا منقضی شده است. دوباره تلاش کنید."
+
+#: includes/API/class-vlt-rest-controller.php
+msgid "Too many requests."
+msgstr "درخواست‌های بیش از حد مجاز."
+
+#: includes/API/class-vlt-rest-controller.php
+msgid "Name is required."
+msgstr "نام الزامی است."
+
+#: includes/API/class-vlt-rest-controller.php
+msgid "Mobile number is required."
+msgstr "شماره موبایل الزامی است."
+
+#: includes/API/class-vlt-rest-controller.php
+msgid "Invalid mobile number format."
+msgstr "فرمت شماره موبایل نامعتبر است."
+
+#: includes/API/class-vlt-rest-controller.php
+msgid "Could not create lead record."
+msgstr "ایجاد رکورد لید امکان‌پذیر نبود."
+
+#: includes/API/class-vlt-rest-controller.php
+msgid "Invalid mobile number."
+msgstr "شماره موبایل نامعتبر است."
+
+#: includes/Services/class-vlt-otp-service.php
+#, php-format
+msgid "Please wait %d seconds before requesting a new code."
+msgstr "لطفاً %d ثانیه صبر کنید و سپس کد جدید درخواست دهید."
+
+#: includes/Services/class-vlt-otp-service.php
+msgid "Failed to send verification code. Please try again."
+msgstr "ارسال کد تأیید ناموفق بود. دوباره تلاش کنید."
+
+#: includes/Services/class-vlt-otp-service.php
+msgid "Verification code has expired or does not exist."
+msgstr "کد تأیید منقضی شده یا وجود ندارد."
+
+#: includes/Services/class-vlt-otp-service.php
+msgid "Maximum attempts exceeded. Please request a new code."
+msgstr "حداکثر تلاش‌های مجاز تمام شد. کد جدید درخواست دهید."
+
+#: includes/Services/class-vlt-otp-service.php
+msgid "Invalid verification code."
+msgstr "کد تأیید نامعتبر است."

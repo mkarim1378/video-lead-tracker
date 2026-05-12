@@ -16,6 +16,12 @@ class VLT_Plugin {
 	}
 
 	private function init() {
+		load_plugin_textdomain(
+			'video-lead-tracker',
+			false,
+			dirname( plugin_basename( VLT_PLUGIN_FILE ) ) . '/languages'
+		);
+
 		if ( VLT_DB::needs_upgrade() ) {
 			VLT_DB::create_tables();
 			update_option( 'vlt_db_version', VLT_DB_VERSION );

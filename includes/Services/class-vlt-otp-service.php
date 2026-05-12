@@ -33,7 +33,7 @@ class VLT_OTP_Service {
 			$elapsed = time() - (int) strtotime( $last_at );
 			if ( $elapsed < $cooldown ) {
 				$wait = $cooldown - $elapsed;
-				return new WP_Error( 'cooldown', sprintf( 'Please wait %d seconds before requesting a new code.', $wait ) );
+				return new WP_Error( 'cooldown', sprintf( __( 'Please wait %d seconds before requesting a new code.', 'video-lead-tracker' ), $wait ) );
 			}
 		}
 
@@ -64,7 +64,7 @@ class VLT_OTP_Service {
 
 		if ( ! self::dispatch( $normalized_mobile, $message ) ) {
 			VLT_Logger::error( 'OTP send failed', 'otp', [ 'mobile_hash' => hash( 'sha256', $normalized_mobile ) ] );
-			return new WP_Error( 'send_failed', 'Failed to send verification code. Please try again.' );
+			return new WP_Error( 'send_failed', __( 'Failed to send verification code. Please try again.', 'video-lead-tracker' ) );
 		}
 
 		return true;
@@ -93,11 +93,11 @@ class VLT_OTP_Service {
 		) );
 
 		if ( ! $row ) {
-			return new WP_Error( 'otp_expired', 'Verification code has expired or does not exist.' );
+			return new WP_Error( 'otp_expired', __( 'Verification code has expired or does not exist.', 'video-lead-tracker' ) );
 		}
 
 		if ( (int) $row->attempts_count >= $max_attempts ) {
-			return new WP_Error( 'otp_locked', 'Maximum attempts exceeded. Please request a new code.' );
+			return new WP_Error( 'otp_locked', __( 'Maximum attempts exceeded. Please request a new code.', 'video-lead-tracker' ) );
 		}
 
 		// Increment attempt counter before checking the code to prevent brute-force.
@@ -110,7 +110,7 @@ class VLT_OTP_Service {
 		);
 
 		if ( ! hash_equals( $row->otp_hash, self::hash_code( $code ) ) ) {
-			return new WP_Error( 'otp_invalid', 'Invalid verification code.' );
+			return new WP_Error( 'otp_invalid', __( 'Invalid verification code.', 'video-lead-tracker' ) );
 		}
 
 		// Mark as verified.
