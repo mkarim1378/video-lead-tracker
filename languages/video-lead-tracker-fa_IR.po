@@ -49,13 +49,96 @@ msgid "Logs"
 msgstr "گزارش‌ها"
 
 #: includes/Admin/class-vlt-admin.php
-#, php-format
-msgid "Plugin active — version %s. Dashboard will be built in Phase 15."
-msgstr "افزونه فعال است — نسخه %s. داشبورد در فاز ۱۵ ساخته خواهد شد."
-
-#: includes/Admin/class-vlt-admin.php
 msgid "This section is under development."
 msgstr "این بخش در حال توسعه است."
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Total Leads"
+msgstr "مجموع سرنخ‌ها"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Verified"
+msgstr "تأیید شده"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Sessions"
+msgstr "جلسات"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Videos"
+msgstr "ویدیوها"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Watch Hours"
+msgstr "ساعات تماشا"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Recent Leads"
+msgstr "سرنخ‌های اخیر"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Top Videos"
+msgstr "برترین ویدیوها"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Name"
+msgstr "نام"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Mobile"
+msgstr "موبایل"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Avg Watch"
+msgstr "میانگین تماشا"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "First Seen"
+msgstr "اولین بازدید"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Yes"
+msgstr "بله"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "No"
+msgstr "خیر"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "No leads yet."
+msgstr "هنوز سرنخی ثبت نشده است."
+
+#: includes/Admin/class-vlt-admin.php
+msgid "View all leads →"
+msgstr "مشاهده همه سرنخ‌ها ←"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Video"
+msgstr "ویدیو"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Viewers"
+msgstr "بینندگان"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Completions"
+msgstr "تکمیل‌ها"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Avg %"
+msgstr "میانگین ٪"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Watch hrs"
+msgstr "ساعات تماشا"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "No videos yet."
+msgstr "هنوز ویدیویی ثبت نشده است."
+
+#: includes/Admin/class-vlt-admin.php
+msgid "View analytics →"
+msgstr "مشاهده آمار ←"
 
 #: includes/Settings/class-vlt-settings.php
 msgid "Video Lead Tracker — Settings"

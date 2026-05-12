@@ -5,6 +5,24 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.17.0] - 2026-05-12
+
+### Added
+- Phase 15: Admin Overview Dashboard — `VLT_Admin::render_overview()` fully implemented:
+  - Five KPI cards: Total Leads, Verified, Sessions, Active Videos, Watch Hours (unique)
+  - **Recent Leads** table: last 10 leads with masked mobile, verified badge, avg watch %, first-seen date
+  - **Top Videos** table: top 8 active videos ordered by total unique watch hours, showing viewers, completions, avg completion %, watch hours
+  - "View all" / "View analytics" buttons linking to future submenu pages
+  - `mask_mobile()` helper — shows first 5 + `•••` + last 4 digits
+  - `format_duration()` helper — formats seconds as `M:SS` or `H:MM:SS`
+- Overview CSS: KPI card row, two-column grid, badges, monospace mobile, muted helpers, full-width view-all button
+- 22 new fa_IR translations for all admin UI strings; obsolete Phase 15 placeholder string removed from .po; .mo recompiled (128 entries)
+
+### Changed
+- Plugin version bumped to `0.17.0`
+
+---
+
 ## [0.16.0] - 2026-05-12
 
 ### Added
