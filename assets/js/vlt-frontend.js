@@ -57,6 +57,9 @@
 		showLoading();
 		initSession();
 
+		if ( mobileInput ) {
+			mobileInput.addEventListener( 'input', handleMobileInput );
+		}
 		if ( formEl ) {
 			formEl.addEventListener( 'submit', handleFormSubmit );
 		}
@@ -190,6 +193,33 @@
 	// -------------------------------------------------------------------------
 	// Form submit
 	// -------------------------------------------------------------------------
+
+	function handleMobileInput() {
+		var val = mobileInput.value;
+
+		// Persian (۰–۹) and Arabic-Indic (٠–٩) numerals → Latin digits
+		val = val.replace( /[\u06F0-\u06F9]/g, function ( c ) {
+			return String( c.charCodeAt( 0 ) - 0x06F0 );
+		} );
+		val = val.replace( /[\u0660-\u0669]/g, function ( c ) {
+			return String( c.charCodeAt( 0 ) - 0x0660 );
+		} );
+
+		// Strip anything that is not a digit
+		val = val.replace( /\D/g, '' );
+
+		// Auto-prepend 0 when number starts with 9 (e.g. 9123456789 → 09123456789)
+		if ( val.charAt( 0 ) === '9' ) {
+			val = '0' + val;
+		}
+
+		// Cap at 11 digits
+		if ( val.length > 11 ) {
+			val = val.slice( 0, 11 );
+		}
+
+		mobileInput.value = val;
+	}
 
 	function handleFormSubmit( e ) {
 		e.preventDefault();

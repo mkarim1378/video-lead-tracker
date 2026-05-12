@@ -5,6 +5,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.0.1] - 2026-05-12
+
+### Fixed
+- Mobile input field: maximum 11 digits enforced, auto-prepend `0` when user starts with `9`, Persian (U+06F0–U+06F9) and Arabic-Indic (U+0660–U+0669) numerals converted to Latin automatically, non-digit characters blocked.
+- "Please wait…" button text was displayed in English on Persian-language sites; fixed by correcting the `msgid` in the `.po` file — the literal `\xe2\x80\xa6` escape was stored instead of the actual `…` character, preventing a translation match.
+- Search placeholder in Leads admin page displayed garbled `\xe2\x80\xa6` escape sequence; both the PHP source and `.po` msgid/msgstr updated to use the actual `…` character.
+- OTP provider field changed from free-text input to a select dropdown; default option is Payamito (پیامیتو).
+
+### Changed
+- CSS colour scheme: replaced WordPress default blue (`#0073aa`, `#005f8d`, `rgba(0,115,170,…)`) with site brand colours — CTA buttons and accents use navy `#2d2c74` (hover: `#1d1c5e`), focus ring uses `rgba(45,44,116,0.15)`.
+- OTP provider default value changed from empty string to `payamito`.
+- `VLT_VERSION` bumped 1.0.0 → 1.0.1.
+
+---
+
 ## [1.0.0] - 2026-05-12
 
 ### Added

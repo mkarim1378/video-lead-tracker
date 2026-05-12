@@ -172,6 +172,7 @@ class VLT_Frontend {
 								name="mobile"
 								autocomplete="tel"
 								inputmode="numeric"
+								maxlength="11"
 								required
 							/>
 						</div>

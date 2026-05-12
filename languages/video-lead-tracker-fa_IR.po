@@ -141,8 +141,8 @@ msgid "View analytics →"
 msgstr "مشاهده آمار ←"
 
 #: includes/Admin/class-vlt-admin.php
-msgid "Search leads\xe2\x80\xa6"
-msgstr "جستجوی سرنخ\xe2\x80\xa6"
+msgid "Search leads…"
+msgstr "جستجوی سرنخ…"
 
 #: includes/Admin/class-vlt-admin.php
 msgid "Search"
@@ -568,8 +568,12 @@ msgid "SMS Provider"
 msgstr "ارائه‌دهنده SMS"
 
 #: includes/Settings/class-vlt-settings.php
-msgid "Provider identifier, e.g. sms_ir, kavenegar, melipayamak."
-msgstr "شناسه ارائه‌دهنده، مثلاً: sms_ir، kavenegar، melipayamak."
+msgid "Select your SMS provider for OTP delivery."
+msgstr "ارائه‌دهنده SMS خود را برای ارسال OTP انتخاب کنید."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Payamito (پیامیتو)"
+msgstr "پیامیتو"
 
 #: includes/Settings/class-vlt-settings.php
 msgid "API Key"
@@ -664,7 +668,7 @@ msgid "Please fill in all fields."
 msgstr "لطفاً تمام فیلدها را پر کنید."
 
 #: includes/Frontend/class-vlt-frontend.php
-msgid "Please wait\xe2\x80\xa6"
+msgid "Please wait…"
 msgstr "لطفاً صبر کنید…"
 
 #: includes/Frontend/class-vlt-frontend.php

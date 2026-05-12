@@ -33,7 +33,7 @@ class VLT_Settings {
 		'store_user_agent'        => false,
 		// OTP
 		'enable_otp'              => false,
-		'otp_provider'            => '',
+		'otp_provider'            => 'payamito',
 		'otp_api_key'             => '',
 		'otp_sender'              => '',
 		'otp_template'            => 'Your verification code is: {code}',
@@ -456,10 +456,11 @@ class VLT_Settings {
 						'desc'        => __( 'When enabled, the user must verify their mobile number via OTP before accessing the video.', 'video-lead-tracker' ),
 					],
 					[
-						'key'   => 'otp_provider',
-						'label' => __( 'SMS Provider', 'video-lead-tracker' ),
-						'type'  => 'text',
-						'desc'  => __( 'Provider identifier, e.g. sms_ir, kavenegar, melipayamak.', 'video-lead-tracker' ),
+						'key'     => 'otp_provider',
+						'label'   => __( 'SMS Provider', 'video-lead-tracker' ),
+						'type'    => 'select',
+						'options' => [ 'payamito' => __( 'Payamito (پیامیتو)', 'video-lead-tracker' ) ],
+						'desc'    => __( 'Select your SMS provider for OTP delivery.', 'video-lead-tracker' ),
 					],
 					[
 						'key'   => 'otp_api_key',

@@ -321,7 +321,7 @@ class VLT_Admin {
 			<form method="get" class="vlt-search-form">
 				<input type="hidden" name="page" value="vlt-leads">
 				<input type="search" name="s" value="<?php echo esc_attr( $search ); ?>"
-				       placeholder="<?php esc_attr_e( 'Search leads\xe2\x80\xa6', 'video-lead-tracker' ); ?>"
+				       placeholder="<?php esc_attr_e( 'Search leads…', 'video-lead-tracker' ); ?>"
 				       class="vlt-search-input">
 				<button type="submit" class="button"><?php esc_html_e( 'Search', 'video-lead-tracker' ); ?></button>
 				<?php if ( $search ) : ?>
