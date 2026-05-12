@@ -463,8 +463,59 @@ class VLT_REST_Controller {
 	}
 
 	public static function handle_track_video_range( WP_REST_Request $request ) {
-		// Full implementation: Phase 12
-		return self::error( 'not_implemented', 'Video range tracking coming in Phase 12.', 501 );
+		if ( ! VLT_Settings::get( 'enable_tracking' ) ) {
+			return self::success();
+		}
+
+		$body             = $request->get_json_params() ?: [];
+		$visitor_uuid     = sanitize_text_field( $body['visitor_uuid']     ?? '' );
+		$session_uuid     = sanitize_text_field( $body['session_uuid']     ?? '' );
+		$video_key        = sanitize_key( $body['video_key']               ?? '' );
+		$from_second      = isset( $body['from_second'] )    ? (float) $body['from_second']    : null;
+		$to_second        = isset( $body['to_second'] )      ? (float) $body['to_second']      : null;
+		$playback_rate    = isset( $body['playback_rate'] )  ? (float) $body['playback_rate']  : null;
+		$committed_reason = sanitize_key( $body['committed_reason'] ?? '' );
+		$lead_id          = isset( $body['lead_id'] ) && $body['lead_id'] ? absint( $body['lead_id'] ) : null;
+
+		if ( ! $visitor_uuid || ! $session_uuid || ! $video_key ) {
+			return self::error( 'missing_ids', 'visitor_uuid, session_uuid, and video_key are required.', 422 );
+		}
+
+		if ( $from_second === null || $to_second === null ) {
+			return self::error( 'missing_range', 'from_second and to_second are required.', 422 );
+		}
+
+		// Validate range — invalid ranges are silently dropped, not errored.
+		$min_valid = (float) VLT_Settings::get( 'min_valid_range_seconds' );
+		$duration  = $to_second - $from_second;
+
+		if ( $to_second <= $from_second || $duration < $min_valid ) {
+			return self::success();
+		}
+
+		// Resolve video (must already exist from video-event tracking).
+		$video = VLT_DB::get_video_by_key( $video_key );
+		if ( ! $video ) {
+			return self::success();
+		}
+
+		$now = current_time( 'mysql', true );
+
+		VLT_DB::create_video_range( [
+			'video_id'         => (int) $video->id,
+			'session_uuid'     => $session_uuid,
+			'visitor_uuid'     => $visitor_uuid,
+			'lead_id'          => $lead_id,
+			'from_second'      => $from_second,
+			'to_second'        => $to_second,
+			'duration_seconds' => $duration,
+			'playback_rate'    => $playback_rate,
+			'committed_reason' => $committed_reason ?: null,
+			'event_at'         => $now,
+			'created_at'       => $now,
+		] );
+
+		return self::success();
 	}
 
 	// -------------------------------------------------------------------------

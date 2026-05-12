@@ -344,6 +344,10 @@ class VLT_DB {
 		return self::insert( 'vlt_video_events', $data );
 	}
 
+	public static function create_video_range( array $data ) {
+		return self::insert( 'vlt_video_ranges', $data );
+	}
+
 	// -------------------------------------------------------------------------
 	// Visitors
 	// -------------------------------------------------------------------------

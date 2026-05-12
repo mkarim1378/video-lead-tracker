@@ -5,6 +5,28 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.14.0] - 2026-05-12
+
+### Added
+- `POST /vlt/v1/track/video-range` fully implemented (Phase 12):
+  - Silently drops invalid ranges (`to <= from` or `duration < min_valid_range_seconds`) without error
+  - Silently ignores if video record doesn't exist yet
+  - Inserts into `vlt_video_ranges` with `from_second`, `to_second`, `duration_seconds`, `playback_rate`, `committed_reason`
+- `VLT_DB::create_video_range()` — inserts a row into `vlt_video_ranges`
+- Range tracking state machine in `vlt-video-tracker.js` (Phase 12):
+  - `startRange()` — records `rangeStart = currentTime` on play / post-seek resume
+  - `commitRange(reason)` — validates and POSTs via `vltApiFetch`; reasons: `pause`, `seek`, `ended`, `heartbeat`
+  - `commitRangeBeacon(reason)` — POSTs via `sendBeacon` (Blob + `application/json`) with `fetch keepalive` fallback; reasons: `page_hidden`, `unload`
+  - Seek flow: commit current range before seek → restart range after `seeked` if was playing
+  - Heartbeat: commit current segment + immediately restart a new range from current time
+  - `visibilitychange` + `pagehide` / `beforeunload` listeners for unload commits
+  - Suppresses spurious `pause` event fired by browsers during seeking (`isSeeking` guard)
+
+### Changed
+- Plugin version bumped to `0.14.0`
+
+---
+
 ## [0.13.0] - 2026-05-12
 
 ### Added
