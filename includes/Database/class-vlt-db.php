@@ -317,6 +317,34 @@ class VLT_DB {
 	}
 
 	// -------------------------------------------------------------------------
+	// Videos
+	// -------------------------------------------------------------------------
+
+	/**
+	 * @return object|null
+	 */
+	public static function get_video_by_key( $video_key ) {
+		global $wpdb;
+
+		return $wpdb->get_row( $wpdb->prepare(
+			'SELECT * FROM ' . $wpdb->prefix . 'vlt_videos WHERE video_key = %s LIMIT 1',
+			$video_key
+		) );
+	}
+
+	public static function create_video( array $data ) {
+		return self::insert( 'vlt_videos', $data );
+	}
+
+	public static function update_video( $id, array $data ) {
+		return self::update_where( 'vlt_videos', $data, [ 'id' => $id ] );
+	}
+
+	public static function create_video_event( array $data ) {
+		return self::insert( 'vlt_video_events', $data );
+	}
+
+	// -------------------------------------------------------------------------
 	// Visitors
 	// -------------------------------------------------------------------------
 

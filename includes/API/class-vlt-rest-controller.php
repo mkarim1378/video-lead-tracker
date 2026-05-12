@@ -394,8 +394,72 @@ class VLT_REST_Controller {
 	}
 
 	public static function handle_track_video_event( WP_REST_Request $request ) {
-		// Full implementation: Phase 11
-		return self::error( 'not_implemented', 'Video event tracking coming in Phase 11.', 501 );
+		if ( ! VLT_Settings::get( 'enable_tracking' ) ) {
+			return self::success();
+		}
+
+		$body          = $request->get_json_params() ?: [];
+		$visitor_uuid  = sanitize_text_field( $body['visitor_uuid']  ?? '' );
+		$session_uuid  = sanitize_text_field( $body['session_uuid']  ?? '' );
+		$video_key     = sanitize_key( $body['video_key']            ?? '' );
+		$event_type    = sanitize_text_field( $body['event_type']    ?? '' );
+		$video_time    = isset( $body['video_time_seconds'] ) ? (float) $body['video_time_seconds'] : null;
+		$from_second   = isset( $body['from_second'] )        ? (float) $body['from_second']        : null;
+		$to_second     = isset( $body['to_second'] )          ? (float) $body['to_second']          : null;
+		$playback_rate = isset( $body['playback_rate'] )      ? (float) $body['playback_rate']      : null;
+		$duration      = isset( $body['duration_seconds'] )   ? (float) $body['duration_seconds']   : null;
+		$lead_id       = isset( $body['lead_id'] ) && $body['lead_id'] ? absint( $body['lead_id'] ) : null;
+		$metadata_raw  = isset( $body['metadata'] ) && is_array( $body['metadata'] ) ? $body['metadata'] : null;
+
+		$valid_events = [ 'video_loaded', 'play', 'pause', 'seek_start', 'seek_end', 'heartbeat', 'ended', 'error', 'rate_change' ];
+		if ( ! in_array( $event_type, $valid_events, true ) ) {
+			return self::error( 'invalid_event', 'Invalid event type.', 422 );
+		}
+
+		if ( ! $visitor_uuid || ! $session_uuid || ! $video_key ) {
+			return self::error( 'missing_ids', 'visitor_uuid, session_uuid, and video_key are required.', 422 );
+		}
+
+		$now = current_time( 'mysql', true );
+
+		// Resolve (or auto-create) the video record.
+		$video = VLT_DB::get_video_by_key( $video_key );
+		if ( ! $video ) {
+			$video_id = VLT_DB::create_video( [
+				'video_key'  => $video_key,
+				'title'      => VLT_Settings::get( 'video_title' ) ?: $video_key,
+				'is_active'  => 1,
+				'created_at' => $now,
+				'updated_at' => $now,
+			] );
+		} else {
+			$video_id = (int) $video->id;
+
+			// Store duration on first loadedmetadata if not yet set.
+			if ( $duration && empty( $video->duration_seconds ) ) {
+				VLT_DB::update_video( $video_id, [
+					'duration_seconds' => $duration,
+					'updated_at'       => $now,
+				] );
+			}
+		}
+
+		VLT_DB::create_video_event( [
+			'video_id'           => $video_id,
+			'session_uuid'       => $session_uuid,
+			'visitor_uuid'       => $visitor_uuid,
+			'lead_id'            => $lead_id,
+			'event_type'         => $event_type,
+			'video_time_seconds' => $video_time,
+			'from_second'        => $from_second,
+			'to_second'          => $to_second,
+			'playback_rate'      => $playback_rate,
+			'duration_seconds'   => $duration,
+			'event_at'           => $now,
+			'metadata'           => $metadata_raw ? wp_json_encode( $metadata_raw ) : null,
+		] );
+
+		return self::success();
 	}
 
 	public static function handle_track_video_range( WP_REST_Request $request ) {

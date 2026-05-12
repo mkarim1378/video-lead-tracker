@@ -5,6 +5,28 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.13.0] - 2026-05-12
+
+### Added
+- `POST /vlt/v1/track/video-event` fully implemented (Phase 11):
+  - Valid event types: `video_loaded`, `play`, `pause`, `seek_start`, `seek_end`, `heartbeat`, `ended`, `error`, `rate_change`
+  - Auto-creates or resolves `vlt_videos` row by `video_key`; stores `duration_seconds` on first `video_loaded`
+  - Inserts into `vlt_video_events` with full context: `video_time_seconds`, `from_second`, `to_second`, `playback_rate`, `duration_seconds`, `metadata`
+  - Silently ignores requests when `enable_tracking` setting is off
+- `VLT_DB::get_video_by_key()`, `create_video()`, `update_video()`, `create_video_event()` — video CRUD helpers
+- `assets/js/vlt-video-tracker.js` — HTML5 video event tracker:
+  - Boots on `vlt:videoReady` custom event dispatched by `vlt-frontend.js`
+  - Listens: `loadedmetadata` → `video_loaded`, `play`, `pause`, `seeking` → `seek_start`, `seeked` → `seek_end`, `ended`, `ratechange` → `rate_change`, `error`
+  - Heartbeat `setInterval` while playing (replaces noisy `timeupdate` — ~4 events/sec)
+  - Suppresses spurious `pause` fired by browsers during seeking (`isSeeking` flag)
+  - Sends via `window.vltApiFetch` (shared with `vlt-frontend.js`)
+- `vlt-video-tracker.js` registered with `vlt-frontend` dependency and enqueued on shortcode pages
+
+### Changed
+- Plugin version bumped to `0.13.0`
+
+---
+
 ## [0.12.0] - 2026-05-12
 
 ### Added

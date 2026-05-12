@@ -27,6 +27,13 @@ class VLT_Frontend {
 			VLT_VERSION,
 			true
 		);
+		wp_register_script(
+			'vlt-video-tracker',
+			VLT_PLUGIN_URL . 'assets/js/vlt-video-tracker.js',
+			[ 'vlt-frontend' ],
+			VLT_VERSION,
+			true
+		);
 	}
 
 	// -------------------------------------------------------------------------
@@ -75,6 +82,7 @@ class VLT_Frontend {
 
 		wp_enqueue_style( 'vlt-frontend' );
 		wp_enqueue_script( 'vlt-frontend' );
+		wp_enqueue_script( 'vlt-video-tracker' );
 
 		wp_localize_script(
 			'vlt-frontend',
