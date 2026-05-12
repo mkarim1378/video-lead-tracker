@@ -515,6 +515,8 @@ class VLT_REST_Controller {
 			'created_at'       => $now,
 		] );
 
+		VLT_Aggregator::aggregate( (int) $video->id, $lead_id, $visitor_uuid );
+
 		return self::success();
 	}
 

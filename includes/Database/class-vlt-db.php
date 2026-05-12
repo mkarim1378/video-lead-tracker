@@ -348,6 +348,138 @@ class VLT_DB {
 		return self::insert( 'vlt_video_ranges', $data );
 	}
 
+	/**
+	 * @return object|null
+	 */
+	public static function get_video_by_id( $video_id ) {
+		global $wpdb;
+
+		return $wpdb->get_row( $wpdb->prepare(
+			'SELECT * FROM ' . $wpdb->prefix . 'vlt_videos WHERE id = %d LIMIT 1',
+			(int) $video_id
+		) );
+	}
+
+	/**
+	 * Fetch all watch ranges for a given video + viewer.
+	 * When lead_id is set, queries by lead; otherwise by visitor_uuid (anonymous).
+	 *
+	 * @return object[]
+	 */
+	public static function get_video_ranges_for( $video_id, $lead_id, $visitor_uuid ) {
+		global $wpdb;
+
+		if ( $lead_id ) {
+			return $wpdb->get_results( $wpdb->prepare(
+				'SELECT from_second, to_second, duration_seconds, session_uuid
+				   FROM ' . $wpdb->prefix . 'vlt_video_ranges
+				  WHERE video_id = %d AND lead_id = %d',
+				(int) $video_id, (int) $lead_id
+			) );
+		}
+
+		return $wpdb->get_results( $wpdb->prepare(
+			'SELECT from_second, to_second, duration_seconds, session_uuid
+			   FROM ' . $wpdb->prefix . 'vlt_video_ranges
+			  WHERE video_id = %d AND visitor_uuid = %s AND lead_id IS NULL',
+			(int) $video_id, $visitor_uuid
+		) );
+	}
+
+	/**
+	 * @return bool
+	 */
+	public static function has_video_event_type( $video_id, $lead_id, $visitor_uuid, $event_type ) {
+		global $wpdb;
+
+		if ( $lead_id ) {
+			return (bool) $wpdb->get_var( $wpdb->prepare(
+				'SELECT 1 FROM ' . $wpdb->prefix . 'vlt_video_events
+				  WHERE video_id = %d AND lead_id = %d AND event_type = %s LIMIT 1',
+				(int) $video_id, (int) $lead_id, $event_type
+			) );
+		}
+
+		return (bool) $wpdb->get_var( $wpdb->prepare(
+			'SELECT 1 FROM ' . $wpdb->prefix . 'vlt_video_events
+			  WHERE video_id = %d AND visitor_uuid = %s AND lead_id IS NULL AND event_type = %s LIMIT 1',
+			(int) $video_id, $visitor_uuid, $event_type
+		) );
+	}
+
+	/**
+	 * @return string|null  MySQL datetime or null.
+	 */
+	public static function get_first_video_event_at( $video_id, $lead_id, $visitor_uuid, $event_type ) {
+		global $wpdb;
+
+		if ( $lead_id ) {
+			return $wpdb->get_var( $wpdb->prepare(
+				'SELECT MIN(event_at) FROM ' . $wpdb->prefix . 'vlt_video_events
+				  WHERE video_id = %d AND lead_id = %d AND event_type = %s',
+				(int) $video_id, (int) $lead_id, $event_type
+			) );
+		}
+
+		return $wpdb->get_var( $wpdb->prepare(
+			'SELECT MIN(event_at) FROM ' . $wpdb->prefix . 'vlt_video_events
+			  WHERE video_id = %d AND visitor_uuid = %s AND lead_id IS NULL AND event_type = %s',
+			(int) $video_id, $visitor_uuid, $event_type
+		) );
+	}
+
+	/**
+	 * @return int
+	 */
+	public static function count_video_sessions( $video_id, $lead_id, $visitor_uuid ) {
+		global $wpdb;
+
+		if ( $lead_id ) {
+			return (int) $wpdb->get_var( $wpdb->prepare(
+				'SELECT COUNT(DISTINCT session_uuid) FROM ' . $wpdb->prefix . 'vlt_video_ranges
+				  WHERE video_id = %d AND lead_id = %d',
+				(int) $video_id, (int) $lead_id
+			) );
+		}
+
+		return (int) $wpdb->get_var( $wpdb->prepare(
+			'SELECT COUNT(DISTINCT session_uuid) FROM ' . $wpdb->prefix . 'vlt_video_ranges
+			  WHERE video_id = %d AND visitor_uuid = %s AND lead_id IS NULL',
+			(int) $video_id, $visitor_uuid
+		) );
+	}
+
+	/**
+	 * Insert or update a vlt_video_user_summary row.
+	 */
+	public static function upsert_video_user_summary( $video_id, $lead_id, $visitor_uuid, array $data ) {
+		global $wpdb;
+
+		$table = $wpdb->prefix . 'vlt_video_user_summary';
+
+		if ( $lead_id ) {
+			$existing_id = (int) $wpdb->get_var( $wpdb->prepare(
+				"SELECT id FROM {$table} WHERE video_id = %d AND lead_id = %d LIMIT 1",
+				(int) $video_id, (int) $lead_id
+			) );
+		} else {
+			$existing_id = (int) $wpdb->get_var( $wpdb->prepare(
+				"SELECT id FROM {$table} WHERE video_id = %d AND visitor_uuid = %s AND lead_id IS NULL LIMIT 1",
+				(int) $video_id, $visitor_uuid
+			) );
+		}
+
+		if ( $existing_id ) {
+			self::update_where( 'vlt_video_user_summary', $data, [ 'id' => $existing_id ] );
+		} else {
+			self::insert( 'vlt_video_user_summary', array_merge( [
+				'video_id'     => (int) $video_id,
+				'lead_id'      => $lead_id,
+				'visitor_uuid' => $visitor_uuid,
+			], $data ) );
+		}
+	}
+
 	// -------------------------------------------------------------------------
 	// Visitors
 	// -------------------------------------------------------------------------

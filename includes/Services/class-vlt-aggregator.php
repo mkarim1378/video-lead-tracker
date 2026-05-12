@@ -36,4 +36,70 @@ class VLT_Aggregator {
 
 		return $merged;
 	}
+
+	/**
+	 * Recompute and upsert the vlt_video_user_summary row for a viewer.
+	 *
+	 * @param int         $video_id
+	 * @param int|null    $lead_id
+	 * @param string|null $visitor_uuid
+	 */
+	public static function aggregate( $video_id, $lead_id, $visitor_uuid ) {
+		$raw_rows = VLT_DB::get_video_ranges_for( $video_id, $lead_id, $visitor_uuid );
+
+		if ( empty( $raw_rows ) ) {
+			return;
+		}
+
+		$pairs          = [];
+		$total_watch    = 0.0;
+		$max_video_time = 0.0;
+
+		foreach ( $raw_rows as $row ) {
+			$from = (float) $row->from_second;
+			$to   = (float) $row->to_second;
+
+			$pairs[]        = [ $from, $to ];
+			$total_watch   += (float) $row->duration_seconds;
+			$max_video_time = max( $max_video_time, $to );
+		}
+
+		$merged       = self::merge_ranges( $pairs );
+		$unique_watch = array_reduce( $merged, function ( $carry, $pair ) {
+			return $carry + ( $pair[1] - $pair[0] );
+		}, 0.0 );
+
+		$video    = VLT_DB::get_video_by_id( $video_id );
+		$duration = $video ? (float) $video->duration_seconds : 0.0;
+
+		$unique_percent = 0.0;
+		if ( $duration > 0 ) {
+			$unique_percent = round( min( 100.0, ( $unique_watch / $duration ) * 100.0 ), 2 );
+		}
+
+		// Reached end: explicit 'ended' event OR max position within 2 s of video duration.
+		$reached_end = VLT_DB::has_video_event_type( $video_id, $lead_id, $visitor_uuid, 'ended' );
+		if ( ! $reached_end && $duration > 0 && $max_video_time >= ( $duration - 2.0 ) ) {
+			$reached_end = true;
+		}
+
+		$sessions_count = VLT_DB::count_video_sessions( $video_id, $lead_id, $visitor_uuid );
+		$first_play_at  = VLT_DB::get_first_video_event_at( $video_id, $lead_id, $visitor_uuid, 'play' );
+		$now            = current_time( 'mysql', true );
+
+		VLT_DB::upsert_video_user_summary( $video_id, $lead_id, $visitor_uuid, [
+			'sessions_count'         => $sessions_count,
+			'started'                => 1,
+			'reached_end'            => $reached_end ? 1 : 0,
+			'first_play_at'          => $first_play_at,
+			'last_activity_at'       => $now,
+			'total_watch_seconds'    => round( $total_watch,    3 ),
+			'unique_watch_seconds'   => round( $unique_watch,   3 ),
+			'max_video_time_seconds' => round( $max_video_time, 3 ),
+			'unique_watch_percent'   => $unique_percent,
+			'raw_ranges_json'        => wp_json_encode( $pairs ),
+			'merged_ranges_json'     => wp_json_encode( $merged ),
+			'updated_at'             => $now,
+		] );
+	}
 }

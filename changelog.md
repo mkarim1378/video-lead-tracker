@@ -5,6 +5,28 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.15.0] - 2026-05-12
+
+### Added
+- Phase 13: video summary aggregation — `VLT_Aggregator::aggregate()` and 6 new `VLT_DB` helpers:
+  - `get_video_by_id()` — fetch video row by primary key
+  - `get_video_ranges_for($video_id, $lead_id, $visitor_uuid)` — all raw ranges for a viewer; queries by `lead_id` when set, else by `visitor_uuid`
+  - `has_video_event_type()` — boolean check for a specific event type
+  - `get_first_video_event_at()` — `MIN(event_at)` for a given event type
+  - `count_video_sessions()` — `COUNT(DISTINCT session_uuid)` from ranges
+  - `upsert_video_user_summary()` — SELECT + INSERT or UPDATE pattern (no unique key required)
+- `VLT_Aggregator::aggregate()` computes and upserts `vlt_video_user_summary` after every range commit:
+  - Merges overlapping ranges (0.25 s tolerance) → `unique_watch_seconds` and `unique_watch_percent`
+  - Sums raw range durations → `total_watch_seconds`
+  - `reached_end`: `ended` event OR `max_video_time_seconds >= duration − 2 s`
+  - Stores `raw_ranges_json` and `merged_ranges_json` for heatmap phase
+- `handle_track_video_range()` now calls `VLT_Aggregator::aggregate()` after each successful range insert
+
+### Changed
+- Plugin version bumped to `0.15.0`
+
+---
+
 ## [0.14.0] - 2026-05-12
 
 ### Added
