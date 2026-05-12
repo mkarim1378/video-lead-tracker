@@ -85,6 +85,7 @@ class VLT_Frontend {
 				'videoKey'   => $video_key,
 				'videoUrl'   => $video_url,
 				'duration'   => $video_duration,
+				'pageId'     => (int) get_the_ID(),
 				'submitText' => VLT_Settings::get( 'submit_button_text' ),
 				'settings'   => [
 					'minValidRange'     => (int) VLT_Settings::get( 'min_valid_range_seconds' ),

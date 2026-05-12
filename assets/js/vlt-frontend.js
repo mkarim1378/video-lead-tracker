@@ -174,6 +174,8 @@
 					} );
 				}
 
+				startPageTracking();
+
 				if ( res.known_lead && ! res.show_form ) {
 					showVideo();
 				} else {
@@ -181,7 +183,6 @@
 				}
 			} )
 			.catch( function () {
-				// If the API is not ready yet (Phases 6-8 pending), fall through to form.
 				showForm();
 			} );
 	}
@@ -341,6 +342,108 @@
 
 	function hideOtpError() {
 		if ( otpErrorEl ) otpErrorEl.style.display = 'none';
+	}
+
+	// -------------------------------------------------------------------------
+	// Page tracking — Phase 10
+	// -------------------------------------------------------------------------
+
+	var pageTrackingStarted = false;
+	var visibleSeconds      = 0;     // cumulative visible time (seconds)
+	var visibleSince        = null;  // Date.now() when page last became visible
+	var heartbeatTimer      = null;
+
+	function startPageTracking() {
+		if ( pageTrackingStarted || ! vltState.sessionUuid ) return;
+		pageTrackingStarted = true;
+
+		visibleSince = document.hidden ? null : Date.now();
+
+		sendPageEvent( 'page_view', {
+			referrer: document.referrer || null,
+			utm:      getUtmParams(),
+		} );
+
+		document.addEventListener( 'visibilitychange', onVisibilityChange );
+
+		var interval = ( cfg.settings && cfg.settings.heartbeatInterval ) || 10;
+		heartbeatTimer = setInterval( function () {
+			if ( ! document.hidden ) {
+				sendPageEvent( 'heartbeat' );
+			}
+		}, interval * 1000 );
+
+		// pagehide fires reliably on mobile; fall back to beforeunload on desktop.
+		window.addEventListener( 'pagehide', onPageUnload );
+		if ( ! ( 'onpagehide' in window ) ) {
+			window.addEventListener( 'beforeunload', onPageUnload );
+		}
+	}
+
+	function onVisibilityChange() {
+		if ( document.hidden ) {
+			if ( visibleSince !== null ) {
+				visibleSeconds += ( Date.now() - visibleSince ) / 1000;
+				visibleSince = null;
+			}
+			sendPageEvent( 'page_hidden' );
+		} else {
+			visibleSince = Date.now();
+			sendPageEvent( 'page_visible' );
+		}
+	}
+
+	function onPageUnload() {
+		if ( visibleSince !== null ) {
+			visibleSeconds += ( Date.now() - visibleSince ) / 1000;
+			visibleSince = null;
+		}
+		sendPageEventBeacon( 'page_unload' );
+	}
+
+	function getVisibleSeconds() {
+		var extra = ( visibleSince !== null ) ? ( Date.now() - visibleSince ) / 1000 : 0;
+		return Math.round( visibleSeconds + extra );
+	}
+
+	function buildPageEventBody( eventType, metadata ) {
+		var body = {
+			visitor_uuid:         vltState.visitorUuid,
+			session_uuid:         vltState.sessionUuid,
+			lead_id:              vltState.leadId || null,
+			page_id:              cfg.pageId || null,
+			page_url:             window.location.href,
+			event_type:           eventType,
+			time_on_page_seconds: getVisibleSeconds(),
+		};
+		if ( metadata ) body.metadata = metadata;
+		return body;
+	}
+
+	function sendPageEvent( eventType, metadata ) {
+		if ( ! vltState.sessionUuid ) return;
+		apiFetch( 'track/page', buildPageEventBody( eventType, metadata ) ).catch( function () {} );
+	}
+
+	function sendPageEventBeacon( eventType ) {
+		if ( ! vltState.sessionUuid ) return;
+
+		var payload = JSON.stringify( buildPageEventBody( eventType ) );
+		var url     = REST + 'track/page';
+		var sent    = false;
+
+		if ( navigator.sendBeacon ) {
+			sent = navigator.sendBeacon( url, new Blob( [ payload ], { type: 'application/json' } ) );
+		}
+
+		if ( ! sent ) {
+			fetch( url, {
+				method:    'POST',
+				headers:   { 'Content-Type': 'application/json', 'X-WP-Nonce': NONCE },
+				body:      payload,
+				keepalive: true,
+			} ).catch( function () {} );
+		}
 	}
 
 	// -------------------------------------------------------------------------

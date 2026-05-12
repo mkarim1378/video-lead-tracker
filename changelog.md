@@ -5,6 +5,28 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.11.0] - 2026-05-12
+
+### Added
+- `POST /vlt/v1/track/page` fully implemented (Phase 10):
+  - Accepts `page_view`, `page_visible`, `page_hidden`, `page_unload`, `heartbeat` event types
+  - Silently ignores requests when `enable_tracking` setting is off
+  - Inserts into `vlt_page_visits` with `session_uuid`, `visitor_uuid`, `lead_id`, `page_id`, `page_url`, `event_type`, `event_at`, `time_on_page_seconds`, `metadata`
+  - Updates session `last_activity_at` on `heartbeat`, `page_hidden`, `page_unload` events
+- `VLT_DB::create_page_visit()` — inserts a row into `vlt_page_visits`
+- Page tracking in `vlt-frontend.js` (`startPageTracking()`):
+  - Sends `page_view` immediately after session init (with `referrer` + UTM in metadata)
+  - Tracks cumulative visible time (`visibleSeconds`) paused while tab is hidden
+  - `visibilitychange` listener → fires `page_visible` / `page_hidden`
+  - Heartbeat `setInterval` (respects `heartbeat_interval` setting) — skips when tab hidden
+  - `pagehide` + `beforeunload` fallback → fires `page_unload` via `navigator.sendBeacon()` (Blob + `application/json`), falling back to `fetch({ keepalive: true })`
+- `vltConfig.pageId` — WP post ID passed from PHP for page visit records
+
+### Changed
+- Plugin version bumped to `0.11.0`
+
+---
+
 ## [0.10.0] - 2026-05-12
 
 ### Added

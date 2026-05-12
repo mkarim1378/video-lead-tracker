@@ -344,8 +344,53 @@ class VLT_REST_Controller {
 	}
 
 	public static function handle_track_page( WP_REST_Request $request ) {
-		// Full implementation: Phase 10
-		return self::error( 'not_implemented', 'Page tracking coming in Phase 10.', 501 );
+		if ( ! VLT_Settings::get( 'enable_tracking' ) ) {
+			return self::success(); // silently ignore when tracking is disabled
+		}
+
+		$body         = $request->get_json_params() ?: [];
+		$visitor_uuid = sanitize_text_field( $body['visitor_uuid'] ?? '' );
+		$session_uuid = sanitize_text_field( $body['session_uuid'] ?? '' );
+		$event_type   = sanitize_text_field( $body['event_type']   ?? '' );
+		$page_url     = esc_url_raw( $body['page_url']             ?? '' );
+		$page_id      = absint( $body['page_id']                   ?? 0 );
+		$time_on_page = isset( $body['time_on_page_seconds'] )
+			? max( 0, (int) $body['time_on_page_seconds'] ) : null;
+		$lead_id      = isset( $body['lead_id'] ) && $body['lead_id'] ? absint( $body['lead_id'] ) : null;
+		$metadata_raw = isset( $body['metadata'] ) && is_array( $body['metadata'] ) ? $body['metadata'] : null;
+
+		$valid_events = [ 'page_view', 'page_visible', 'page_hidden', 'page_unload', 'heartbeat' ];
+		if ( ! in_array( $event_type, $valid_events, true ) ) {
+			return self::error( 'invalid_event', 'Invalid event type.', 422 );
+		}
+
+		if ( ! $visitor_uuid || ! $session_uuid ) {
+			return self::error( 'missing_ids', 'visitor_uuid and session_uuid are required.', 422 );
+		}
+
+		$now = current_time( 'mysql', true );
+
+		VLT_DB::create_page_visit( [
+			'session_uuid'         => $session_uuid,
+			'visitor_uuid'         => $visitor_uuid,
+			'lead_id'              => $lead_id,
+			'page_id'              => $page_id ?: null,
+			'page_url'             => $page_url,
+			'event_type'           => $event_type,
+			'event_at'             => $now,
+			'time_on_page_seconds' => $time_on_page,
+			'metadata'             => $metadata_raw ? wp_json_encode( $metadata_raw ) : null,
+		] );
+
+		// Keep session last_activity_at fresh for activity-based events.
+		if ( in_array( $event_type, [ 'heartbeat', 'page_hidden', 'page_unload' ], true ) ) {
+			VLT_DB::update_session( $session_uuid, [
+				'last_activity_at' => $now,
+				'updated_at'       => $now,
+			] );
+		}
+
+		return self::success();
 	}
 
 	public static function handle_track_video_event( WP_REST_Request $request ) {
