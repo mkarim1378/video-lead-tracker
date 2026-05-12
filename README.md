@@ -126,6 +126,97 @@ Range deduplication uses a 0.25 s tolerance so scrubbing back a tiny amount does
 
 ---
 
+## Usage Guide
+
+### Step 1 — Initial Setup
+
+After activating the plugin, go to **Video Lead Tracker → Settings**:
+
+| Setting | Description |
+|---|---|
+| **Enable Tracking** | Master switch — nothing is recorded until this is on |
+| **Tracking Page** | The page where your shortcode lives |
+| **Video Key** | A unique slug for this video (must match the `key` shortcode attribute) |
+| **Video Title** | Display name shown in admin reports |
+| **Video URL** | Direct URL to the MP4 file |
+
+### Step 2 — Embed the Video
+
+Place the shortcode inside any page or post:
+
+```
+[video_lead_tracker key="demo" url="https://yourdomain.com/video.mp4" title="Product Demo"]
+```
+
+When a visitor arrives at the page:
+1. An overlay form asks for their name and mobile number
+2. If OTP is enabled, they receive a verification code via SMS
+3. After the form is submitted the video unlocks and tracking begins
+4. On return visits the visitor is recognised automatically and sees the video directly — no form
+
+### Step 3 — Reading the Admin Dashboard
+
+#### Overview
+
+Once the first visits are recorded, the Overview page shows five KPIs:
+
+- **Total Leads** — number of unique people who submitted the form
+- **Verified** — leads whose mobile number was confirmed via OTP
+- **Sessions** — total page loads by all visitors
+- **Videos** — number of active videos
+- **Watch Hours** — total deduplicated watch time across all viewers
+
+Below the KPIs you'll find the **Recent Leads** and **Top Videos** tables.
+
+> Overview data is cached for 5 minutes. The cache is automatically invalidated after each watch-range commit, so live data appears immediately after a viewer watches.
+
+#### Leads Report
+
+A sortable table of all leads. Columns:
+
+- **Name / Mobile** — name and masked mobile number
+- **Verified** — OTP confirmed?
+- **Videos Watched** — how many distinct videos this lead has watched
+- **Avg Watch** — progress bar showing their average unique watch percentage
+- **Sessions** — number of sessions
+
+**Click any lead's name** to open the Lead Detail page:
+- Full identity info (unmasked mobile, verification status, first/last seen)
+- Video Watch History table (watch %, unique seconds, sessions, completed badge, first play)
+- Last 20 Sessions table (browser, device, OS, landing URL)
+
+The **Export CSV** button at the top downloads all leads with their stats.
+
+#### Video Analytics
+
+A list of all active videos with aggregate stats. Click any video to open its detail page:
+
+- **5 KPI cards**: Viewers, Avg %, Watch Hours, Completions, Sessions
+- **Watch Distribution**: how many viewers fell into each bucket — 0–25%, 25–50%, 50–75%, 75–100%
+- **Top Viewers**: ranked by unique watch percentage, each linked to their Lead Detail page
+
+The **Export CSV** button downloads all video summary rows.
+
+#### Heatmap
+
+1. Pick a video from the dropdown — the bar chart loads automatically
+2. Each bar represents a time bucket of the video (bucket size auto-scales so there are at most ~120 bars)
+3. Toggle between **Total Views / Unique Visitors / Unique Leads** using the buttons at the top
+4. Hover over any bar to see the exact time range and count
+
+**How to read it:** a short bar means fewer viewers watched those seconds. Tall bars at the start and short bars toward the end = drop-off in the middle of the video. A sudden dip in the middle may indicate a boring segment or a technical issue.
+
+The **Export Heatmap CSV** button downloads raw per-second data for further analysis in Excel or any BI tool.
+
+#### Logs
+
+If something goes wrong (OTP delivery failure, database error, aggregation issue), go to **Logs**:
+- Filter by level: Error / Warning / Info / Debug
+- Each entry shows the exact timestamp, context (which part of the plugin wrote it), message, and expandable metadata
+- The last 200 entries are shown, newest first
+
+---
+
 ## OTP Provider Setup
 
 ### Kavenegar
