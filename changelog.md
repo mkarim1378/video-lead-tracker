@@ -5,6 +5,24 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.5.0] - 2026-05-12
+
+### Added
+- `mobileHash` field added to `vltState` (populated from API response in Phase 8)
+- `mobile_hash` and `created_at` fields added to browser identity payload
+- `created_at` is set once on first save and preserved across all subsequent saves
+- Cross-restore logic in `loadIdentity()`:
+  - localStorage present but cookie missing → cookie rebuilt from localStorage
+  - Cookie present but localStorage missing → localStorage rebuilt from cookie
+- `clearIdentity()` now also clears `vltState.mobileHash`
+- `saveIdentity()` syncs `mobile_hash` into live `vltState` when provided
+
+### Changed
+- Plugin version bumped to `0.5.0`
+- No jQuery — confirmed pure vanilla JS throughout
+
+---
+
 ## [0.4.0] - 2026-05-12
 
 ### Added

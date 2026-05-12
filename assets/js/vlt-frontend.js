@@ -19,6 +19,7 @@
 		sessionUuid:   null,
 		leadId:        null,
 		identityToken: null,
+		mobileHash:    null,
 	};
 	window.vltState = vltState;
 
@@ -57,34 +58,60 @@
 	// -------------------------------------------------------------------------
 
 	function loadIdentity() {
-		var data = null;
+		var lsData     = null;
+		var cookieData = null;
 
 		try {
 			var raw = localStorage.getItem( STORAGE_KEY );
-			if ( raw ) data = JSON.parse( raw );
+			if ( raw ) lsData = JSON.parse( raw );
 		} catch ( e ) {}
 
-		if ( ! data || ! data.visitor_uuid ) {
-			try {
-				var cookie = getCookie( COOKIE_KEY );
-				if ( cookie ) data = JSON.parse( decodeURIComponent( cookie ) );
-			} catch ( e ) {}
+		try {
+			var cookie = getCookie( COOKIE_KEY );
+			if ( cookie ) cookieData = JSON.parse( decodeURIComponent( cookie ) );
+		} catch ( e ) {}
+
+		// Cross-restore: localStorage exists but cookie is gone → rebuild cookie.
+		if ( lsData && lsData.visitor_uuid && ! cookieData ) {
+			setCookie( COOKIE_KEY, encodeURIComponent( JSON.stringify( lsData ) ), 365 );
 		}
 
+		// Cross-restore: cookie exists but localStorage is gone → rebuild localStorage.
+		if ( cookieData && cookieData.visitor_uuid && ! lsData ) {
+			try { localStorage.setItem( STORAGE_KEY, JSON.stringify( cookieData ) ); } catch ( e ) {}
+			lsData = cookieData;
+		}
+
+		var data = lsData || cookieData;
 		if ( data && data.visitor_uuid ) {
 			vltState.visitorUuid   = data.visitor_uuid;
 			vltState.leadId        = data.lead_id        || null;
 			vltState.identityToken = data.identity_token || null;
+			vltState.mobileHash    = data.mobile_hash    || null;
 		}
 	}
 
 	function saveIdentity( data ) {
+		// Read existing payload so created_at and mobile_hash are preserved across saves.
+		var existing = {};
+		try {
+			var raw = localStorage.getItem( STORAGE_KEY );
+			if ( raw ) existing = JSON.parse( raw );
+		} catch ( e ) {}
+
 		var payload = {
 			visitor_uuid:   data.visitor_uuid   || vltState.visitorUuid,
 			lead_id:        data.lead_id        || null,
+			mobile_hash:    data.mobile_hash    || existing.mobile_hash || null,
 			identity_token: data.identity_token || null,
+			created_at:     existing.created_at || new Date().toISOString(),
 			last_seen_at:   new Date().toISOString(),
 		};
+
+		// Sync mobileHash into live state if provided.
+		if ( payload.mobile_hash ) {
+			vltState.mobileHash = payload.mobile_hash;
+		}
 
 		try { localStorage.setItem( STORAGE_KEY, JSON.stringify( payload ) ); } catch ( e ) {}
 		setCookie( COOKIE_KEY, encodeURIComponent( JSON.stringify( payload ) ), 365 );
@@ -97,6 +124,7 @@
 		vltState.visitorUuid   = null;
 		vltState.leadId        = null;
 		vltState.identityToken = null;
+		vltState.mobileHash    = null;
 	}
 
 	// -------------------------------------------------------------------------
