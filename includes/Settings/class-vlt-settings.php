@@ -92,20 +92,7 @@ class VLT_Settings {
 			self::OPTION_NAME,
 			[ 'sanitize_callback' => [ self::class, 'sanitize' ] ]
 		);
-
-		foreach ( self::sections() as $id => $section ) {
-			add_settings_section( $id, $section['title'], null, self::PAGE_SLUG . '-' . $id );
-			foreach ( $section['fields'] as $field ) {
-				add_settings_field(
-					$field['key'],
-					$field['label'],
-					[ self::class, 'render_field' ],
-					self::PAGE_SLUG . '-' . $id,
-					$id,
-					$field
-				);
-			}
-		}
+		// Fields are rendered manually in render_page() — no add_settings_section/field needed.
 	}
 
 	// -------------------------------------------------------------------------
@@ -262,10 +249,7 @@ class VLT_Settings {
 			return;
 		}
 
-		$sections    = self::sections();
-		$active_tab  = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : array_key_first( $sections ); // phpcs:ignore WordPress.Security.NonceVerification
-		$active_tab  = array_key_exists( $active_tab, $sections ) ? $active_tab : array_key_first( $sections );
-		$current_url = admin_url( 'admin.php?page=' . self::PAGE_SLUG );
+		$sections = self::sections();
 
 		if ( isset( $_GET['settings-updated'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			add_settings_error( 'vlt_messages', 'vlt_message', __( 'Settings saved.', 'video-lead-tracker' ), 'updated' );
@@ -275,21 +259,37 @@ class VLT_Settings {
 		<div class="wrap">
 			<h1><?php esc_html_e( 'Video Lead Tracker — Settings', 'video-lead-tracker' ); ?></h1>
 
-			<nav class="nav-tab-wrapper">
+			<nav class="nav-tab-wrapper vlt-tab-nav" data-storage-key="vlt_settings_tab">
 				<?php foreach ( $sections as $tab_id => $section ) : ?>
-					<a href="<?php echo esc_url( $current_url . '&tab=' . $tab_id ); ?>"
-					   class="nav-tab <?php echo $active_tab === $tab_id ? 'nav-tab-active' : ''; ?>">
+					<button type="button"
+					        class="nav-tab"
+					        data-tab="vlt-tab-<?php echo esc_attr( $tab_id ); ?>">
 						<?php echo esc_html( $section['title'] ); ?>
-					</a>
+					</button>
 				<?php endforeach; ?>
 			</nav>
 
 			<form method="post" action="options.php">
-				<?php
-				settings_fields( self::OPTION_GROUP );
-				do_settings_sections( self::PAGE_SLUG . '-' . $active_tab );
-				submit_button( __( 'Save Settings', 'video-lead-tracker' ) );
-				?>
+				<?php settings_fields( self::OPTION_GROUP ); ?>
+
+				<?php foreach ( $sections as $tab_id => $section ) : ?>
+					<div class="vlt-tab-panel" id="vlt-tab-<?php echo esc_attr( $tab_id ); ?>">
+						<table class="form-table" role="presentation">
+							<?php foreach ( $section['fields'] as $field ) : ?>
+								<tr>
+									<th scope="row">
+										<label for="vlt_<?php echo esc_attr( $field['key'] ); ?>">
+											<?php echo esc_html( $field['label'] ); ?>
+										</label>
+									</th>
+									<td><?php self::render_field( $field ); ?></td>
+								</tr>
+							<?php endforeach; ?>
+						</table>
+					</div>
+				<?php endforeach; ?>
+
+				<?php submit_button( __( 'Save Settings', 'video-lead-tracker' ) ); ?>
 			</form>
 		</div>
 		<?php

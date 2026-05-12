@@ -10,6 +10,27 @@ class VLT_Admin {
 			return;
 		}
 		add_action( 'admin_menu', [ self::class, 'register_menu' ] );
+		add_action( 'admin_enqueue_scripts', [ self::class, 'enqueue_assets' ] );
+	}
+
+	public static function enqueue_assets( $hook ) {
+		// Only load on VLT admin pages.
+		if ( strpos( $hook, 'vlt-' ) === false ) {
+			return;
+		}
+		wp_enqueue_style(
+			'vlt-admin',
+			VLT_PLUGIN_URL . 'assets/css/vlt-admin.css',
+			[],
+			VLT_VERSION
+		);
+		wp_enqueue_script(
+			'vlt-admin',
+			VLT_PLUGIN_URL . 'assets/js/vlt-admin.js',
+			[],
+			VLT_VERSION,
+			true
+		);
 	}
 
 	public static function register_menu() {

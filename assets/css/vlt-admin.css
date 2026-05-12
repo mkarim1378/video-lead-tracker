@@ -1,0 +1,40 @@
+/* Video Lead Tracker — Admin Styles */
+
+/* ---- Tab nav: reset <button> to look like WP's nav-tab <a> ---- */
+
+.vlt-tab-nav .nav-tab {
+	display: inline-block;
+	cursor: pointer;
+	background: none;
+	border: 1px solid transparent;
+	border-bottom: none;
+	font-size: 14px;
+	font-family: inherit;
+	line-height: inherit;
+	padding: 5px 10px;
+	margin: 0;
+	text-decoration: none;
+	color: #2271b1;
+}
+
+.vlt-tab-nav .nav-tab:hover,
+.vlt-tab-nav .nav-tab:focus {
+	color: #135e96;
+	background-color: #f0f0f1;
+	border-color: #c3c4c7 #c3c4c7 transparent;
+	outline: none;
+}
+
+.vlt-tab-nav .nav-tab-active,
+.vlt-tab-nav .nav-tab-active:hover,
+.vlt-tab-nav .nav-tab-active:focus {
+	color: #1d2327;
+	background-color: #f0f0f1;
+	border-color: #c3c4c7 #c3c4c7 #f0f0f1;
+}
+
+/* ---- Tab panels ---- */
+
+.vlt-tab-panel {
+	margin-top: 20px;
+}

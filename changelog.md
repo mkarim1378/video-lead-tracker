@@ -5,6 +5,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.6.0] - 2026-05-12
+
+### Added
+- `assets/js/vlt-admin.js` — reusable tab engine: `initTabGroup()` wires any `.vlt-tab-nav` nav to its `.vlt-tab-panel` panels using `display` toggle; active tab persisted in `localStorage` via `data-storage-key`
+- `assets/css/vlt-admin.css` — `<button>` reset so WP `nav-tab` classes render identically to `<a>`-based tabs
+- `VLT_Admin::enqueue_assets()` — loads admin JS/CSS on all `vlt-*` pages only
+
+### Changed
+- Settings tabs now switch instantly with `display: none / block` — no page reload
+- Tab buttons changed from `<a href="?tab=...">` to `<button type="button" data-tab="panel-id">` 
+- All tab panels rendered in the DOM at once; the form submits every setting regardless of which tab is visible
+- `VLT_Settings::register()` simplified to `register_setting()` only — fields rendered manually, no `add_settings_section/field`
+- Plugin version bumped to `0.6.0`
+
+---
+
 ## [0.5.0] - 2026-05-12
 
 ### Added
