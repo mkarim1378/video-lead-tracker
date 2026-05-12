@@ -16,6 +16,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `VLT_DB_VERSION` bumped 1.0 → 1.1 to trigger schema upgrade on existing installs
 - Version bumped 0.21.0 → **1.0.0** (first stable release)
 
+### Fixed
+- Fatal error on `vlt-logs` and `vlt-exports` pages: both menus still pointed to `render_placeholder()` which was removed in Phase 20. `vlt-exports` menu item removed (export is available inline on each report page); `render_logs()` implemented for `vlt-logs` with level filter and last-200-entry table.
+- Shortcode tag corrected: canonical name is now `[video_lead_tracker]` with `key` and `url` attributes (matching README documentation). `[vlt_video_lead_gate]` retained as a legacy alias. Settings page descriptions updated to reflect the correct shortcode name and attribute.
+
 ### Removed
 - `VLT_Admin::render_placeholder()` — dead code, all 5 admin pages are now fully implemented
 

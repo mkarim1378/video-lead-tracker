@@ -8,7 +8,8 @@ class VLT_Frontend {
 	private static $enqueued = false;
 
 	public static function init() {
-		add_shortcode( 'vlt_video_lead_gate', [ self::class, 'render_shortcode' ] );
+		add_shortcode( 'video_lead_tracker',  [ self::class, 'render_shortcode' ] );
+		add_shortcode( 'vlt_video_lead_gate', [ self::class, 'render_shortcode' ] ); // legacy alias
 		add_action( 'wp_enqueue_scripts', [ self::class, 'register_assets' ] );
 	}
 
@@ -41,6 +42,16 @@ class VLT_Frontend {
 	// -------------------------------------------------------------------------
 
 	public static function render_shortcode( $atts ) {
+		// Normalize aliases: [video_lead_tracker key="x" url="y"] → video_key / src
+		if ( is_array( $atts ) ) {
+			if ( isset( $atts['key'] ) && ! isset( $atts['video_key'] ) ) {
+				$atts['video_key'] = $atts['key'];
+			}
+			if ( isset( $atts['url'] ) && ! isset( $atts['src'] ) ) {
+				$atts['src'] = $atts['url'];
+			}
+		}
+
 		$atts = shortcode_atts(
 			[
 				'video_key' => VLT_Settings::get( 'video_key' ),
@@ -49,7 +60,7 @@ class VLT_Frontend {
 				'title'     => VLT_Settings::get( 'video_title' ),
 			],
 			$atts,
-			'vlt_video_lead_gate'
+			'video_lead_tracker'
 		);
 
 		$video_key      = sanitize_key( $atts['video_key'] );

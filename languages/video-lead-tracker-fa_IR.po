@@ -392,16 +392,16 @@ msgid "Tracking Page"
 msgstr "صفحه ردیابی"
 
 #: includes/Settings/class-vlt-settings.php
-msgid "Page where the [vlt_video_lead_gate] shortcode is placed."
-msgstr "صفحه‌ای که شورت‌کد [vlt_video_lead_gate] در آن قرار دارد."
+msgid "Page where the [video_lead_tracker] shortcode is placed."
+msgstr "صفحه‌ای که شورت‌کد [video_lead_tracker] در آن قرار دارد."
 
 #: includes/Settings/class-vlt-settings.php
 msgid "Video Key"
 msgstr "کلید ویدیو"
 
 #: includes/Settings/class-vlt-settings.php
-msgid "Unique slug for the video. Must match the shortcode video_key attribute."
-msgstr "شناسه یکتا برای ویدیو. باید با ویژگی video_key شورت‌کد یکسان باشد."
+msgid "Unique slug for the video. Must match the key attribute of the [video_lead_tracker] shortcode."
+msgstr "شناسه یکتا برای ویدیو. باید با ویژگی key در شورت‌کد [video_lead_tracker] یکسان باشد."
 
 #: includes/Settings/class-vlt-settings.php
 msgid "Video Title"

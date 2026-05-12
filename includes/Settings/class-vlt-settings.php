@@ -315,13 +315,13 @@ class VLT_Settings {
 						'key'   => 'tracking_page_id',
 						'label' => __( 'Tracking Page', 'video-lead-tracker' ),
 						'type'  => 'page_select',
-						'desc'  => __( 'Page where the [vlt_video_lead_gate] shortcode is placed.', 'video-lead-tracker' ),
+						'desc'  => __( 'Page where the [video_lead_tracker] shortcode is placed.', 'video-lead-tracker' ),
 					],
 					[
 						'key'   => 'video_key',
 						'label' => __( 'Video Key', 'video-lead-tracker' ),
 						'type'  => 'text',
-						'desc'  => __( 'Unique slug for the video. Must match the shortcode video_key attribute.', 'video-lead-tracker' ),
+						'desc'  => __( 'Unique slug for the video. Must match the key attribute of the [video_lead_tracker] shortcode.', 'video-lead-tracker' ),
 					],
 					[
 						'key'   => 'video_title',
