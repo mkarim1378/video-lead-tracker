@@ -301,6 +301,9 @@ class VLT_Admin {
 		?>
 		<div class="wrap">
 			<h1 class="wp-heading-inline"><?php esc_html_e( 'Leads', 'video-lead-tracker' ); ?></h1>
+			<a href="<?php echo esc_url( VLT_Exporter::export_url( 'leads' ) ); ?>" class="page-title-action">
+				<?php esc_html_e( 'Export CSV', 'video-lead-tracker' ); ?>
+			</a>
 			<hr class="wp-header-end">
 
 			<form method="get" class="vlt-search-form">
@@ -610,6 +613,9 @@ class VLT_Admin {
 		?>
 		<div class="wrap">
 			<h1 class="wp-heading-inline"><?php esc_html_e( 'Video Analytics', 'video-lead-tracker' ); ?></h1>
+			<a href="<?php echo esc_url( VLT_Exporter::export_url( 'videos' ) ); ?>" class="page-title-action">
+				<?php esc_html_e( 'Export CSV', 'video-lead-tracker' ); ?>
+			</a>
 			<hr class="wp-header-end">
 
 			<table class="widefat striped vlt-table">
@@ -867,6 +873,11 @@ class VLT_Admin {
 		?>
 		<div class="wrap">
 			<h1 class="wp-heading-inline"><?php esc_html_e( 'Heatmap', 'video-lead-tracker' ); ?></h1>
+			<?php if ( $video_id ) : ?>
+				<a href="<?php echo esc_url( VLT_Exporter::export_url( 'heatmap', [ 'video_id' => $video_id ] ) ); ?>" class="page-title-action">
+					<?php esc_html_e( 'Export Heatmap CSV', 'video-lead-tracker' ); ?>
+				</a>
+			<?php endif; ?>
 			<hr class="wp-header-end">
 
 			<form method="get" class="vlt-hm-selector">

@@ -294,6 +294,22 @@ msgstr "لیدهای یکتا"
 msgid "Bucket size: %d second(s). Hover over a bar for details."
 msgstr "اندازه بازه: %d ثانیه. برای جزئیات، روی هر ستون نگه دارید."
 
+#: includes/Admin/class-vlt-admin.php
+msgid "Export CSV"
+msgstr "خروجی CSV"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Export Heatmap CSV"
+msgstr "خروجی CSV نقشه حرارتی"
+
+#: includes/Export/class-vlt-exporter.php
+msgid "Unknown export type."
+msgstr "نوع خروجی ناشناخته است."
+
+#: includes/Export/class-vlt-exporter.php
+msgid "No video selected."
+msgstr "ویدیویی انتخاب نشده است."
+
 #: includes/Settings/class-vlt-settings.php
 msgid "Video Lead Tracker — Settings"
 msgstr "ردیاب ویدیو و لید — تنظیمات"

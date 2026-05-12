@@ -5,6 +5,30 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.20.0] - 2026-05-12
+
+### Added
+- Phase 18: CSV Export System
+  - **`VLT_Exporter`** class (`includes/Export/class-vlt-exporter.php`):
+    - `init()` — registers `admin_post_vlt_export` action hook
+    - `handle()` — validates nonce + capability, routes to export type
+    - `export_leads()` — all leads with name, mobile, verified, videos watched, avg watch %, sessions, first/last seen
+    - `export_videos()` — all active videos with viewers, avg %, watch hours, completions, sessions
+    - `export_heatmap($video_id)` — per-second data for a single video (second, total views, unique visitors, unique leads)
+    - `export_url($type, $extra)` — nonce-signed URL builder used by admin views
+    - UTF-8 BOM prepended for correct Excel display on Windows
+  - **Admin export buttons** (`page-title-action` links):
+    - Leads list → "Export CSV" (all leads)
+    - Video Analytics list → "Export CSV" (all videos)
+    - Heatmap page (when a video is selected) → "Export Heatmap CSV"
+  - `VLT_Exporter::init()` wired into `VLT_Plugin::init()`
+  - 4 new fa_IR translations; .mo recompiled (169 entries)
+
+### Changed
+- Version bumped 0.19.0 → 0.20.0
+
+---
+
 ## [0.19.0] - 2026-05-12
 
 ### Added
