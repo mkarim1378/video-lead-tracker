@@ -5,6 +5,31 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.7.0] - 2026-05-12
+
+### Added
+- `VLT_REST_Controller` — full Phase 6 REST base:
+  - 5 routes registered: `POST /session/init`, `/lead/submit`, `/track/page`, `/track/video-event`, `/track/video-range` (handlers are stubs returning 501 until Phases 7-12)
+  - `success()` / `error()` — structured response helpers
+  - `param()` / `str_param()` / `float_param()` — typed request body readers
+  - `generate_uuid()` — wraps `wp_generate_uuid4()`
+  - `generate_identity_token()` — 32-byte cryptographic random hex
+  - `hash_token()` — SHA-256 keyed with WP `secure_auth` salt
+  - `validate_token()` — DB lookup by `visitor_uuid` + token hash
+  - `get_client_ip()` — checks CF, X-Forwarded-For, X-Real-IP, REMOTE_ADDR in order
+  - `hash_ip()` — null / raw / SHA-256 hash per `ip_storage_mode` setting
+  - `get_user_agent()` / `hash_user_agent()` — respects `store_user_agent` setting
+  - `detect_device()` — basic mobile / tablet / desktop detection from UA string
+  - `extract_utm()` — pulls and sanitizes 5 UTM params from request body
+  - `check_rate_limit()` — transient-based rate limiter (type + identifier + limit + window)
+- `VLT_Logger` — static logger writing to `vlt_logs` table: `debug()`, `info()`, `warning()`, `error()`
+- `VLT_Logger` added to autoloader map
+
+### Changed
+- Plugin version bumped to `0.7.0`
+
+---
+
 ## [0.6.0] - 2026-05-12
 
 ### Added
