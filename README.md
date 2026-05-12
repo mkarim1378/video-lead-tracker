@@ -1,106 +1,102 @@
-<div dir="rtl">
+# Video Lead Tracker
 
-# ویدیو لید ترکر
+> Gate your video content behind a lead form — then know exactly who watched, how much, and where they dropped off.
 
-> ویدیوی خود را پشت فرم جذب سرنخ قفل کنید — سپس دقیقاً بدانید چه کسی تماشا کرد، چقدر دید، و کجا رفت.
-
-**ویدیو لید ترکر** یک افزونه‌ی وردپرس است که هر ویدیوی HTML5 را به یک موتور جذب سرنخ و تحلیل تبدیل می‌کند. بازدیدکننده پیش از پخش ویدیو، نام و شماره موبایل خود را وارد می‌کند. از آن لحظه به بعد، هر ثانیه از تماشا ثبت، پردازش، و در داشبورد مدیریتی یکپارچه نمایش داده می‌شود — بدون هیچ سرویس تحلیل خارجی، و بدون خروج داده از سرور شما.
+Video Lead Tracker is a self-hosted WordPress plugin that turns any HTML5 video into a lead-capture and analytics engine. Visitors submit their name and mobile number before the video unlocks. Every second of playback is recorded, aggregated, and surfaced in a built-in admin dashboard — with no third-party analytics services and no data leaving your server.
 
 ---
 
-## چرا ویدیو لید ترکر؟
+## Why Video Lead Tracker
 
-اغلب ابزارهای جذب سرنخ در همان فرم متوقف می‌شوند. نام و شماره جمع می‌کنید، اما هیچ اطلاعاتی از این ندارید که آیا آن فرد واقعاً ویدیو را تماشا کرد یا نه — و اگر کرد، چقدر.
+Most lead-capture tools stop at the form. You collect a name and number, but you have no idea whether the person who submitted actually watched your content — or for how long. Video Lead Tracker closes that gap.
 
-ویدیو لید ترکر این شکاف را می‌بندد:
-
-- سرنخی که ۸۰٪ ویدیوی دمو محصول شما را دیده با کسی که ۵ ثانیه تماشا کرده و رفته، رفتار کاملاً متفاوتی دارد. حالا می‌توانید آن‌ها را از هم تشخیص دهید.
-- تمام داده‌ها در پایگاه داده‌ی وردپرس شما می‌مانند. هیچ سرویس SaaS خارجی، هیچ پیکسل ردیابی، هیچ نگرانی GDPR از طرف ثالث.
-- ساخته‌شده برای بازار ایران: پشتیبانی بومی از تمام فرمت‌های شماره موبایل ایرانی و ادغام مستقیم با **کاوه‌نگار** و **SMS.ir** برای احراز هویت OTP.
+- A lead who watched 80% of your product demo behaves differently from one who watched 5 seconds and left. Now you can tell them apart.
+- All data lives in your WordPress database. No external SaaS, no tracking pixels, no GDPR headaches from third parties.
+- Built for the Iranian market: native support for all local mobile number formats and direct integration with Kavenegar and SMS.ir for OTP verification.
 
 ---
 
-## امکانات
+## Features
 
-### جذب سرنخ و شناسایی بازدیدکننده
+### Lead Capture & Identity
 
-- فرم روی‌پرده (overlay) پیش از پخش ویدیو، **نام و شماره موبایل** را دریافت می‌کند
-- شماره موبایل از هر فرمت ایرانی (`09xxxxxxxxx`، `+98xxxxxxxxxx`، `0098xxxxxxxxxx` و...) به فرمت استاندارد `98xxxxxxxxxx` نرمال می‌شود
-- بازدیدکنندگانی که قبلاً فرم را پر کرده‌اند با یک توکن امن در `localStorage` و کوکی شناسایی می‌شوند و دیگر فرم نمی‌بینند
-- داده‌های ناشناس (بازه‌های تماشا، رویدادها، بازدیدهای صفحه) **به‌طور خودکار** پس از ثبت فرم به رکورد سرنخ متصل می‌شوند
-- تأیید موبایل از طریق **کد یکبار مصرف (OTP)** اختیاری است
+- Overlay form collects **name + mobile number** before the video plays
+- Mobile number is normalized from any Iranian format (`09xxxxxxxxx`, `+98xxxxxxxxxx`, etc.) to a canonical `98xxxxxxxxxx` form
+- Returning visitors are recognized automatically via a secure identity token stored in `localStorage` and a cookie — they skip the form on repeat visits
+- Anonymous viewing data (ranges, events, page visits) is **retroactively linked** to the lead record the moment the form is submitted
+- Optional **OTP verification** via SMS confirms mobile ownership before video access
 
-### تأیید OTP
+### OTP Verification
 
-- کد ۶ رقمی تصادفی رمزنگاری‌شده، قبل از ذخیره با SHA-256 هش می‌شود
-- مدت اعتبار کد و فاصله زمانی ارسال مجدد قابل تنظیم است
-- یکپارچه‌سازی آماده با **کاوه‌نگار** و **SMS.ir**
-- محافظت در برابر brute-force: شمارنده تلاش‌ها پیش از بررسی کد افزایش می‌یابد
-- رابط OTP داخل صفحه با نمایش مبهم شماره موبایل و تایمر ارسال مجدد
+- 6-digit cryptographically random code, SHA-256 hashed before storage
+- Configurable code expiry and resend cooldown
+- Built-in integrations: **Kavenegar** and **SMS.ir**
+- Brute-force safe: attempt counter increments before code comparison
+- Clean, in-page OTP UI with masked mobile display and resend countdown
 
-### تحلیل ویدیو
+### Video Analytics
 
-**ردیابی رویدادها** — هر اتفاق معنی‌دار در پلیر ثبت می‌شود:
+**Event tracking** — every meaningful player action is recorded:
 
-| رویداد | توضیح |
+| Event | Description |
 |---|---|
-| `video_loaded` | متادیتا بارگذاری شد؛ مدت زمان ویدیو ذخیره می‌شود |
-| `play` / `pause` | شروع یا توقف پخش |
-| `seek_start` / `seek_end` | کاربر نوار زمانی را جابجا کرد |
-| `heartbeat` | پینگ دوره‌ای پیشرفت (پیش‌فرض هر ۱۰ ثانیه) |
-| `ended` | ویدیو تا انتها پخش شد |
-| `rate_change` | سرعت پخش تغییر کرد |
-| `error` | خطای پلیر با کد خطا |
+| `video_loaded` | Metadata loaded; video duration stored |
+| `play` / `pause` | Playback started or stopped |
+| `seek_start` / `seek_end` | User scrubbed the timeline |
+| `heartbeat` | Periodic progress ping (default every 10 s) |
+| `ended` | Video played to the end |
+| `rate_change` | Playback speed changed |
+| `error` | Player error with error code |
 
-**ردیابی بازه‌های تماشا** — هر بخش پیوسته از پخش به‌صورت جفت `[از_ثانیه، تا_ثانیه]` ثبت می‌شود:
+**Watch range tracking** — continuous play segments are captured as `[from_second, to_second]` pairs:
 
-- بازه‌ها هنگام توقف، جابجایی، heartbeat و بستن صفحه ارسال می‌شوند
-- ارسال هنگام بستن صفحه از `navigator.sendBeacon` با fallback `fetch keepalive` استفاده می‌کند تا هیچ داده‌ای از دست نرود
-- جابجایی در حین پخش، بازه قبل از جابجایی را ذخیره و بازه جدیدی از موقعیت جدید آغاز می‌کند
+- Ranges are committed on pause, seek, heartbeat, and page close
+- Page-close commits use `navigator.sendBeacon` with a `fetch keepalive` fallback so no data is lost when the tab closes
+- Seeking mid-play correctly commits the pre-seek segment and starts a fresh one at the new position
 
-**خلاصه هر بیننده** — پس از هر ارسال بازه، آمارها بلادرنگ به‌روز می‌شوند:
+**Per-viewer summary** — after each range commit, aggregated stats are updated in real time:
 
-| شاخص | نحوه محاسبه |
+| Metric | How it's calculated |
 |---|---|
-| `total_watch_seconds` | مجموع مدت زمان تمام بازه‌های خام |
-| `unique_watch_seconds` | مجموع بازه‌های ادغام‌شده (بدون تکرار) |
-| `unique_watch_percent` | `unique / duration × 100`، سقف ۱۰۰٪ |
-| `max_video_time_seconds` | دورترین نقطه‌ای که بیننده رسیده |
-| `reached_end` | رویداد `ended` یا موقعیت ≥ مدت − ۲ ثانیه |
-| `sessions_count` | تعداد جلساتی که ویدیو در آن‌ها تماشا شده |
-| `first_play_at` | زمان اولین پخش توسط این بیننده |
+| `total_watch_seconds` | Sum of all raw range durations |
+| `unique_watch_seconds` | Sum of merged (deduplicated) ranges |
+| `unique_watch_percent` | `unique / duration × 100`, capped at 100% |
+| `max_video_time_seconds` | Furthest point reached in the video |
+| `reached_end` | `ended` event fired, OR max position ≥ duration − 2 s |
+| `sessions_count` | Distinct sessions in which the video was watched |
+| `first_play_at` | Timestamp of the viewer's first play event |
 
-ادغام بازه‌ها با تلرانس ۰.۲۵ ثانیه انجام می‌شود تا جابجایی‌های جزئی به‌اشتباه زمان تماشای منحصربه‌فرد را تورم ندهد.
+Range deduplication uses a 0.25 s tolerance so scrubbing back a tiny amount doesn't inflate unique watch time.
 
-**نقشه حرارتی ثانیه‌ای** — برای هر ویدیو، یک جدول heatmap ثبت می‌کند که چند بیننده (کل، سرنخ‌های منحصربه‌فرد، بازدیدکنندگان منحصربه‌فرد) هر ثانیه را تماشا کرده‌اند. برای یافتن دقیق نقطه‌ای که علاقه کاربر افت می‌کند.
+**Per-second heatmap** — for each video, a heatmap table tracks how many viewers (total, unique leads, unique visitors) watched each second. Useful for spotting the exact moment engagement drops.
 
-### ردیابی بازدید صفحه
+### Page Visit Tracking
 
-- رویدادهای `page_view`، `page_visible`، `page_hidden`، `page_unload` و `heartbeat`
-- Visibility API برای تشخیص دقیق فعال/غیرفعال بودن تب
-- `sendBeacon` هنگام بستن تب، برای اطمینان از عدم از دست رفتن رویداد unload
+- `page_view`, `page_visible`, `page_hidden`, `page_unload`, and `heartbeat` events
+- Visibility API for accurate focus/blur detection
+- `sendBeacon` on tab close so unload events are never lost
 
-### داشبورد مدیریتی
+### Admin Dashboard
 
-- **نمای کلی** — آمار کل افزونه: سرنخ‌ها، جلسات، ویدیوها، ساعات تماشا
-- **گزارش سرنخ‌ها** — جدول مرتب‌شدنی از همه سرنخ‌ها با آمار تماشا و وضعیت تأیید؛ کلیک روی هر ردیف برای جزئیات کامل سرنخ
-- **تحلیل ویدیو** — قیف هر ویدیو: بینندگان ← شروع‌کنندگان ← تکمیل‌کنندگان؛ میانگین درصد تماشای منحصربه‌فرد؛ خط زمانی فعالیت
-- **نقشه حرارتی** — نمودار میله‌ای رنگ‌بندی‌شده ثانیه‌ای که نشان می‌دهد بینندگان کجا درگیر هستند و کجا ترک می‌کنند
-- **خروجی** — دانلود هر گزارش به‌صورت CSV یا XLSX
+- **Overview** — plugin-wide totals: leads, sessions, videos, watch hours
+- **Leads Report** — sortable table of all leads with watch stats and verification status; click any row for the full lead detail view
+- **Video Analytics** — per-video funnel: viewers → starters → completers; average unique watch percent; timeline of activity
+- **Heatmap UI** — color-coded, per-second bar chart showing where viewers engage and where they drop
+- **Export** — download any report as CSV or XLSX
 
-### حریم خصوصی و امنیت
+### Privacy & Security
 
-- آدرس IP می‌تواند به‌صورت خام، هش SHA-256 یا اصلاً ذخیره نشود (قابل تنظیم)
-- ذخیره User-Agent اختیاری است
-- توکن‌های هویت هرگز مستقیم ذخیره نمی‌شوند؛ فقط هش SHA-256 آن‌ها (کلیددار با salt وردپرس) نگهداری می‌شود
-- همه endpoint های نوشتاری با WordPress transients محدودیت نرخ دارند
-- بدون وابستگی به jQuery — جاوااسکریپت ES5 خالص
+- IP addresses can be stored raw, SHA-256 hashed, or not stored at all (configurable per site)
+- User-agent storage is opt-in
+- Identity tokens are never stored; only their SHA-256 hash (keyed with WP's `secure_auth` salt) is persisted
+- All write endpoints are rate-limited per IP using WordPress transients
+- No jQuery dependency — pure vanilla ES5 JavaScript
 
 ---
 
-## پیش‌نیازها
+## Requirements
 
-| | حداقل |
+| | Minimum |
 |---|---|
 | WordPress | 5.8 |
 | PHP | 7.4 |
@@ -108,116 +104,114 @@
 
 ---
 
-## نصب
+## Installation
 
-1. پوشه `video-lead-tracker` را در `/wp-content/plugins/` آپلود کنید
-2. افزونه را از **افزونه‌ها ← افزونه‌های نصب‌شده** فعال کنید
-3. به **Video Tracker ← تنظیمات** بروید و ارائه‌دهنده OTP، گزینه‌های ردیابی و حریم خصوصی را پیکربندی کنید
-4. شورت‌کد را در هر صفحه یا نوشته‌ای قرار دهید:
+1. Upload the `video-lead-tracker` folder to `/wp-content/plugins/`
+2. Activate the plugin from **Plugins → Installed Plugins**
+3. Go to **Video Tracker → Settings** to configure OTP provider, tracking options, and privacy preferences
+4. Place the shortcode on any page or post:
 
 ```
 [video_lead_tracker key="my-video" url="https://example.com/video.mp4"]
 ```
 
-### پارامترهای شورت‌کد
+### Shortcode Parameters
 
-| پارامتر | پیش‌فرض | توضیح |
+| Parameter | Default | Description |
 |---|---|---|
-| `key` | _(اجباری)_ | شناسه منحصربه‌فرد این ویدیو |
-| `url` | _(اجباری)_ | آدرس مستقیم فایل `.mp4` یا هر فرمت HTML5 |
-| `title` | — | عنوان ویدیو در گزارش‌های مدیریتی |
-| `submit_text` | `مشاهده ویدیو` | متن دکمه ارسال فرم |
+| `key` | _(required)_ | Unique identifier for this video |
+| `url` | _(required)_ | Direct URL to the `.mp4` (or any HTML5-compatible format) |
+| `title` | — | Video title shown in admin reports |
+| `submit_text` | `مشاهده ویدیو` | Label on the form submit button |
 
 ---
 
-## پیکربندی ارائه‌دهنده OTP
+## OTP Provider Setup
 
-### کاوه‌نگار
+### Kavenegar
 
-1. وارد پنل کاوه‌نگار شوید و کلید API خود را کپی کنید
-2. به **Video Tracker ← تنظیمات ← OTP** بروید و **کاوه‌نگار** را انتخاب کنید
-3. کلید API و شماره خط ارسال را وارد کنید
+1. Log in to your Kavenegar panel and copy your API key
+2. Go to **Video Tracker → Settings → OTP** and select **Kavenegar**
+3. Paste your API key and set the sender line number
 
 ### SMS.ir
 
-1. به **Video Tracker ← تنظیمات ← OTP** بروید و **SMS.ir** را انتخاب کنید
-2. کلید API خود را وارد کنید
-3. شناسه قالب پیام OTP را تنظیم کنید
+1. Go to **Video Tracker → Settings → OTP** and select **SMS.ir**
+2. Enter your API key
+3. Set the template ID for the OTP message pattern
 
 ---
 
-## ساختار پایگاه داده
+## Database Schema
 
-افزونه ۱۱ جدول (با پیشوند `wp_vlt_`) ایجاد می‌کند:
+The plugin creates 11 tables (prefixed with `wp_vlt_`):
 
-| جدول | هدف |
+| Table | Purpose |
 |---|---|
-| `vlt_leads` | یک ردیف به ازای هر شماره موبایل منحصربه‌فرد |
-| `vlt_lead_names` | تاریخچه کامل نام‌های ثبت‌شده برای هر سرنخ |
-| `vlt_visitors` | یک ردیف به ازای هر مرورگر (هویت ناشناس) |
-| `vlt_sessions` | یک ردیف به ازای هر بارگذاری صفحه |
-| `vlt_page_visits` | رویدادهای ردیابی صفحه |
-| `vlt_videos` | یک ردیف به ازای هر `video_key` |
-| `vlt_video_events` | رویدادهای پلیر (play، pause، seek و...) |
-| `vlt_video_ranges` | بازه‌های خام تماشا `[from, to]` |
-| `vlt_video_user_summary` | آمار تجمیعی به ازای هر بیننده |
-| `vlt_video_heatmap` | تعداد بازدیدها به ازای هر ثانیه |
-| `vlt_logs` | لاگ‌های داخلی افزونه |
+| `vlt_leads` | One row per unique mobile number |
+| `vlt_lead_names` | Full history of names submitted per lead |
+| `vlt_visitors` | One row per browser (anonymous identity) |
+| `vlt_sessions` | One row per page load |
+| `vlt_page_visits` | Page tracking events |
+| `vlt_videos` | One row per `video_key` |
+| `vlt_video_events` | Player events (play, pause, seek, …) |
+| `vlt_video_ranges` | Raw watch segments `[from, to]` |
+| `vlt_video_user_summary` | Aggregated per-viewer stats |
+| `vlt_video_heatmap` | Per-second view counts |
+| `vlt_logs` | Internal plugin logs |
 
-جدول‌های اختیاری که در صورت نیاز ایجاد می‌شوند:
+Optional tables created on demand:
 
-| جدول | زمان ایجاد |
+| Table | Created when |
 |---|---|
-| `vlt_otp_codes` | وقتی قابلیت OTP فعال باشد |
-| `vlt_video_heatmap_uniques` | وقتی deduplication نقشه حرارتی فعال باشد |
+| `vlt_otp_codes` | OTP feature is enabled |
+| `vlt_video_heatmap_uniques` | Heatmap deduplication is enabled |
 
-ارتقای طرح پایگاه داده به‌طور خودکار از طریق `dbDelta()` وردپرس هنگام به‌روزرسانی افزونه انجام می‌شود.
+Schema upgrades are handled automatically via WordPress's `dbDelta()` on plugin update.
 
 ---
 
 ## REST API
 
-همه endpoint ها زیر `/wp-json/vlt/v1/` قرار دارند:
+All endpoints live under `/wp-json/vlt/v1/`.
 
-| متد | مسیر | توضیح |
+| Method | Endpoint | Description |
 |---|---|---|
-| `POST` | `/session/init` | آغاز یا بازیابی جلسه بازدیدکننده |
-| `POST` | `/lead/submit` | ارسال فرم سرنخ |
-| `POST` | `/otp/send` | ارسال OTP به موبایل بازدیدکننده |
-| `POST` | `/otp/verify` | تأیید کد OTP |
-| `POST` | `/track/page` | ثبت رویداد بازدید صفحه |
-| `POST` | `/track/video-event` | ثبت رویداد پلیر |
-| `POST` | `/track/video-range` | ارسال بازه تماشا |
+| `POST` | `/session/init` | Initialize or restore a visitor session |
+| `POST` | `/lead/submit` | Submit the lead form |
+| `POST` | `/otp/send` | Send an OTP to the visitor's mobile |
+| `POST` | `/otp/verify` | Verify the submitted OTP code |
+| `POST` | `/track/page` | Record a page visit event |
+| `POST` | `/track/video-event` | Record a player event |
+| `POST` | `/track/video-range` | Commit a watched range segment |
 
 ---
 
-## بومی‌سازی
+## Localization
 
-افزونه با ترجمه کامل **فارسی (fa_IR)** ارائه می‌شود. تمام رشته‌های رویارو با کاربر در PHP و JavaScript با `__()` / `_e()` وردپرس و text domain مربوطه پوشانده شده‌اند.
+The plugin ships with a full **Persian (fa_IR)** translation. All user-facing strings in both PHP and JavaScript are wrapped with WordPress's standard `__()` / `_e()` functions and the `video-lead-tracker` text domain.
 
-برای افزودن زبان جدید، فایل `languages/video-lead-tracker.pot` را کپی کرده و با Poedit یا Loco Translate یک فایل `.po` بسازید، سپس آن را به `.mo` کامپایل کنید.
-
----
-
-## معماری فنی
-
-- **بدون jQuery.** تمام جاوااسکریپت frontend به‌صورت ES5 خالص، در دو ماژول IIFE نوشته شده است:
-  - `vlt-frontend.js` — راه‌اندازی جلسه، فرم، OTP، ردیابی صفحه، state مشترک (`window.vltState`، `window.vltApiFetch`)
-  - `vlt-video-tracker.js` — ردیابی رویداد و بازه ویدیو؛ با رویداد سفارشی `vlt:videoReady` فعال می‌شود
-- **کلاس‌های استاتیک.** همه کلاس‌های PHP از متدهای استاتیک و یک singleton bootstrap (`VLT_Plugin::get_instance()`) استفاده می‌کنند
-- **Autoloader دستی.** یک نقشه `spl_autoload_register` در فایل اصلی افزونه، Composer autoload را جایگزین می‌کند تا افزونه کاملاً مستقل و بدون dependency باشد
-- **تجمیع هنگام نوشتن.** `VLT_Aggregator::aggregate()` پس از هر درج بازه، همگام اجرا می‌شود تا جدول خلاصه همیشه به‌روز باشد
+To add a new language, copy `languages/video-lead-tracker.pot` and use Poedit or Loco Translate to create a `.po` file, then compile it to `.mo`.
 
 ---
 
-## مجوز
+## Architecture Notes
 
-GPLv2 یا بالاتر — همان مجوز خود وردپرس.
+- **No jQuery.** All frontend JavaScript is plain ES5, split across two IIFE modules:
+  - `vlt-frontend.js` — session init, form, OTP, page tracking, shared state (`window.vltState`, `window.vltApiFetch`)
+  - `vlt-video-tracker.js` — video event and range tracking; boots on the custom `vlt:videoReady` event
+- **Static classes.** All PHP classes use static methods and a singleton bootstrap (`VLT_Plugin::get_instance()`) — no instantiation required.
+- **Manual autoloader.** A `spl_autoload_register` map in the main plugin file replaces Composer autoload to keep the plugin self-contained with zero dependencies.
+- **Aggregation on write.** `VLT_Aggregator::aggregate()` runs synchronously after every range insert so the summary table is always up to date without background jobs.
 
 ---
 
-## نویسنده
+## License
 
-**محمد کریم** — [m-karim.ir](https://m-karim.ir)
+GPLv2 or later — the same license as WordPress itself.
 
-</div>
+---
+
+## Author
+
+**Mohamad Karim** — [m-karim.ir](https://m-karim.ir)

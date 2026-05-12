@@ -44,13 +44,12 @@ class VLT_Admin {
 		);
 
 		$submenus = [
-			[ 'vlt-overview',        __( 'Overview',        'video-lead-tracker' ), [ self::class,  'render_overview' ] ],
-			[ 'vlt-leads',           __( 'Leads',           'video-lead-tracker' ), [ self::class,  'render_leads' ] ],
-			[ 'vlt-video-analytics', __( 'Video Analytics', 'video-lead-tracker' ), [ self::class,  'render_video_analytics' ] ],
-			[ 'vlt-heatmap',         __( 'Heatmap',         'video-lead-tracker' ), [ self::class,  'render_heatmap' ] ],
-			[ 'vlt-exports',         __( 'Exports',         'video-lead-tracker' ), [ self::class,  'render_placeholder' ] ],
+			[ 'vlt-overview',        __( 'Overview',        'video-lead-tracker' ), [ self::class,   'render_overview' ] ],
+			[ 'vlt-leads',           __( 'Leads',           'video-lead-tracker' ), [ self::class,   'render_leads' ] ],
+			[ 'vlt-video-analytics', __( 'Video Analytics', 'video-lead-tracker' ), [ self::class,   'render_video_analytics' ] ],
+			[ 'vlt-heatmap',         __( 'Heatmap',         'video-lead-tracker' ), [ self::class,   'render_heatmap' ] ],
 			[ 'vlt-settings',        __( 'Settings',        'video-lead-tracker' ), [ 'VLT_Settings', 'render_page' ] ],
-			[ 'vlt-logs',            __( 'Logs',            'video-lead-tracker' ), [ self::class,  'render_placeholder' ] ],
+			[ 'vlt-logs',            __( 'Logs',            'video-lead-tracker' ), [ self::class,   'render_logs' ] ],
 		];
 
 		foreach ( $submenus as [ $slug, $label, $callback ] ) {
@@ -968,6 +967,113 @@ class VLT_Admin {
 
 			<?php endif; ?>
 
+		</div>
+		<?php
+	}
+
+	// -------------------------------------------------------------------------
+	// Logs (debug log viewer)
+	// -------------------------------------------------------------------------
+
+	public static function render_logs() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		global $wpdb;
+		$p = $wpdb->prefix;
+
+		$level   = isset( $_GET['vlt_level'] ) ? sanitize_key( $_GET['vlt_level'] ) : '';
+		$allowed = [ '', 'error', 'warning', 'info', 'debug' ];
+		if ( ! in_array( $level, $allowed, true ) ) {
+			$level = '';
+		}
+
+		$where = $level ? $wpdb->prepare( 'WHERE level = %s', $level ) : '';
+
+		$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$p}vlt_logs $where" );
+		$rows  = $wpdb->get_results(
+			"SELECT id, level, context, message, metadata, created_at
+			 FROM {$p}vlt_logs $where
+			 ORDER BY id DESC
+			 LIMIT 200"
+		);
+
+		$level_colors = [
+			'error'   => '#c22f3a',
+			'warning' => '#d97f00',
+			'info'    => '#2271b1',
+			'debug'   => '#646970',
+		];
+
+		$filter_url = admin_url( 'admin.php?page=vlt-logs' );
+		?>
+		<div class="wrap">
+			<h1 class="wp-heading-inline"><?php esc_html_e( 'Logs', 'video-lead-tracker' ); ?></h1>
+			<hr class="wp-header-end">
+
+			<div style="margin:12px 0;display:flex;gap:6px;align-items:center">
+				<span style="font-size:13px"><?php esc_html_e( 'Filter:', 'video-lead-tracker' ); ?></span>
+				<a href="<?php echo esc_url( $filter_url ); ?>"
+				   class="button<?php echo $level === '' ? ' button-primary' : ''; ?>">
+					<?php esc_html_e( 'All', 'video-lead-tracker' ); ?>
+				</a>
+				<?php foreach ( [ 'error', 'warning', 'info', 'debug' ] as $lvl ) : ?>
+					<a href="<?php echo esc_url( add_query_arg( 'vlt_level', $lvl, $filter_url ) ); ?>"
+					   class="button<?php echo $level === $lvl ? ' button-primary' : ''; ?>">
+						<?php echo esc_html( ucfirst( $lvl ) ); ?>
+					</a>
+				<?php endforeach; ?>
+				<span class="vlt-muted" style="margin-left:8px">
+					<?php printf(
+						/* translators: %d = number of log entries shown */
+						esc_html__( 'Showing last %d of %d entries', 'video-lead-tracker' ),
+						min( 200, $total ),
+						$total
+					); ?>
+				</span>
+			</div>
+
+			<table class="widefat striped vlt-table">
+				<thead>
+					<tr>
+						<th style="width:50px">ID</th>
+						<th style="width:80px"><?php esc_html_e( 'Level',   'video-lead-tracker' ); ?></th>
+						<th style="width:130px"><?php esc_html_e( 'Context', 'video-lead-tracker' ); ?></th>
+						<th><?php esc_html_e( 'Message', 'video-lead-tracker' ); ?></th>
+						<th style="width:150px"><?php esc_html_e( 'Time',    'video-lead-tracker' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+				<?php if ( $rows ) : ?>
+					<?php foreach ( $rows as $row ) :
+						$color = $level_colors[ $row->level ] ?? '#646970';
+					?>
+					<tr>
+						<td class="vlt-muted"><?php echo esc_html( $row->id ); ?></td>
+						<td>
+							<span class="vlt-badge" style="background:<?php echo esc_attr( $color ); ?>;color:#fff">
+								<?php echo esc_html( strtoupper( $row->level ) ); ?>
+							</span>
+						</td>
+						<td class="vlt-muted"><?php echo esc_html( $row->context ?: '—' ); ?></td>
+						<td>
+							<?php echo esc_html( $row->message ); ?>
+							<?php if ( $row->metadata ) : ?>
+								<details style="margin-top:4px">
+									<summary class="vlt-muted" style="cursor:pointer;font-size:11px"><?php esc_html_e( 'metadata', 'video-lead-tracker' ); ?></summary>
+									<pre style="font-size:11px;white-space:pre-wrap;margin:4px 0 0"><?php echo esc_html( $row->metadata ); ?></pre>
+								</details>
+							<?php endif; ?>
+						</td>
+						<td class="vlt-muted"><?php echo esc_html( wp_date( 'Y-m-d H:i:s', strtotime( $row->created_at ) ) ); ?></td>
+					</tr>
+					<?php endforeach; ?>
+				<?php else : ?>
+					<tr><td colspan="5" class="vlt-empty"><?php esc_html_e( 'No log entries.', 'video-lead-tracker' ); ?></td></tr>
+				<?php endif; ?>
+				</tbody>
+			</table>
 		</div>
 		<?php
 	}

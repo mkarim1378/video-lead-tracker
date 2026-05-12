@@ -310,6 +310,47 @@ msgstr "نوع خروجی ناشناخته است."
 msgid "No video selected."
 msgstr "ویدیویی انتخاب نشده است."
 
+#: includes/Admin/class-vlt-admin.php
+msgid "Logs"
+msgstr "گزارش‌ها"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Filter:"
+msgstr "فیلتر:"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "All"
+msgstr "همه"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Level"
+msgstr "سطح"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Context"
+msgstr "زمینه"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Message"
+msgstr "پیام"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Time"
+msgstr "زمان"
+
+#: includes/Admin/class-vlt-admin.php
+#, php-format
+msgid "Showing last %d of %d entries"
+msgstr "نمایش آخرین %d از %d ورودی"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "metadata"
+msgstr "متادیتا"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "No log entries."
+msgstr "هیچ ورودی گزارشی وجود ندارد."
+
 #: includes/Settings/class-vlt-settings.php
 msgid "Video Lead Tracker — Settings"
 msgstr "ردیاب ویدیو و لید — تنظیمات"
