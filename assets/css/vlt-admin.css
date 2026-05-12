@@ -306,3 +306,121 @@
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
+
+/* =========================================================================
+   Video Analytics — Watch Distribution (Phase 17)
+   ========================================================================= */
+
+.vlt-distribution {
+	margin-bottom: 8px;
+}
+
+.vlt-dist-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 8px;
+}
+
+.vlt-dist-label {
+	width: 80px;
+	font-size: 12px;
+	color: #646970;
+	flex-shrink: 0;
+	text-align: right;
+}
+
+.vlt-dist-bar-wrap {
+	flex: 1;
+	background: #f0f0f1;
+	border-radius: 4px;
+	height: 16px;
+	overflow: hidden;
+}
+
+.vlt-dist-bar {
+	height: 100%;
+	background: #2271b1;
+	border-radius: 4px;
+	min-width: 0;
+	transition: width .2s;
+}
+
+.vlt-dist-count {
+	width: 36px;
+	font-size: 12px;
+	color: #1d2327;
+	flex-shrink: 0;
+	text-align: right;
+}
+
+/* =========================================================================
+   Heatmap (Phase 17)
+   ========================================================================= */
+
+.vlt-hm-selector {
+	margin: 16px 0;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.vlt-hm-toolbar {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 14px;
+}
+
+.vlt-hm-label {
+	font-size: 13px;
+	color: #1d2327;
+}
+
+#vlt-hm-wrap {
+	overflow-x: auto;
+}
+
+.vlt-hm-chart {
+	display: flex;
+	align-items: flex-end;
+	gap: 2px;
+	height: 120px;
+	padding-bottom: 4px;
+	border-bottom: 1px solid #c3c4c7;
+	min-width: 300px;
+}
+
+.vlt-hm-bar {
+	flex: 1;
+	min-width: 4px;
+	background: #2271b1;
+	border-radius: 2px 2px 0 0;
+	cursor: default;
+	transition: background .15s;
+}
+
+.vlt-hm-bar:hover {
+	background: #135e96;
+}
+
+.vlt-hm-axis {
+	display: flex;
+	gap: 2px;
+	margin-top: 4px;
+	min-width: 300px;
+}
+
+.vlt-hm-tick {
+	flex: 1;
+	min-width: 4px;
+	height: 4px;
+	border-left: 1px solid #c3c4c7;
+}
+
+.vlt-hm-tick--label {
+	font-size: 10px;
+	color: #8c8f94;
+	white-space: nowrap;
+	overflow: visible;
+}

@@ -5,6 +5,31 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.19.0] - 2026-05-12
+
+### Added
+- Phase 17: Video Analytics + Heatmap UI
+  - **Video Analytics list** (`render_video_analytics_list()`): table of all active videos with total views, unique visitors, unique leads, avg watch %, completed count, total watch hours
+  - **Video Analytics detail** (`render_video_analytics_detail()`):
+    - 5 KPI cards: Total Views, Unique Visitors, Unique Leads, Avg Watch %, Completed
+    - **Watch Distribution** horizontal bar chart (4 buckets: 0–25%, 25–50%, 50–75%, 75–100%) with percentage-width bars
+    - **Top Viewers** table: rank, viewer name/mobile (masked) or Anonymous, watch %, completed badge
+  - **Heatmap page** (`render_heatmap()`):
+    - Video selector dropdown — redirects to `?video_id=` on submit
+    - Bucketed bar chart (bucket size auto-scaled from duration: 1s, 5s, 10s, 30s, 60s)
+    - Data embedded via `data-buckets`, `data-max-total`, `data-max-unique`, `data-bucket-size` attributes
+    - Metric toggle buttons (Total Views / Unique Visitors / Unique Leads) — vanilla JS, no jQuery
+    - Bar heights computed as percentage of metric maximum; hover tooltip shows time range + value
+    - Time axis with labels every ~10th bar (`M:SS` / `H:MM:SS` format)
+  - `initHeatmap()`, `drawBars()`, `formatTime()` added to `assets/js/vlt-admin.js`
+  - CSS additions: `.vlt-distribution`, `.vlt-dist-row/label/bar-wrap/bar/count`, `.vlt-hm-selector/toolbar/label/chart/bar/axis/tick/tick--label`
+  - 14 new fa_IR translations; .mo recompiled (165 entries)
+
+### Changed
+- Version bumped 0.18.0 → 0.19.0
+
+---
+
 ## [0.18.0] - 2026-05-12
 
 ### Added

@@ -237,6 +237,63 @@ msgstr "آدرس ورودی"
 msgid "No sessions recorded."
 msgstr "هیچ جلسه‌ای ثبت نشده است."
 
+#: includes/Admin/class-vlt-admin.php
+msgid "Video not found."
+msgstr "ویدیو یافت نشد."
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Watch Distribution"
+msgstr "توزیع تماشا"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Top Viewers"
+msgstr "بیشترین تماشاگران"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Viewer"
+msgstr "تماشاگر"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Anonymous"
+msgstr "ناشناس"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "No viewers yet."
+msgstr "هنوز هیچ تماشاگری وجود ندارد."
+
+#: includes/Admin/class-vlt-admin.php
+msgid "— Select a video —"
+msgstr "— یک ویدیو انتخاب کنید —"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Select a video to view its heatmap."
+msgstr "برای مشاهده نقشه حرارتی، یک ویدیو انتخاب کنید."
+
+#: includes/Admin/class-vlt-admin.php
+msgid "No heatmap data yet."
+msgstr "هنوز داده‌ای برای نقشه حرارتی وجود ندارد."
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Metric:"
+msgstr "معیار:"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Total Views"
+msgstr "کل بازدیدها"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Unique Visitors"
+msgstr "بازدیدکنندگان یکتا"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Unique Leads"
+msgstr "لیدهای یکتا"
+
+#: includes/Admin/class-vlt-admin.php
+#, php-format
+msgid "Bucket size: %d second(s). Hover over a bar for details."
+msgstr "اندازه بازه: %d ثانیه. برای جزئیات، روی هر ستون نگه دارید."
+
 #: includes/Settings/class-vlt-settings.php
 msgid "Video Lead Tracker — Settings"
 msgstr "ردیاب ویدیو و لید — تنظیمات"

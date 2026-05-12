@@ -55,4 +55,80 @@
 		localStorage.setItem( storageKey, activeBtn.dataset.tab );
 	}
 
+	/* ---- Heatmap ---- */
+
+	document.addEventListener( 'DOMContentLoaded', function () {
+		initHeatmap();
+	} );
+
+	function initHeatmap() {
+		var wrap = document.getElementById( 'vlt-hm-wrap' );
+		if ( ! wrap ) return;
+
+		var buckets    = JSON.parse( wrap.getAttribute( 'data-buckets' )    || '[]' );
+		var maxTotal   = parseInt(  wrap.getAttribute( 'data-max-total' ),   10 ) || 1;
+		var maxUnique  = parseInt(  wrap.getAttribute( 'data-max-unique' ),  10 ) || 1;
+		var bucketSize = parseInt(  wrap.getAttribute( 'data-bucket-size' ), 10 ) || 1;
+		var metric     = 'total';
+
+		drawBars( buckets, metric, maxTotal, maxUnique, bucketSize );
+
+		document.querySelectorAll( '.vlt-hm-metric' ).forEach( function ( btn ) {
+			btn.addEventListener( 'click', function () {
+				document.querySelectorAll( '.vlt-hm-metric' ).forEach( function ( b ) {
+					b.classList.remove( 'button-primary' );
+				} );
+				btn.classList.add( 'button-primary' );
+				metric = btn.getAttribute( 'data-metric' );
+				drawBars( buckets, metric, maxTotal, maxUnique, bucketSize );
+			} );
+		} );
+	}
+
+	function drawBars( buckets, metric, maxTotal, maxUnique, bucketSize ) {
+		var chart = document.getElementById( 'vlt-hm-chart' );
+		var axis  = document.getElementById( 'vlt-hm-axis' );
+		if ( ! chart ) return;
+
+		chart.innerHTML = '';
+		if ( axis ) axis.innerHTML = '';
+
+		if ( ! buckets.length ) return;
+
+		var maxVal = metric === 'total' ? maxTotal : maxUnique;
+		if ( maxVal < 1 ) maxVal = 1;
+
+		var labelEvery = Math.max( 1, Math.ceil( buckets.length / 10 ) );
+
+		buckets.forEach( function ( b, i ) {
+			var val    = parseInt( b[ metric ] || b.total, 10 ) || 0;
+			var pct    = Math.round( ( val / maxVal ) * 100 );
+			var bar    = document.createElement( 'div' );
+			bar.className   = 'vlt-hm-bar';
+			bar.style.height = pct + '%';
+			bar.title = formatTime( b.bucket_start ) + '–' + formatTime( b.bucket_start + bucketSize ) + ': ' + val;
+			chart.appendChild( bar );
+
+			if ( axis ) {
+				var tick = document.createElement( 'div' );
+				tick.className = 'vlt-hm-tick';
+				if ( i % labelEvery === 0 ) {
+					tick.className += ' vlt-hm-tick--label';
+					tick.textContent = formatTime( b.bucket_start );
+				}
+				axis.appendChild( tick );
+			}
+		} );
+	}
+
+	function formatTime( seconds ) {
+		seconds = parseInt( seconds, 10 ) || 0;
+		var h = Math.floor( seconds / 3600 );
+		var m = Math.floor( ( seconds % 3600 ) / 60 );
+		var s = seconds % 60;
+		var mm = m < 10 ? '0' + m : '' + m;
+		var ss = s < 10 ? '0' + s : '' + s;
+		return h > 0 ? h + ':' + mm + ':' + ss : m + ':' + ss;
+	}
+
 } )();

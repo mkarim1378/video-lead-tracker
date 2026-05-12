@@ -46,8 +46,8 @@ class VLT_Admin {
 		$submenus = [
 			[ 'vlt-overview',        __( 'Overview',        'video-lead-tracker' ), [ self::class,  'render_overview' ] ],
 			[ 'vlt-leads',           __( 'Leads',           'video-lead-tracker' ), [ self::class,  'render_leads' ] ],
-			[ 'vlt-video-analytics', __( 'Video Analytics', 'video-lead-tracker' ), [ self::class,  'render_placeholder' ] ],
-			[ 'vlt-heatmap',         __( 'Heatmap',         'video-lead-tracker' ), [ self::class,  'render_placeholder' ] ],
+			[ 'vlt-video-analytics', __( 'Video Analytics', 'video-lead-tracker' ), [ self::class,  'render_video_analytics' ] ],
+			[ 'vlt-heatmap',         __( 'Heatmap',         'video-lead-tracker' ), [ self::class,  'render_heatmap' ] ],
 			[ 'vlt-exports',         __( 'Exports',         'video-lead-tracker' ), [ self::class,  'render_placeholder' ] ],
 			[ 'vlt-settings',        __( 'Settings',        'video-lead-tracker' ), [ 'VLT_Settings', 'render_page' ] ],
 			[ 'vlt-logs',            __( 'Logs',            'video-lead-tracker' ), [ self::class,  'render_placeholder' ] ],
@@ -569,6 +569,357 @@ class VLT_Admin {
 			</table>
 
 		</div><!-- .wrap.vlt-lead-detail -->
+		<?php
+	}
+
+	// -------------------------------------------------------------------------
+	// Video Analytics (Phase 17)
+	// -------------------------------------------------------------------------
+
+	public static function render_video_analytics() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		$video_id = isset( $_GET['video_id'] ) ? absint( $_GET['video_id'] ) : 0;
+		if ( $video_id ) {
+			self::render_video_analytics_detail( $video_id );
+		} else {
+			self::render_video_analytics_list();
+		}
+	}
+
+	private static function render_video_analytics_list() {
+		global $wpdb;
+		$p = $wpdb->prefix;
+
+		$videos = $wpdb->get_results(
+			"SELECT v.id, v.title, v.video_key, v.duration_seconds,
+			        COUNT( DISTINCT CASE WHEN s.lead_id IS NOT NULL
+			            THEN CONCAT( 'l', s.lead_id )
+			            ELSE s.visitor_uuid END )               AS viewers,
+			        COALESCE( AVG(s.unique_watch_percent), 0 )  AS avg_completion,
+			        COALESCE( SUM(s.unique_watch_seconds), 0 ) / 3600 AS watch_hours,
+			        COALESCE( SUM(s.reached_end), 0 )           AS completions,
+			        MIN(s.first_play_at)                        AS first_play_at
+			 FROM {$p}vlt_videos v
+			 LEFT JOIN {$p}vlt_video_user_summary s ON s.video_id = v.id
+			 WHERE v.is_active = 1
+			 GROUP BY v.id
+			 ORDER BY watch_hours DESC"
+		);
+		?>
+		<div class="wrap">
+			<h1 class="wp-heading-inline"><?php esc_html_e( 'Video Analytics', 'video-lead-tracker' ); ?></h1>
+			<hr class="wp-header-end">
+
+			<table class="widefat striped vlt-table">
+				<thead>
+					<tr>
+						<th><?php esc_html_e( 'Video',       'video-lead-tracker' ); ?></th>
+						<th><?php esc_html_e( 'Viewers',     'video-lead-tracker' ); ?></th>
+						<th><?php esc_html_e( 'Avg %',       'video-lead-tracker' ); ?></th>
+						<th><?php esc_html_e( 'Watch hrs',   'video-lead-tracker' ); ?></th>
+						<th><?php esc_html_e( 'Completions', 'video-lead-tracker' ); ?></th>
+						<th><?php esc_html_e( 'First Play',  'video-lead-tracker' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+				<?php if ( $videos ) : ?>
+					<?php foreach ( $videos as $v ) :
+						$detail_url = add_query_arg( [ 'page' => 'vlt-video-analytics', 'video_id' => $v->id ], admin_url( 'admin.php' ) );
+					?>
+					<tr>
+						<td>
+							<a href="<?php echo esc_url( $detail_url ); ?>">
+								<strong><?php echo esc_html( $v->title ?: $v->video_key ); ?></strong>
+							</a>
+							<?php if ( $v->duration_seconds ) : ?>
+								<br><span class="vlt-muted"><?php echo esc_html( self::format_duration( (int) $v->duration_seconds ) ); ?></span>
+							<?php endif; ?>
+						</td>
+						<td><?php echo esc_html( number_format_i18n( (int) $v->viewers ) ); ?></td>
+						<td>
+							<div class="vlt-progress">
+								<div class="vlt-progress-bar" style="width:<?php echo esc_attr( min( 100, (int) round( $v->avg_completion ) ) ); ?>%"></div>
+								<span><?php echo esc_html( round( (float) $v->avg_completion, 1 ) . '%' ); ?></span>
+							</div>
+						</td>
+						<td><?php echo esc_html( number_format( (float) $v->watch_hours, 2 ) ); ?></td>
+						<td><?php echo esc_html( number_format_i18n( (int) $v->completions ) ); ?></td>
+						<td class="vlt-muted"><?php echo esc_html( $v->first_play_at ? wp_date( 'Y-m-d', strtotime( $v->first_play_at ) ) : '—' ); ?></td>
+					</tr>
+					<?php endforeach; ?>
+				<?php else : ?>
+					<tr><td colspan="6" class="vlt-empty"><?php esc_html_e( 'No videos found.', 'video-lead-tracker' ); ?></td></tr>
+				<?php endif; ?>
+				</tbody>
+			</table>
+		</div>
+		<?php
+	}
+
+	private static function render_video_analytics_detail( $video_id ) {
+		global $wpdb;
+		$p = $wpdb->prefix;
+
+		$video = $wpdb->get_row( $wpdb->prepare(
+			"SELECT * FROM {$p}vlt_videos WHERE id = %d LIMIT 1",
+			$video_id
+		) );
+
+		if ( ! $video ) {
+			echo '<div class="wrap"><p>' . esc_html__( 'Video not found.', 'video-lead-tracker' ) . '</p></div>';
+			return;
+		}
+
+		$stats = $wpdb->get_row( $wpdb->prepare(
+			"SELECT COUNT( DISTINCT CASE WHEN s.lead_id IS NOT NULL
+			                THEN CONCAT('l', s.lead_id)
+			                ELSE s.visitor_uuid END )               AS viewers,
+			        COALESCE( AVG(s.unique_watch_percent), 0 )      AS avg_completion,
+			        COALESCE( SUM(s.unique_watch_seconds), 0 ) / 3600 AS watch_hours,
+			        COALESCE( SUM(s.reached_end), 0 )               AS completions,
+			        COALESCE( SUM(s.sessions_count), 0 )            AS total_sessions
+			 FROM {$p}vlt_video_user_summary s WHERE s.video_id = %d",
+			$video_id
+		) );
+
+		$dist = $wpdb->get_row( $wpdb->prepare(
+			"SELECT SUM( CASE WHEN unique_watch_percent < 25 THEN 1 ELSE 0 END )                                   AS b0,
+			        SUM( CASE WHEN unique_watch_percent >= 25 AND unique_watch_percent < 50 THEN 1 ELSE 0 END )     AS b25,
+			        SUM( CASE WHEN unique_watch_percent >= 50 AND unique_watch_percent < 75 THEN 1 ELSE 0 END )     AS b50,
+			        SUM( CASE WHEN unique_watch_percent >= 75 THEN 1 ELSE 0 END )                                   AS b75,
+			        COUNT(*)                                                                                         AS total
+			 FROM {$p}vlt_video_user_summary WHERE video_id = %d",
+			$video_id
+		) );
+
+		$top_viewers = $wpdb->get_results( $wpdb->prepare(
+			"SELECT l.primary_name, l.normalized_mobile, l.is_verified,
+			        s.unique_watch_percent, s.unique_watch_seconds, s.sessions_count,
+			        s.reached_end, s.first_play_at, s.visitor_uuid, s.lead_id
+			 FROM {$p}vlt_video_user_summary s
+			 LEFT JOIN {$p}vlt_leads l ON l.id = s.lead_id
+			 WHERE s.video_id = %d
+			 ORDER BY s.unique_watch_percent DESC
+			 LIMIT 20",
+			$video_id
+		) );
+
+		$back_url   = admin_url( 'admin.php?page=vlt-video-analytics' );
+		$dist_total = max( 1, (int) ( $dist->total ?? 1 ) );
+		$dist_colors = [ '#f0a0a0', '#f5c842', '#6ab04c', '#2271b1' ];
+		$dist_buckets = [
+			[ '0–25%',   (int) ( $dist->b0  ?? 0 ) ],
+			[ '25–50%',  (int) ( $dist->b25 ?? 0 ) ],
+			[ '50–75%',  (int) ( $dist->b50 ?? 0 ) ],
+			[ '75–100%', (int) ( $dist->b75 ?? 0 ) ],
+		];
+		?>
+		<div class="wrap">
+
+			<h1 class="wp-heading-inline">
+				<a href="<?php echo esc_url( $back_url ); ?>" class="vlt-back-link">&larr; <?php esc_html_e( 'Video Analytics', 'video-lead-tracker' ); ?></a>
+				<?php echo esc_html( $video->title ?: $video->video_key ); ?>
+			</h1>
+			<?php if ( $video->duration_seconds ) : ?>
+				<span class="vlt-muted" style="margin-left:10px"><?php echo esc_html( self::format_duration( (int) $video->duration_seconds ) ); ?></span>
+			<?php endif; ?>
+			<hr class="wp-header-end">
+
+			<div class="vlt-kpi-row">
+				<?php
+				$kpi_cards = [
+					[ __( 'Viewers',     'video-lead-tracker' ), number_format_i18n( (int) $stats->viewers ),                   'dashicons-groups',     '#2271b1' ],
+					[ __( 'Avg %',       'video-lead-tracker' ), round( (float) $stats->avg_completion, 1 ) . '%',               'dashicons-chart-bar',  '#1a9e6a' ],
+					[ __( 'Watch Hours', 'video-lead-tracker' ), number_format( (float) $stats->watch_hours, 2 ),                'dashicons-visibility', '#c22f3a' ],
+					[ __( 'Completions', 'video-lead-tracker' ), number_format_i18n( (int) $stats->completions ),                'dashicons-yes-alt',    '#6e3ec3' ],
+					[ __( 'Sessions',    'video-lead-tracker' ), number_format_i18n( (int) $stats->total_sessions ),             'dashicons-clock',      '#e06800' ],
+				];
+				foreach ( $kpi_cards as [ $label, $value, $icon, $color ] ) :
+				?>
+				<div class="vlt-kpi-card">
+					<span class="vlt-kpi-icon dashicons <?php echo esc_attr( $icon ); ?>" style="color:<?php echo esc_attr( $color ); ?>"></span>
+					<strong class="vlt-kpi-number"><?php echo esc_html( $value ); ?></strong>
+					<span class="vlt-kpi-label"><?php echo esc_html( $label ); ?></span>
+				</div>
+				<?php endforeach; ?>
+			</div>
+
+			<h2 class="vlt-section-title"><?php esc_html_e( 'Watch Distribution', 'video-lead-tracker' ); ?></h2>
+			<div class="vlt-distribution">
+				<?php foreach ( $dist_buckets as $idx => [ $label, $count ] ) :
+					$pct = round( $count / $dist_total * 100, 1 );
+				?>
+				<div class="vlt-dist-row">
+					<span class="vlt-dist-label"><?php echo esc_html( $label ); ?></span>
+					<div class="vlt-dist-bar-wrap">
+						<div class="vlt-dist-bar" style="width:<?php echo esc_attr( $pct ); ?>%;background:<?php echo esc_attr( $dist_colors[ $idx ] ); ?>"></div>
+					</div>
+					<span class="vlt-dist-count"><?php echo esc_html( number_format_i18n( $count ) . ' (' . $pct . '%)' ); ?></span>
+				</div>
+				<?php endforeach; ?>
+			</div>
+
+			<h2 class="vlt-section-title"><?php esc_html_e( 'Top Viewers', 'video-lead-tracker' ); ?></h2>
+			<table class="widefat striped vlt-table">
+				<thead>
+					<tr>
+						<th><?php esc_html_e( 'Viewer',       'video-lead-tracker' ); ?></th>
+						<th><?php esc_html_e( 'Watch %',      'video-lead-tracker' ); ?></th>
+						<th><?php esc_html_e( 'Unique Watch', 'video-lead-tracker' ); ?></th>
+						<th><?php esc_html_e( 'Sessions',     'video-lead-tracker' ); ?></th>
+						<th><?php esc_html_e( 'Completed',    'video-lead-tracker' ); ?></th>
+						<th><?php esc_html_e( 'First Play',   'video-lead-tracker' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+				<?php if ( $top_viewers ) : ?>
+					<?php foreach ( $top_viewers as $v ) : ?>
+					<tr>
+						<td>
+							<?php if ( $v->lead_id ) :
+								$lead_url = add_query_arg( [ 'page' => 'vlt-leads', 'lead_id' => $v->lead_id ], admin_url( 'admin.php' ) );
+							?>
+								<a href="<?php echo esc_url( $lead_url ); ?>"><?php echo esc_html( $v->primary_name ?: __( '(no name)', 'video-lead-tracker' ) ); ?></a>
+								<br><code class="vlt-mono"><?php echo esc_html( self::mask_mobile( $v->normalized_mobile ) ); ?></code>
+							<?php else : ?>
+								<span class="vlt-muted"><?php esc_html_e( 'Anonymous', 'video-lead-tracker' ); ?></span>
+								<br><code class="vlt-mono" style="font-size:11px"><?php echo esc_html( substr( $v->visitor_uuid, 0, 8 ) . '…' ); ?></code>
+							<?php endif; ?>
+						</td>
+						<td>
+							<div class="vlt-progress">
+								<div class="vlt-progress-bar" style="width:<?php echo esc_attr( min( 100, (int) round( $v->unique_watch_percent ) ) ); ?>%"></div>
+								<span><?php echo esc_html( round( (float) $v->unique_watch_percent, 1 ) . '%' ); ?></span>
+							</div>
+						</td>
+						<td><?php echo esc_html( round( (float) $v->unique_watch_seconds ) . 's' ); ?></td>
+						<td><?php echo esc_html( number_format_i18n( (int) $v->sessions_count ) ); ?></td>
+						<td>
+							<?php if ( $v->reached_end ) : ?>
+								<span class="vlt-badge vlt-badge--green"><?php esc_html_e( 'Yes', 'video-lead-tracker' ); ?></span>
+							<?php else : ?>
+								<span class="vlt-badge"><?php esc_html_e( 'No', 'video-lead-tracker' ); ?></span>
+							<?php endif; ?>
+						</td>
+						<td class="vlt-muted"><?php echo esc_html( $v->first_play_at ? wp_date( 'Y-m-d H:i', strtotime( $v->first_play_at ) ) : '—' ); ?></td>
+					</tr>
+					<?php endforeach; ?>
+				<?php else : ?>
+					<tr><td colspan="6" class="vlt-empty"><?php esc_html_e( 'No viewers yet.', 'video-lead-tracker' ); ?></td></tr>
+				<?php endif; ?>
+				</tbody>
+			</table>
+
+		</div>
+		<?php
+	}
+
+	// -------------------------------------------------------------------------
+	// Heatmap (Phase 17)
+	// -------------------------------------------------------------------------
+
+	public static function render_heatmap() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		global $wpdb;
+		$p = $wpdb->prefix;
+
+		$video_id = isset( $_GET['video_id'] ) ? absint( $_GET['video_id'] ) : 0;
+		$bucket   = max( 1, (int) VLT_Settings::get( 'heatmap_bucket_size' ) );
+
+		$all_videos = $wpdb->get_results(
+			"SELECT id, title, video_key, duration_seconds FROM {$p}vlt_videos WHERE is_active = 1 ORDER BY created_at DESC"
+		);
+
+		$heatmap_data = [];
+		$max_total    = 1;
+		$max_unique   = 1;
+
+		if ( $video_id ) {
+			$rows = $wpdb->get_results( $wpdb->prepare(
+				"SELECT FLOOR(second_index / %d) * %d AS bucket_start,
+				        SUM(total_views_count)         AS total,
+				        SUM(unique_visitors_count)     AS unique_visitors,
+				        SUM(unique_leads_count)        AS unique_leads
+				 FROM {$p}vlt_video_heatmap
+				 WHERE video_id = %d
+				 GROUP BY bucket_start
+				 ORDER BY bucket_start ASC",
+				$bucket, $bucket, $video_id
+			) );
+
+			foreach ( $rows as $row ) {
+				$entry = [
+					'second'          => (int) $row->bucket_start,
+					'total'           => (int) $row->total,
+					'unique_visitors' => (int) $row->unique_visitors,
+					'unique_leads'    => (int) $row->unique_leads,
+				];
+				$heatmap_data[] = $entry;
+				$max_total  = max( $max_total,  $entry['total'] );
+				$max_unique = max( $max_unique, $entry['unique_visitors'] );
+			}
+		}
+		?>
+		<div class="wrap">
+			<h1 class="wp-heading-inline"><?php esc_html_e( 'Heatmap', 'video-lead-tracker' ); ?></h1>
+			<hr class="wp-header-end">
+
+			<form method="get" class="vlt-hm-selector">
+				<input type="hidden" name="page" value="vlt-heatmap">
+				<select name="video_id" class="vlt-hm-select" onchange="this.form.submit()">
+					<option value=""><?php esc_html_e( '— Select a video —', 'video-lead-tracker' ); ?></option>
+					<?php foreach ( $all_videos as $v ) : ?>
+						<option value="<?php echo esc_attr( $v->id ); ?>" <?php selected( $video_id, (int) $v->id ); ?>>
+							<?php echo esc_html(
+								( $v->title ?: $v->video_key )
+								. ( $v->duration_seconds ? ' (' . self::format_duration( (int) $v->duration_seconds ) . ')' : '' )
+							); ?>
+						</option>
+					<?php endforeach; ?>
+				</select>
+			</form>
+
+			<?php if ( ! $video_id ) : ?>
+				<p class="vlt-muted" style="margin-top:20px"><?php esc_html_e( 'Select a video to view its heatmap.', 'video-lead-tracker' ); ?></p>
+
+			<?php elseif ( empty( $heatmap_data ) ) : ?>
+				<p class="vlt-muted" style="margin-top:20px"><?php esc_html_e( 'No heatmap data yet.', 'video-lead-tracker' ); ?></p>
+
+			<?php else : ?>
+
+				<div class="vlt-hm-toolbar">
+					<span class="vlt-hm-label"><?php esc_html_e( 'Metric:', 'video-lead-tracker' ); ?></span>
+					<button type="button" class="button button-primary vlt-hm-metric" data-metric="total"><?php esc_html_e( 'Total Views',      'video-lead-tracker' ); ?></button>
+					<button type="button" class="button vlt-hm-metric"               data-metric="unique_visitors"><?php esc_html_e( 'Unique Visitors', 'video-lead-tracker' ); ?></button>
+					<button type="button" class="button vlt-hm-metric"               data-metric="unique_leads"><?php esc_html_e( 'Unique Leads',    'video-lead-tracker' ); ?></button>
+				</div>
+
+				<div class="vlt-hm-wrap"
+				     id="vlt-hm-wrap"
+				     data-buckets="<?php echo esc_attr( wp_json_encode( $heatmap_data ) ); ?>"
+				     data-max-total="<?php echo esc_attr( $max_total ); ?>"
+				     data-max-unique="<?php echo esc_attr( $max_unique ); ?>"
+				     data-bucket-size="<?php echo esc_attr( $bucket ); ?>">
+					<div class="vlt-hm-chart" id="vlt-hm-chart"></div>
+					<div class="vlt-hm-axis"  id="vlt-hm-axis"></div>
+				</div>
+
+				<p class="vlt-muted" style="font-size:12px;margin-top:6px">
+					<?php printf(
+						/* translators: %d = bucket size in seconds */
+						esc_html__( 'Bucket size: %d second(s). Hover over a bar for details.', 'video-lead-tracker' ),
+						$bucket
+					); ?>
+				</p>
+
+			<?php endif; ?>
+
+		</div>
 		<?php
 	}
 
