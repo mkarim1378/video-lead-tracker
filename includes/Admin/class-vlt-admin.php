@@ -328,7 +328,7 @@ class VLT_Admin {
 		$per_page = 20;
 		$offset   = ( $paged - 1 ) * $per_page;
 
-		$allowed_cols = [ 'primary_name', 'first_seen_at', 'last_seen_at', 'is_verified', 'avg_watch', 'videos_count', 'sessions_count' ];
+		$allowed_cols = [ 'id', 'primary_name', 'first_seen_at', 'last_seen_at', 'is_verified', 'avg_watch', 'videos_count', 'sessions_count' ];
 		if ( ! in_array( $orderby, $allowed_cols, true ) ) {
 			$orderby = 'first_seen_at';
 		}
@@ -456,7 +456,7 @@ class VLT_Admin {
 			<table class="widefat striped vlt-table">
 				<thead>
 					<tr>
-						<th class="vlt-col-num">#</th>
+						<th class="vlt-col-num"><?php echo self::sort_link( '#', 'id', $orderby, $order, $sort_base ); // phpcs:ignore ?></th>
 						<th><?php echo self::sort_link( __( 'Name', 'video-lead-tracker' ), 'primary_name', $orderby, $order, $sort_base ); // phpcs:ignore ?></th>
 						<th><?php esc_html_e( 'Mobile', 'video-lead-tracker' ); ?></th>
 						<th><?php echo self::sort_link( __( 'Verified', 'video-lead-tracker' ), 'is_verified', $orderby, $order, $sort_base ); // phpcs:ignore ?></th>
@@ -472,9 +472,9 @@ class VLT_Admin {
 						$detail_url = add_query_arg( [ 'page' => 'vlt-leads', 'lead_id' => $row->id ], admin_url( 'admin.php' ) );
 					?>
 					<tr>
-						<td class="vlt-muted vlt-col-num"><?php echo esc_html( $offset + $i + 1 ); ?></td>
+						<td class="vlt-muted vlt-col-num"><?php echo esc_html( $row->id ); ?></td>
 						<td><a href="<?php echo esc_url( $detail_url ); ?>"><?php echo esc_html( $row->primary_name ?: '—' ); ?></a></td>
-						<td><code class="vlt-mono"><?php echo esc_html( self::mask_mobile( $row->normalized_mobile ) ); ?></code></td>
+						<td><code class="vlt-mono"><?php echo esc_html( $row->normalized_mobile ); ?></code></td>
 						<td>
 							<?php if ( $row->is_verified ) : ?>
 								<span class="vlt-badge vlt-badge--green"><?php esc_html_e( 'Yes', 'video-lead-tracker' ); ?></span>
