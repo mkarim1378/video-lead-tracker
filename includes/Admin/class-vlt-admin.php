@@ -70,47 +70,110 @@ class VLT_Admin {
 		global $wpdb;
 		$p = $wpdb->prefix;
 
-		$cache     = get_transient( 'vlt_overview_cache' );
+		// Resolve video filter key without rendering (rendering happens inside HTML).
+		$filter_video_key = sanitize_key( $_GET['video'] ?? '' );
+		$filter_vid_id    = 0;
+		if ( $filter_video_key ) {
+			foreach ( VLT_DB::get_all_videos() as $v ) {
+				if ( $v->video_key === $filter_video_key ) {
+					$filter_vid_id = (int) $v->id;
+					break;
+				}
+			}
+		}
+
+		$cache_key = 'vlt_overview_cache_' . $filter_vid_id;
+		$cache     = get_transient( $cache_key );
 		$cache_hit = is_array( $cache );
 
 		if ( $cache_hit ) {
 			[ $total_leads, $verified_leads, $total_sessions, $active_videos, $watch_hours,
 			  $recent_leads, $top_videos ] = $cache;
 		} else {
-			$total_leads    = (int)   $wpdb->get_var( "SELECT COUNT(*) FROM {$p}vlt_leads" );
-			$verified_leads = (int)   $wpdb->get_var( "SELECT COUNT(*) FROM {$p}vlt_leads WHERE is_verified = 1" );
-			$total_sessions = (int)   $wpdb->get_var( "SELECT COUNT(*) FROM {$p}vlt_sessions" );
-			$active_videos  = (int)   $wpdb->get_var( "SELECT COUNT(*) FROM {$p}vlt_videos WHERE is_active = 1" );
-			$watch_secs     = (float) $wpdb->get_var( "SELECT COALESCE( SUM(unique_watch_seconds), 0 ) FROM {$p}vlt_video_user_summary" );
-			$watch_hours    = number_format( $watch_secs / 3600, 1 );
+			if ( $filter_vid_id ) {
+				$total_leads    = (int) $wpdb->get_var( $wpdb->prepare(
+					"SELECT COUNT( DISTINCT lead_id ) FROM {$p}vlt_video_user_summary WHERE video_id = %d AND lead_id IS NOT NULL",
+					$filter_vid_id
+				) );
+				$verified_leads = (int) $wpdb->get_var( $wpdb->prepare(
+					"SELECT COUNT( DISTINCT s.lead_id )
+					 FROM {$p}vlt_video_user_summary s
+					 JOIN {$p}vlt_leads l ON l.id = s.lead_id
+					 WHERE s.video_id = %d AND l.is_verified = 1",
+					$filter_vid_id
+				) );
+				$total_sessions = (int) $wpdb->get_var( $wpdb->prepare(
+					"SELECT COALESCE( SUM(sessions_count), 0 ) FROM {$p}vlt_video_user_summary WHERE video_id = %d",
+					$filter_vid_id
+				) );
+				$active_videos  = 1;
+				$watch_secs     = (float) $wpdb->get_var( $wpdb->prepare(
+					"SELECT COALESCE( SUM(unique_watch_seconds), 0 ) FROM {$p}vlt_video_user_summary WHERE video_id = %d",
+					$filter_vid_id
+				) );
+				$watch_hours    = number_format( $watch_secs / 3600, 1 );
 
-			$recent_leads = $wpdb->get_results(
-				"SELECT l.primary_name, l.normalized_mobile, l.is_verified, l.first_seen_at,
-				        COALESCE( AVG(s.unique_watch_percent), 0 ) AS avg_watch
-				 FROM {$p}vlt_leads l
-				 LEFT JOIN {$p}vlt_video_user_summary s ON s.lead_id = l.id
-				 GROUP BY l.id
-				 ORDER BY l.first_seen_at DESC
-				 LIMIT 10"
-			);
+				$recent_leads = $wpdb->get_results( $wpdb->prepare(
+					"SELECT l.primary_name, l.normalized_mobile, l.is_verified, l.first_seen_at,
+					        COALESCE( s.unique_watch_percent, 0 ) AS avg_watch
+					 FROM {$p}vlt_video_user_summary s
+					 JOIN {$p}vlt_leads l ON l.id = s.lead_id
+					 WHERE s.video_id = %d
+					 ORDER BY l.first_seen_at DESC
+					 LIMIT 10",
+					$filter_vid_id
+				) );
 
-			$top_videos = $wpdb->get_results(
-				"SELECT v.title, v.video_key, v.duration_seconds,
-				        COUNT( DISTINCT CASE WHEN s.lead_id IS NOT NULL
-				            THEN CONCAT( 'l', s.lead_id )
-				            ELSE s.visitor_uuid END )               AS viewers,
-				        COALESCE( AVG(s.unique_watch_percent), 0 )  AS avg_completion,
-				        COALESCE( SUM(s.unique_watch_seconds), 0 ) / 3600 AS watch_hours,
-				        COALESCE( SUM(s.reached_end), 0 )           AS completions
-				 FROM {$p}vlt_videos v
-				 LEFT JOIN {$p}vlt_video_user_summary s ON s.video_id = v.id
-				 WHERE v.is_active = 1
-				 GROUP BY v.id
-				 ORDER BY watch_hours DESC
-				 LIMIT 8"
-			);
+				$top_videos = $wpdb->get_results( $wpdb->prepare(
+					"SELECT v.title, v.video_key, v.duration_seconds,
+					        COUNT( DISTINCT CASE WHEN s.lead_id IS NOT NULL
+					            THEN CONCAT( 'l', s.lead_id )
+					            ELSE s.visitor_uuid END )               AS viewers,
+					        COALESCE( AVG(s.unique_watch_percent), 0 )  AS avg_completion,
+					        COALESCE( SUM(s.unique_watch_seconds), 0 ) / 3600 AS watch_hours,
+					        COALESCE( SUM(s.reached_end), 0 )           AS completions
+					 FROM {$p}vlt_videos v
+					 LEFT JOIN {$p}vlt_video_user_summary s ON s.video_id = v.id
+					 WHERE v.id = %d
+					 GROUP BY v.id",
+					$filter_vid_id
+				) );
+			} else {
+				$total_leads    = (int)   $wpdb->get_var( "SELECT COUNT(*) FROM {$p}vlt_leads" );
+				$verified_leads = (int)   $wpdb->get_var( "SELECT COUNT(*) FROM {$p}vlt_leads WHERE is_verified = 1" );
+				$total_sessions = (int)   $wpdb->get_var( "SELECT COUNT(*) FROM {$p}vlt_sessions" );
+				$active_videos  = (int)   $wpdb->get_var( "SELECT COUNT(*) FROM {$p}vlt_videos WHERE is_active = 1" );
+				$watch_secs     = (float) $wpdb->get_var( "SELECT COALESCE( SUM(unique_watch_seconds), 0 ) FROM {$p}vlt_video_user_summary" );
+				$watch_hours    = number_format( $watch_secs / 3600, 1 );
 
-			set_transient( 'vlt_overview_cache',
+				$recent_leads = $wpdb->get_results(
+					"SELECT l.primary_name, l.normalized_mobile, l.is_verified, l.first_seen_at,
+					        COALESCE( AVG(s.unique_watch_percent), 0 ) AS avg_watch
+					 FROM {$p}vlt_leads l
+					 LEFT JOIN {$p}vlt_video_user_summary s ON s.lead_id = l.id
+					 GROUP BY l.id
+					 ORDER BY l.first_seen_at DESC
+					 LIMIT 10"
+				);
+
+				$top_videos = $wpdb->get_results(
+					"SELECT v.title, v.video_key, v.duration_seconds,
+					        COUNT( DISTINCT CASE WHEN s.lead_id IS NOT NULL
+					            THEN CONCAT( 'l', s.lead_id )
+					            ELSE s.visitor_uuid END )               AS viewers,
+					        COALESCE( AVG(s.unique_watch_percent), 0 )  AS avg_completion,
+					        COALESCE( SUM(s.unique_watch_seconds), 0 ) / 3600 AS watch_hours,
+					        COALESCE( SUM(s.reached_end), 0 )           AS completions
+					 FROM {$p}vlt_videos v
+					 LEFT JOIN {$p}vlt_video_user_summary s ON s.video_id = v.id
+					 WHERE v.is_active = 1
+					 GROUP BY v.id
+					 ORDER BY watch_hours DESC
+					 LIMIT 8"
+				);
+			}
+
+			set_transient( $cache_key,
 				[ $total_leads, $verified_leads, $total_sessions, $active_videos, $watch_hours,
 				  $recent_leads, $top_videos ],
 				5 * MINUTE_IN_SECONDS
@@ -121,6 +184,7 @@ class VLT_Admin {
 		<div class="wrap vlt-overview">
 
 			<h1 class="wp-heading-inline"><?php esc_html_e( 'Video Lead Tracker', 'video-lead-tracker' ); ?></h1>
+			<?php self::video_filter_select( 'vlt-overview' ); ?>
 
 			<!-- KPI cards -->
 			<div class="vlt-kpi-row">
@@ -266,6 +330,26 @@ class VLT_Admin {
 			$order = 'DESC';
 		}
 
+		// ---- Video filter ----
+		$filter_video_key = sanitize_key( $_GET['video'] ?? '' );
+		$filter_vid_id    = 0;
+		if ( $filter_video_key ) {
+			foreach ( VLT_DB::get_all_videos() as $v ) {
+				if ( $v->video_key === $filter_video_key ) {
+					$filter_vid_id = (int) $v->id;
+					break;
+				}
+			}
+		}
+
+		if ( $filter_vid_id ) {
+			$join_sql    = "JOIN {$p}vlt_video_user_summary s ON s.lead_id = l.id AND s.video_id = %d";
+			$join_params = [ $filter_vid_id ];
+		} else {
+			$join_sql    = "LEFT JOIN {$p}vlt_video_user_summary s ON s.lead_id = l.id";
+			$join_params = [];
+		}
+
 		// ---- WHERE clause ----
 		$where        = '';
 		$where_params = [];
@@ -276,9 +360,10 @@ class VLT_Admin {
 		}
 
 		// ---- Total count ----
-		$count_sql = "SELECT COUNT(*) FROM {$p}vlt_leads l $where";
-		$total     = (int) ( $where_params
-			? $wpdb->get_var( $wpdb->prepare( $count_sql, $where_params ) )
+		$all_params = array_merge( $join_params, $where_params );
+		$count_sql  = "SELECT COUNT( DISTINCT l.id ) FROM {$p}vlt_leads l $join_sql $where";
+		$total      = (int) ( $all_params
+			? $wpdb->get_var( $wpdb->prepare( $count_sql, $all_params ) )
 			: $wpdb->get_var( $count_sql )
 		);
 
@@ -289,20 +374,23 @@ class VLT_Admin {
 		               COALESCE( AVG(s.unique_watch_percent), 0 ) AS avg_watch,
 		               ( SELECT COUNT(*) FROM {$p}vlt_sessions WHERE lead_id = l.id ) AS sessions_count
 		        FROM {$p}vlt_leads l
-		        LEFT JOIN {$p}vlt_video_user_summary s ON s.lead_id = l.id
+		        $join_sql
 		        $where
 		        GROUP BY l.id
 		        ORDER BY $orderby $order
 		        LIMIT %d OFFSET %d";
 
 		$leads = $wpdb->get_results(
-			$wpdb->prepare( $sql, array_merge( $where_params, [ $per_page, $offset ] ) )
+			$wpdb->prepare( $sql, array_merge( $join_params, $where_params, [ $per_page, $offset ] ) )
 		);
 
 		$total_pages = max( 1, (int) ceil( $total / $per_page ) );
 		$paged       = min( $paged, $total_pages );
 		$offset      = ( $paged - 1 ) * $per_page;
-		$base_url    = admin_url( 'admin.php?page=vlt-leads' );
+		$base_url    = add_query_arg(
+			array_filter( [ 'video' => $filter_video_key ?: null ] ),
+			admin_url( 'admin.php?page=vlt-leads' )
+		);
 		$sort_base   = add_query_arg( array_filter( [
 			's'       => $search ?: null,
 			'orderby' => ( $orderby !== 'first_seen_at' ) ? $orderby : null,
@@ -319,8 +407,13 @@ class VLT_Admin {
 			</a>
 			<hr class="wp-header-end">
 
+			<?php self::video_filter_select( 'vlt-leads' ); ?>
+
 			<form method="get" class="vlt-search-form">
 				<input type="hidden" name="page" value="vlt-leads">
+				<?php if ( $filter_video_key ) : ?>
+					<input type="hidden" name="video" value="<?php echo esc_attr( $filter_video_key ); ?>">
+				<?php endif; ?>
 				<input type="search" name="s" value="<?php echo esc_attr( $search ); ?>"
 				       placeholder="<?php esc_attr_e( 'Search leads…', 'video-lead-tracker' ); ?>"
 				       class="vlt-search-input">
@@ -1082,6 +1175,55 @@ class VLT_Admin {
 	// -------------------------------------------------------------------------
 	// Helpers
 	// -------------------------------------------------------------------------
+
+	/**
+	 * Render a video filter <select> that auto-submits on change.
+	 * Returns the resolved video object for the current selection (or null = all).
+	 *
+	 * @param  string $page      Admin page slug (e.g. 'vlt-overview').
+	 * @param  array  $keep_get  Extra GET params to preserve in the form (key => value).
+	 * @return object|null       Selected video DB row, or null when "All Videos" selected.
+	 */
+	private static function video_filter_select( $page, array $keep_get = [] ) {
+		$videos      = VLT_DB::get_all_videos();
+		$current_key = sanitize_key( $_GET['video'] ?? '' );
+		$selected    = null;
+
+		if ( $current_key ) {
+			foreach ( $videos as $v ) {
+				if ( $v->video_key === $current_key ) {
+					$selected = $v;
+					break;
+				}
+			}
+		}
+
+		if ( empty( $videos ) ) {
+			return null;
+		}
+		?>
+		<form method="get" style="display:inline-block;margin:12px 0;">
+			<input type="hidden" name="page" value="<?php echo esc_attr( $page ); ?>">
+			<?php foreach ( $keep_get as $k => $val ) : ?>
+				<input type="hidden" name="<?php echo esc_attr( $k ); ?>" value="<?php echo esc_attr( (string) $val ); ?>">
+			<?php endforeach; ?>
+			<select name="video" onchange="this.form.submit()" style="min-width:200px;">
+				<option value=""><?php esc_html_e( '— All Videos —', 'video-lead-tracker' ); ?></option>
+				<?php foreach ( $videos as $v ) : ?>
+					<option value="<?php echo esc_attr( $v->video_key ); ?>" <?php selected( $current_key, $v->video_key ); ?>>
+						<?php echo esc_html( $v->title ?: $v->video_key ); ?>
+					</option>
+				<?php endforeach; ?>
+			</select>
+			<?php if ( $current_key ) : ?>
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=' . $page ) ); ?>" class="button button-link" style="vertical-align:middle;">
+					<?php esc_html_e( 'Clear', 'video-lead-tracker' ); ?>
+				</a>
+			<?php endif; ?>
+		</form>
+		<?php
+		return $selected;
+	}
 
 	/**
 	 * Build a sortable column header link.

@@ -340,6 +340,10 @@ msgid "Showing last %d of %d entries"
 msgstr "نمایش آخرین %d از %d ورودی"
 
 #: includes/Admin/class-vlt-admin.php
+msgid "— All Videos —"
+msgstr "— همه ویدیوها —"
+
+#: includes/Admin/class-vlt-admin.php
 msgid "metadata"
 msgstr "متادیتا"
 

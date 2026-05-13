@@ -5,6 +5,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.1.2] - 2026-05-13
+
+### Added
+- Phase 23: Per-Video Analytics Dashboard
+  - **Overview page** (`Video Lead Tracker → Overview`): video filter dropdown lets admins scope all five KPI cards (Total Leads, Verified, Sessions, Videos, Watch Hours), Recent Leads table, and Top Videos table to a single video. Selecting "— All Videos —" restores the global view.
+  - **Leads page** (`Video Lead Tracker → Leads`): same video filter dropdown scopes the lead list to only leads who watched the selected video. Search and sort remain functional within the filtered set. The active video filter is preserved across pagination and column sort links.
+  - Each video-scoped Overview view uses its own transient cache key (`vlt_overview_cache_{video_id}`) so per-video and global caches do not collide.
+
+### Changed
+- `VLT_VERSION` bumped 1.1.1 → 1.1.2.
+
+---
+
 ## [1.1.1] - 2026-05-13
 
 ### Added
