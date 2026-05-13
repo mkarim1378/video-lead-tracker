@@ -572,8 +572,20 @@ msgid "Payamito (پیامیتو)"
 msgstr "پیامیتو"
 
 #: includes/Settings/class-vlt-settings.php
-msgid "API Key"
-msgstr "کلید API"
+msgid "Account Username"
+msgstr "نام کاربری حساب"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Your Payamito panel username (نام کاربری)."
+msgstr "نام کاربری پنل پیامیتو شما."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "API Key (password)"
+msgstr "کلید API (رمز عبور توسعه‌دهنده)"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "ApiKey from Payamito developer settings (not your login password). Leave blank to keep existing value."
+msgstr "ApiKey از تنظیمات توسعه‌دهندگان پیامیتو (نه رمز ورود). برای حفظ مقدار فعلی، خالی بگذارید."
 
 #: includes/Settings/class-vlt-settings.php
 msgid "Stored encrypted. Leave blank to keep the existing value when saving."

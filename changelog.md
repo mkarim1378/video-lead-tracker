@@ -5,6 +5,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.1.1] - 2026-05-13
+
+### Added
+- Phase 22: Payamito SMS Provider Integration
+  - `send_payamito()` implemented in `VLT_OTP_Service` using Payamito SmartSMS REST API (`POST /api/SmartSMS/Send`).
+  - Payamito requires two separate credentials: `username` (نام کاربری) and `password` (ApiKey from developer settings). New `otp_username` setting added to Settings → OTP.
+  - On success (`RetStatus === 1`), logs the Payamito message ID. On failure, logs the error `Value` code for diagnosis without exposing credentials or mobile numbers.
+  - Guard: if username, API key, or sender are not configured, logs a config error and skips the HTTP call.
+  - HTTP timeout set to 15 s to accommodate Payamito's 3-attempt SmartSMS retry logic.
+
+### Changed
+- Settings OTP section: `otp_api_key` label updated to "API Key (password)" to clarify it is the Payamito ApiKey, not the login password.
+- `VLT_VERSION` bumped 1.1.0 → 1.1.1.
+
+---
+
 ## [1.1.0] - 2026-05-13
 
 ### Added

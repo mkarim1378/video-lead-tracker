@@ -23,6 +23,7 @@ class VLT_Settings {
 		// OTP
 		'enable_otp'              => false,
 		'otp_provider'            => 'payamito',
+		'otp_username'            => '',
 		'otp_api_key'             => '',
 		'otp_sender'              => '',
 		'otp_template'            => 'Your verification code is: {code}',
@@ -385,10 +386,16 @@ class VLT_Settings {
 						'desc'    => __( 'Select your SMS provider for OTP delivery.', 'video-lead-tracker' ),
 					],
 					[
+						'key'   => 'otp_username',
+						'label' => __( 'Account Username', 'video-lead-tracker' ),
+						'type'  => 'text',
+						'desc'  => __( 'Your Payamito panel username (نام کاربری).', 'video-lead-tracker' ),
+					],
+					[
 						'key'   => 'otp_api_key',
-						'label' => __( 'API Key', 'video-lead-tracker' ),
+						'label' => __( 'API Key (password)', 'video-lead-tracker' ),
 						'type'  => 'password',
-						'desc'  => __( 'Stored encrypted. Leave blank to keep the existing value when saving.', 'video-lead-tracker' ),
+						'desc'  => __( 'ApiKey from Payamito developer settings (not your login password). Leave blank to keep existing value.', 'video-lead-tracker' ),
 					],
 					[
 						'key'   => 'otp_sender',

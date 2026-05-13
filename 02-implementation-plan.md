@@ -997,7 +997,76 @@ Admin can manage multiple videos. Each `[video_lead_tracker key="X"]` shortcode 
 
 ---
 
-# Phase 22 - Per-Video Analytics Dashboard
+# Phase 22 - Payamito SMS Provider Integration
+
+## Objective
+
+Wire the existing OTP system to the Payamito SmartSMS REST API so that verification codes are actually delivered by SMS.
+
+## API Reference
+
+REST endpoint used for single-recipient OTP delivery:
+
+text
+POST https://rest.payamak-panel.com/api/SmartSMS/Send
+
+## Request Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `username` | String | Yes | Payamito panel username (نام کاربری) |
+| `password` | String | Yes | ApiKey from developer settings — not the login password |
+| `to` | String | Yes | Recipient mobile number |
+| `text` | String | Yes | OTP message text |
+| `from` | String | Yes | Dedicated sender line number |
+| `fromSupportOne` | String | No | Backup sender line 1 |
+| `fromSupportTwo` | String | No | Backup sender line 2 |
+
+## Success Response
+
+```json
+{ "Value": "ID", "RetStatus": 1, "StrRetStatus": "Ok" }
+```
+
+## Error Codes (in `Value` field)
+
+| Code | Meaning |
+|------|---------|
+| `0` | Wrong username or password |
+| `2` | Insufficient credit |
+| `5` | Invalid sender number |
+| `7` | Message contains filtered words |
+| `9` | Cannot send from public lines via API |
+| `14` | Message contains a link |
+| `15` | Missing `لغو11` at end of message |
+
+## Tasks
+
+1. Add `otp_username` field to Settings defaults and OTP section (separate from `otp_api_key`).
+2. Update Settings OTP section label for `otp_api_key` to clarify it is the ApiKey from developer settings, not the login password.
+3. In `VLT_OTP_Service::dispatch()`, add `payamito` case.
+4. Implement `send_payamito()`:
+   - POST to `https://rest.payamak-panel.com/api/SmartSMS/Send` with form-encoded body.
+   - On success (`RetStatus === 1`): return `true` and log the message ID.
+   - On failure: log the `Value` error code to `wp_vlt_logs` and return `false`.
+   - Guard: if username, api_key, or sender is empty, log a config error and return `false` without making the HTTP request.
+5. Ensure the OTP template variable `{code}` is replaced before the message is passed to the provider.
+6. Test flow: enable OTP on a video, submit form, verify code arrives by SMS, confirm lead is marked verified.
+
+## Rules
+
+- Never log the raw mobile number — log only its SHA-256 hash.
+- Never log the OTP code itself.
+- The `otp_api_key` field holds the Payamito `password` parameter (ApiKey); `otp_username` holds the `username` parameter. Do not confuse the two.
+- Timeout for the HTTP request must be at least 15 seconds to account for Payamito's SmartSMS retry logic (up to 3 sender attempts).
+
+## Deliverable
+
+When OTP is enabled on a video, submitting the lead form triggers a real SMS containing the verification code via Payamito. Errors are logged to the plugin Logs page with enough detail to diagnose configuration issues without exposing sensitive data.
+
+---
+
+# Phase 23 - Per-Video Analytics Dashboard
 
 ## Objective
 
@@ -1024,7 +1093,7 @@ Admin can switch between videos and see isolated analytics for each.
 
 ---
 
-# Phase 23 - Exit Point and Drop-off Analytics
+# Phase 24 - Exit Point and Drop-off Analytics
 
 ## Objective
 
@@ -1059,7 +1128,7 @@ Admin can see exactly where most viewers stop watching and identify problematic 
 
 ---
 
-# Phase 24 - Data Reset and Retention Management
+# Phase 25 - Data Reset and Retention Management
 
 ## Objective
 
@@ -1090,7 +1159,7 @@ Admin can selectively or fully clear analytics data without touching plugin conf
 
 ---
 
-# Phase 25 - Reporting Upgrade and Funnel Analytics
+# Phase 26 - Reporting Upgrade and Funnel Analytics
 
 ## Objective
 

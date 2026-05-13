@@ -146,8 +146,11 @@ class VLT_OTP_Service {
 		$provider = sanitize_key( (string) VLT_Settings::get( 'otp_provider' ) );
 		$api_key  = (string) VLT_Settings::get( 'otp_api_key' );
 		$sender   = (string) VLT_Settings::get( 'otp_sender' );
+		$username = (string) VLT_Settings::get( 'otp_username' );
 
 		switch ( $provider ) {
+			case 'payamito':
+				return self::send_payamito( $mobile, $message, $username, $api_key, $sender );
 			case 'kavenegar':
 				return self::send_kavenegar( $mobile, $message, $api_key, $sender );
 			case 'sms_ir':
@@ -162,6 +165,52 @@ class VLT_OTP_Service {
 	// -------------------------------------------------------------------------
 	// Provider implementations
 	// -------------------------------------------------------------------------
+
+	/**
+	 * Send via Payamito SmartSMS REST API.
+	 * Docs: https://rest.payamak-panel.com/api/SmartSMS/Send
+	 * username = panel username; api_key = ApiKey from developer settings (used as password).
+	 */
+	private static function send_payamito( $mobile, $message, $username, $api_key, $sender ) {
+		if ( ! $username || ! $api_key || ! $sender ) {
+			VLT_Logger::error( 'Payamito: username, API key, or sender not configured.', 'otp' );
+			return false;
+		}
+
+		$response = wp_remote_post(
+			'https://rest.payamak-panel.com/api/SmartSMS/Send',
+			[
+				'body'    => [
+					'username' => $username,
+					'password' => $api_key,
+					'to'       => $mobile,
+					'text'     => $message,
+					'from'     => $sender,
+				],
+				'timeout' => 15,
+			]
+		);
+
+		if ( is_wp_error( $response ) ) {
+			VLT_Logger::error( 'Payamito HTTP error: ' . $response->get_error_message(), 'otp' );
+			return false;
+		}
+
+		$code = (int) wp_remote_retrieve_response_code( $response );
+		$body = wp_remote_retrieve_body( $response );
+		$data = json_decode( $body, true );
+
+		// Success: RetStatus = 1 and StrRetStatus = "Ok".
+		if ( 200 === $code && isset( $data['RetStatus'] ) && 1 === (int) $data['RetStatus'] ) {
+			VLT_Logger::info( 'Payamito OTP sent. Value: ' . ( $data['Value'] ?? '' ), 'otp' );
+			return true;
+		}
+
+		// Log the error code from Value for diagnosis.
+		$error_value = $data['Value'] ?? $data['RetStatus'] ?? 'unknown';
+		VLT_Logger::error( 'Payamito send failed. Value/RetStatus: ' . $error_value, 'otp' );
+		return false;
+	}
 
 	private static function send_kavenegar( $mobile, $message, $api_key, $sender ) {
 		$url = 'https://api.kavenegar.com/v1/' . rawurlencode( $api_key ) . '/sms/send.json';
