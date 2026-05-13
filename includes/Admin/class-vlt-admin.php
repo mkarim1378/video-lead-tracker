@@ -30,6 +30,10 @@ class VLT_Admin {
 			VLT_VERSION,
 			true
 		);
+		wp_localize_script( 'vlt-admin', 'vltAdminData', [
+			'restBase' => esc_url_raw( rest_url( 'vlt/v1/' ) ),
+			'nonce'    => wp_create_nonce( 'wp_rest' ),
+		] );
 	}
 
 	public static function register_menu() {
@@ -1144,6 +1148,9 @@ class VLT_Admin {
 		?>
 		<div class="wrap">
 			<h1 class="wp-heading-inline"><?php esc_html_e( 'Logs', 'video-lead-tracker' ); ?></h1>
+			<button type="button" class="page-title-action vlt-purge-logs-btn">
+				<?php esc_html_e( 'Purge All Logs', 'video-lead-tracker' ); ?>
+			</button>
 			<hr class="wp-header-end">
 
 			<div style="margin:12px 0;display:flex;gap:6px;align-items:center">

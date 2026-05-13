@@ -5,6 +5,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.1] - 2026-05-13
+
+### Added
+- Phase 25: Data Reset and Retention Management
+  - **Settings → Data Management tab**: four scoped reset panels — Video Analytics (by video), Lead & Data (by lead ID), Page Analytics (by page ID), and Full Analytics Reset. Single-scope resets require a confirmation checkbox; Full Reset requires typing `DELETE`.
+  - REST endpoints `POST /vlt/v1/admin/reset` and `POST /vlt/v1/admin/purge-logs` with `manage_options` capability check. Every reset action is logged to `vlt_logs` before executing.
+  - **Full reset** truncates all analytics tables (leads, sessions, visitors, ranges, events, summaries, heatmap, page visits, logs). Video registry and plugin settings are preserved.
+  - **Lead reset** removes the lead row, all associated ranges, events, summaries, sessions, page visits, and lead-name history, and clears `lead_id` from any visitor rows.
+  - **Logs page**: "Purge All Logs" button calls `/admin/purge-logs` and reloads the page on success.
+  - **Event Retention** setting (`event_retention_days`, default 0 = disabled) in Settings → Tracking. A daily WP-Cron job (`vlt_daily_cleanup`) deletes `vlt_video_events` rows older than the configured number of days. Cron is unscheduled on plugin deactivation.
+  - `wp_localize_script` now provides `vltAdminData` (REST base + nonce) to `vlt-admin.js` on all VLT admin pages.
+
+### Changed
+- `VLT_VERSION` bumped 1.2.0 → 1.2.1.
+
+---
+
 ## [1.2.0] - 2026-05-13
 
 ### Added

@@ -30,6 +30,8 @@ class VLT_Settings {
 		'otp_expiry'              => 120,
 		'otp_resend_cooldown'     => 60,
 		'otp_max_attempts'        => 3,
+		// Data Management
+		'event_retention_days'    => 0,
 		// Export
 		'enable_xlsx'             => true,
 		'enable_csv_fallback'     => true,
@@ -257,6 +259,9 @@ class VLT_Settings {
 						<?php echo esc_html( $section['title'] ); ?>
 					</button>
 				<?php endforeach; ?>
+				<button type="button" class="nav-tab" data-tab="vlt-tab-data-management">
+					<?php esc_html_e( 'Data Management', 'video-lead-tracker' ); ?>
+				</button>
 			</nav>
 
 			<form method="post" action="options.php">
@@ -281,7 +286,101 @@ class VLT_Settings {
 
 				<?php submit_button( __( 'Save Settings', 'video-lead-tracker' ) ); ?>
 			</form>
+
+			<!-- Data Management panel — outside the settings form, uses REST API -->
+			<div class="vlt-tab-panel" id="vlt-tab-data-management">
+				<?php self::render_data_management(); ?>
+			</div>
+
 		</div>
+		<?php
+	}
+
+	private static function render_data_management() {
+		$videos = VLT_DB::get_all_videos();
+		?>
+		<div class="vlt-dm-grid">
+
+			<!-- Video Analytics Reset -->
+			<div class="vlt-reset-panel">
+				<h3><?php esc_html_e( 'Reset Video Analytics', 'video-lead-tracker' ); ?></h3>
+				<p class="description"><?php esc_html_e( 'Clears all watch ranges, heatmap data, and viewer summaries for the selected video. The video registry entry is not deleted.', 'video-lead-tracker' ); ?></p>
+				<p>
+					<select class="vlt-reset-id-input" name="video_id">
+						<option value=""><?php esc_html_e( '— Select a video —', 'video-lead-tracker' ); ?></option>
+						<?php foreach ( $videos as $v ) : ?>
+							<option value="<?php echo esc_attr( $v->id ); ?>"><?php echo esc_html( $v->title ?: $v->video_key ); ?></option>
+						<?php endforeach; ?>
+					</select>
+				</p>
+				<p><label>
+					<input type="checkbox" class="vlt-reset-confirm-cb">
+					<?php esc_html_e( 'I understand this action is irreversible.', 'video-lead-tracker' ); ?>
+				</label></p>
+				<button type="button" class="button button-secondary vlt-reset-btn" data-scope="video">
+					<?php esc_html_e( 'Reset Video Analytics', 'video-lead-tracker' ); ?>
+				</button>
+			</div>
+
+			<!-- Lead Reset -->
+			<div class="vlt-reset-panel">
+				<h3><?php esc_html_e( 'Delete Lead &amp; Data', 'video-lead-tracker' ); ?></h3>
+				<p class="description"><?php esc_html_e( 'Permanently deletes a lead record and all associated sessions, watch data, and page visits. Find the Lead ID on the Leads page.', 'video-lead-tracker' ); ?></p>
+				<p>
+					<input type="number" class="vlt-reset-id-input" name="lead_id" min="1"
+					       placeholder="<?php esc_attr_e( 'Lead ID', 'video-lead-tracker' ); ?>"
+					       style="width:120px">
+				</p>
+				<p><label>
+					<input type="checkbox" class="vlt-reset-confirm-cb">
+					<?php esc_html_e( 'I understand this action is irreversible.', 'video-lead-tracker' ); ?>
+				</label></p>
+				<button type="button" class="button button-secondary vlt-reset-btn" data-scope="lead">
+					<?php esc_html_e( 'Delete Lead', 'video-lead-tracker' ); ?>
+				</button>
+			</div>
+
+			<!-- Page Analytics Reset -->
+			<div class="vlt-reset-panel">
+				<h3><?php esc_html_e( 'Reset Page Analytics', 'video-lead-tracker' ); ?></h3>
+				<p class="description"><?php esc_html_e( 'Clears all page visit events for the given WordPress page ID.', 'video-lead-tracker' ); ?></p>
+				<p>
+					<input type="number" class="vlt-reset-id-input" name="page_id" min="1"
+					       placeholder="<?php esc_attr_e( 'Page ID', 'video-lead-tracker' ); ?>"
+					       style="width:120px">
+				</p>
+				<p><label>
+					<input type="checkbox" class="vlt-reset-confirm-cb">
+					<?php esc_html_e( 'I understand this action is irreversible.', 'video-lead-tracker' ); ?>
+				</label></p>
+				<button type="button" class="button button-secondary vlt-reset-btn" data-scope="page">
+					<?php esc_html_e( 'Reset Page Analytics', 'video-lead-tracker' ); ?>
+				</button>
+			</div>
+
+			<!-- Full Reset -->
+			<div class="vlt-reset-panel vlt-reset-panel--danger">
+				<h3><?php esc_html_e( 'Full Analytics Reset', 'video-lead-tracker' ); ?></h3>
+				<p class="description"><?php esc_html_e( 'Permanently deletes ALL analytics data: leads, sessions, watch ranges, heatmap, page visits, video events, and logs. Plugin settings and video registry are preserved.', 'video-lead-tracker' ); ?></p>
+				<p>
+					<input type="text" class="vlt-reset-typed-confirm"
+					       placeholder="<?php esc_attr_e( 'Type DELETE to confirm', 'video-lead-tracker' ); ?>"
+					       style="width:220px">
+				</p>
+				<button type="button" class="button vlt-reset-btn vlt-btn-danger" data-scope="full" data-confirm-text="DELETE">
+					<?php esc_html_e( 'Reset All Analytics', 'video-lead-tracker' ); ?>
+				</button>
+			</div>
+
+		</div>
+		<style>
+		.vlt-dm-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:20px; margin-top:20px; }
+		.vlt-reset-panel { background:#fff; border:1px solid #c3c4c7; border-radius:4px; padding:18px 20px; }
+		.vlt-reset-panel h3 { margin-top:0; font-size:14px; }
+		.vlt-reset-panel--danger { border-color:#c22f3a; }
+		.vlt-btn-danger { background:#c22f3a!important; border-color:#a52834!important; color:#fff!important; }
+		.vlt-btn-danger:hover { background:#a52834!important; }
+		</style>
 		<?php
 	}
 
@@ -364,6 +463,13 @@ class VLT_Settings {
 						'type'        => 'checkbox',
 						'check_label' => __( 'Save the full user agent string in session records', 'video-lead-tracker' ),
 						'desc'        => '',
+					],
+					[
+						'key'   => 'event_retention_days',
+						'label' => __( 'Event Retention (days)', 'video-lead-tracker' ),
+						'type'  => 'number',
+						'min'   => 0,
+						'desc'  => __( 'Auto-delete raw video events older than this many days. Set to 0 to disable.', 'video-lead-tracker' ),
 					],
 				],
 			],

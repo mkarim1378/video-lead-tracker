@@ -52,6 +52,18 @@ class VLT_REST_Controller {
 			'permission_callback' => '__return_true',
 		] );
 
+		register_rest_route( $ns, '/admin/reset', [
+			'methods'             => 'POST',
+			'callback'            => [ self::class, 'handle_admin_reset' ],
+			'permission_callback' => function() { return current_user_can( 'manage_options' ); },
+		] );
+
+		register_rest_route( $ns, '/admin/purge-logs', [
+			'methods'             => 'POST',
+			'callback'            => [ self::class, 'handle_admin_purge_logs' ],
+			'permission_callback' => function() { return current_user_can( 'manage_options' ); },
+		] );
+
 		register_rest_route( $ns, '/otp/send', [
 			'methods'             => 'POST',
 			'callback'            => [ self::class, 'handle_otp_send' ],
@@ -346,6 +358,80 @@ class VLT_REST_Controller {
 		}
 
 		return self::success( [ 'verified' => true ] );
+	}
+
+	public static function handle_admin_reset( WP_REST_Request $request ) {
+		global $wpdb;
+		$p = $wpdb->prefix;
+
+		$body     = $request->get_json_params() ?: [];
+		$scope    = sanitize_key( $body['scope']    ?? '' );
+		$video_id = absint( $body['video_id'] ?? 0 );
+		$lead_id  = absint( $body['lead_id']  ?? 0 );
+		$page_id  = absint( $body['page_id']  ?? 0 );
+		$user_id  = get_current_user_id();
+		$now      = current_time( 'mysql', true );
+
+		switch ( $scope ) {
+
+			case 'video':
+				if ( ! $video_id ) {
+					return self::error( 'missing_id', 'video_id is required.', 422 );
+				}
+				foreach ( [ 'vlt_video_ranges', 'vlt_video_events', 'vlt_video_user_summary', 'vlt_video_heatmap' ] as $table ) {
+					$wpdb->delete( $p . $table, [ 'video_id' => $video_id ], [ '%d' ] );
+				}
+				VLT_Logger::info( "Video analytics reset: video_id={$video_id} by user {$user_id}", 'admin_reset' );
+				break;
+
+			case 'lead':
+				if ( ! $lead_id ) {
+					return self::error( 'missing_id', 'lead_id is required.', 422 );
+				}
+				VLT_Logger::info( "Lead deletion: lead_id={$lead_id} by user {$user_id}", 'admin_reset' );
+				foreach ( [ 'vlt_video_ranges', 'vlt_video_events', 'vlt_video_user_summary', 'vlt_page_visits', 'vlt_sessions', 'vlt_lead_names' ] as $table ) {
+					$wpdb->delete( $p . $table, [ 'lead_id' => $lead_id ], [ '%d' ] );
+				}
+				$wpdb->query( $wpdb->prepare(
+					"UPDATE {$p}vlt_visitors SET lead_id = NULL, updated_at = %s WHERE lead_id = %d",
+					$now, $lead_id
+				) );
+				$wpdb->delete( $p . 'vlt_leads', [ 'id' => $lead_id ], [ '%d' ] );
+				break;
+
+			case 'page':
+				if ( ! $page_id ) {
+					return self::error( 'missing_id', 'page_id is required.', 422 );
+				}
+				$wpdb->delete( $p . 'vlt_page_visits', [ 'page_id' => $page_id ], [ '%d' ] );
+				VLT_Logger::info( "Page analytics reset: page_id={$page_id} by user {$user_id}", 'admin_reset' );
+				break;
+
+			case 'full':
+				VLT_Logger::info( "Full analytics reset initiated by user {$user_id}", 'admin_reset' );
+				foreach ( [
+					'vlt_leads', 'vlt_lead_names', 'vlt_visitors', 'vlt_sessions',
+					'vlt_page_visits', 'vlt_video_ranges', 'vlt_video_events',
+					'vlt_video_user_summary', 'vlt_video_heatmap', 'vlt_logs',
+				] as $table ) {
+					$wpdb->query( "TRUNCATE TABLE {$p}{$table}" ); // phpcs:ignore WordPress.DB.PreparedSQL
+				}
+				break;
+
+			default:
+				return self::error( 'invalid_scope', 'Invalid reset scope.', 422 );
+		}
+
+		return self::success( [ 'scope' => $scope ] );
+	}
+
+	public static function handle_admin_purge_logs( WP_REST_Request $request ) {
+		global $wpdb;
+		$user_id = get_current_user_id();
+		// Log before purging so we have a record.
+		VLT_Logger::info( "Logs purged by user {$user_id}", 'admin_reset' );
+		$wpdb->query( 'TRUNCATE TABLE ' . $wpdb->prefix . 'vlt_logs' ); // phpcs:ignore WordPress.DB.PreparedSQL
+		return self::success();
 	}
 
 	public static function handle_track_page( WP_REST_Request $request ) {

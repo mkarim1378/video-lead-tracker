@@ -55,6 +55,108 @@
 		localStorage.setItem( storageKey, activeBtn.dataset.tab );
 	}
 
+	/* ---- Data Management resets ---- */
+
+	document.querySelectorAll( '.vlt-reset-btn' ).forEach( function ( btn ) {
+		btn.addEventListener( 'click', function () {
+			var panel       = btn.closest( '.vlt-reset-panel' );
+			var scope       = btn.getAttribute( 'data-scope' );
+			var confirmText = btn.getAttribute( 'data-confirm-text' ) || '';
+			var body        = { scope: scope };
+
+			if ( scope === 'full' ) {
+				var typed = panel ? panel.querySelector( '.vlt-reset-typed-confirm' ) : null;
+				if ( ! typed || typed.value.trim() !== confirmText ) {
+					// translators: %s = required confirmation word
+					alert( 'Type ' + confirmText + ' to confirm.' );
+					return;
+				}
+			} else {
+				var cb = panel ? panel.querySelector( '.vlt-reset-confirm-cb' ) : null;
+				if ( ! cb || ! cb.checked ) {
+					alert( 'Check the confirmation box first.' );
+					return;
+				}
+				var idInput = panel ? panel.querySelector( '.vlt-reset-id-input' ) : null;
+				if ( idInput ) {
+					var idVal = idInput.value;
+					if ( ! idVal ) { alert( 'Select or enter a value first.' ); return; }
+					body[ idInput.name ] = parseInt( idVal, 10 ) || idVal;
+				}
+			}
+
+			var origText = btn.textContent;
+			btn.disabled    = true;
+			btn.textContent = '…';
+
+			var restBase = ( window.vltAdminData && window.vltAdminData.restBase ) || '';
+			var nonce    = ( window.vltAdminData && window.vltAdminData.nonce )    || '';
+
+			fetch( restBase + 'admin/reset', {
+				method:  'POST',
+				headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': nonce },
+				body:    JSON.stringify( body ),
+			} )
+			.then( function ( r ) { return r.json(); } )
+			.then( function ( data ) {
+				if ( data.success ) {
+					btn.textContent      = '✓ Done';
+					btn.style.background = '#1a9e6a';
+					btn.style.color      = '#fff';
+					btn.style.border     = 'none';
+				} else {
+					btn.disabled    = false;
+					btn.textContent = origText;
+					alert( ( data.message || data.data && data.data.message ) || 'Reset failed.' );
+				}
+			} )
+			.catch( function () {
+				btn.disabled    = false;
+				btn.textContent = origText;
+				alert( 'Network error. Please try again.' );
+			} );
+		} );
+	} );
+
+	/* ---- Purge Logs ---- */
+
+	document.querySelectorAll( '.vlt-purge-logs-btn' ).forEach( function ( btn ) {
+		btn.addEventListener( 'click', function () {
+			if ( ! window.confirm( 'Delete all log entries? This cannot be undone.' ) ) {
+				return;
+			}
+
+			var origText = btn.textContent;
+			btn.disabled    = true;
+			btn.textContent = '…';
+
+			var restBase = ( window.vltAdminData && window.vltAdminData.restBase ) || '';
+			var nonce    = ( window.vltAdminData && window.vltAdminData.nonce )    || '';
+
+			fetch( restBase + 'admin/purge-logs', {
+				method:  'POST',
+				headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': nonce },
+				body:    '{}',
+			} )
+			.then( function ( r ) { return r.json(); } )
+			.then( function ( data ) {
+				if ( data.success ) {
+					// Reload to show empty log table.
+					window.location.reload();
+				} else {
+					btn.disabled    = false;
+					btn.textContent = origText;
+					alert( 'Purge failed.' );
+				}
+			} )
+			.catch( function () {
+				btn.disabled    = false;
+				btn.textContent = origText;
+				alert( 'Network error. Please try again.' );
+			} );
+		} );
+	} );
+
 	/* ---- Heatmap ---- */
 
 	document.addEventListener( 'DOMContentLoaded', function () {

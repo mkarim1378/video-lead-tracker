@@ -33,5 +33,29 @@ class VLT_Plugin {
 		VLT_Exporter::init();
 		VLT_REST_Controller::init();
 		VLT_Frontend::init();
+
+		// Event retention cron.
+		add_action( 'vlt_daily_cleanup', [ self::class, 'run_event_retention' ] );
+		if ( ! wp_next_scheduled( 'vlt_daily_cleanup' ) ) {
+			wp_schedule_event( time(), 'daily', 'vlt_daily_cleanup' );
+		}
+	}
+
+	public static function run_event_retention() {
+		$days = (int) VLT_Settings::get( 'event_retention_days' );
+		if ( $days <= 0 ) {
+			return;
+		}
+
+		global $wpdb;
+		$cutoff = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days} days" ) );
+		$deleted = $wpdb->query( $wpdb->prepare(
+			'DELETE FROM ' . $wpdb->prefix . 'vlt_video_events WHERE event_at < %s',
+			$cutoff
+		) );
+
+		if ( $deleted ) {
+			VLT_Logger::info( "Event retention: deleted {$deleted} video events older than {$days} days.", 'cron_retention' );
+		}
 	}
 }

@@ -340,6 +340,78 @@ msgid "Showing last %d of %d entries"
 msgstr "نمایش آخرین %d از %d ورودی"
 
 #: includes/Admin/class-vlt-admin.php
+msgid "Purge All Logs"
+msgstr "پاک‌سازی همه لاگ‌ها"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Data Management"
+msgstr "مدیریت داده"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Event Retention (days)"
+msgstr "نگهداری رویدادها (روز)"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Auto-delete raw video events older than this many days. Set to 0 to disable."
+msgstr "حذف خودکار رویدادهای ویدیو قدیمی‌تر از این تعداد روز. برای غیرفعال‌سازی ۰ وارد کنید."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Reset Video Analytics"
+msgstr "ریست آمار ویدیو"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Clears all watch ranges, heatmap data, and viewer summaries for the selected video. The video registry entry is not deleted."
+msgstr "تمام بازه‌های تماشا، داده‌های هیت‌مپ و خلاصه بینندگان برای ویدیوی انتخاب شده پاک می‌شود. خود ویدیو حذف نمی‌شود."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Delete Lead &amp; Data"
+msgstr "حذف لید و داده‌های آن"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Permanently deletes a lead record and all associated sessions, watch data, and page visits. Find the Lead ID on the Leads page."
+msgstr "یک لید و تمام جلسات، داده‌های تماشا و بازدیدهای مرتبط با آن به‌طور دائمی حذف می‌شوند."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Lead ID"
+msgstr "شناسه لید"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Reset Page Analytics"
+msgstr "ریست آمار صفحه"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Clears all page visit events for the given WordPress page ID."
+msgstr "تمام رویدادهای بازدید صفحه برای شناسه صفحه وردپرس پاک می‌شود."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Page ID"
+msgstr "شناسه صفحه"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Full Analytics Reset"
+msgstr "ریست کامل آمار"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Permanently deletes ALL analytics data: leads, sessions, watch ranges, heatmap, page visits, video events, and logs. Plugin settings and video registry are preserved."
+msgstr "تمام داده‌های آماری به‌طور دائمی حذف می‌شوند. تنظیمات و رجیستری ویدیوها حفظ می‌شوند."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Type DELETE to confirm"
+msgstr "برای تأیید DELETE تایپ کنید"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Reset All Analytics"
+msgstr "ریست تمام آمار"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "I understand this action is irreversible."
+msgstr "می‌دانم این عملیات غیرقابل بازگشت است."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Delete Lead"
+msgstr "حذف لید"
+
+#: includes/Admin/class-vlt-admin.php
 msgid "Drop-off Curve"
 msgstr "منحنی خروج"
 
