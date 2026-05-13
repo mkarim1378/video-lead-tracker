@@ -330,6 +330,7 @@ class VLT_Settings {
 					<input type="number" class="vlt-reset-id-input" name="lead_id" min="1"
 					       placeholder="<?php esc_attr_e( 'Lead ID', 'video-lead-tracker' ); ?>"
 					       style="width:120px">
+					<span class="vlt-dm-preview" data-lookup-type="lead"></span>
 				</p>
 				<p><label>
 					<input type="checkbox" class="vlt-reset-confirm-cb">
@@ -348,6 +349,7 @@ class VLT_Settings {
 					<input type="number" class="vlt-reset-id-input" name="page_id" min="1"
 					       placeholder="<?php esc_attr_e( 'Page ID', 'video-lead-tracker' ); ?>"
 					       style="width:120px">
+					<span class="vlt-dm-preview" data-lookup-type="page"></span>
 				</p>
 				<p><label>
 					<input type="checkbox" class="vlt-reset-confirm-cb">
@@ -380,6 +382,7 @@ class VLT_Settings {
 		.vlt-reset-panel--danger { border-color:#c22f3a; }
 		.vlt-btn-danger { background:#c22f3a!important; border-color:#a52834!important; color:#fff!important; }
 		.vlt-btn-danger:hover { background:#a52834!important; }
+		.vlt-dm-preview { display:inline-block; margin-left:8px; font-size:12px; font-style:italic; }
 		</style>
 		<?php
 	}

@@ -58,6 +58,12 @@ class VLT_REST_Controller {
 			'permission_callback' => function() { return current_user_can( 'manage_options' ); },
 		] );
 
+		register_rest_route( $ns, '/admin/lookup', [
+			'methods'             => 'GET',
+			'callback'            => [ self::class, 'handle_admin_lookup' ],
+			'permission_callback' => function() { return current_user_can( 'manage_options' ); },
+		] );
+
 		register_rest_route( $ns, '/admin/purge-logs', [
 			'methods'             => 'POST',
 			'callback'            => [ self::class, 'handle_admin_purge_logs' ],
@@ -392,8 +398,10 @@ class VLT_REST_Controller {
 				foreach ( [ 'vlt_video_ranges', 'vlt_video_events', 'vlt_video_user_summary', 'vlt_page_visits', 'vlt_sessions', 'vlt_lead_names' ] as $table ) {
 					$wpdb->delete( $p . $table, [ 'lead_id' => $lead_id ], [ '%d' ] );
 				}
+				// Rotate the token so the deleted lead's browser can't auto-re-register.
 				$wpdb->query( $wpdb->prepare(
-					"UPDATE {$p}vlt_visitors SET lead_id = NULL, updated_at = %s WHERE lead_id = %d",
+					"UPDATE {$p}vlt_visitors SET lead_id = NULL, identity_token_hash = %s, updated_at = %s WHERE lead_id = %d",
+					hash( 'sha256', wp_generate_uuid4() ),
 					$now, $lead_id
 				) );
 				$wpdb->delete( $p . 'vlt_leads', [ 'id' => $lead_id ], [ '%d' ] );
@@ -423,6 +431,46 @@ class VLT_REST_Controller {
 		}
 
 		return self::success( [ 'scope' => $scope ] );
+	}
+
+	public static function handle_admin_lookup( WP_REST_Request $request ) {
+		global $wpdb;
+		$p    = $wpdb->prefix;
+		$type = sanitize_key( $request->get_param( 'type' ) );
+		$id   = absint( $request->get_param( 'id' ) );
+
+		if ( ! $id ) {
+			return self::error( 'missing_id', 'id is required.', 422 );
+		}
+
+		switch ( $type ) {
+			case 'lead':
+				$row = $wpdb->get_row( $wpdb->prepare(
+					"SELECT primary_name, normalized_mobile FROM {$p}vlt_leads WHERE id = %d LIMIT 1",
+					$id
+				) );
+				if ( ! $row ) {
+					return self::error( 'not_found', 'Lead not found.', 404 );
+				}
+				$m = $row->normalized_mobile;
+				return self::success( [
+					'label' => $row->primary_name ?: '—',
+					'sub'   => substr( $m, 0, 5 ) . '****' . substr( $m, -2 ),
+				] );
+
+			case 'page':
+				$post = get_post( $id );
+				if ( ! $post ) {
+					return self::error( 'not_found', 'Page not found.', 404 );
+				}
+				return self::success( [
+					'label' => $post->post_title,
+					'sub'   => $post->post_type . ' #' . $post->ID,
+				] );
+
+			default:
+				return self::error( 'invalid_type', 'Invalid lookup type.', 422 );
+		}
 	}
 
 	public static function handle_admin_purge_logs( WP_REST_Request $request ) {

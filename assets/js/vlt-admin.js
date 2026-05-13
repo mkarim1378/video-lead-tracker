@@ -157,6 +157,41 @@
 		} );
 	} );
 
+	/* ---- Data Management — ID preview lookup ---- */
+
+	document.querySelectorAll( '.vlt-reset-id-input[name="lead_id"], .vlt-reset-id-input[name="page_id"]' ).forEach( function ( input ) {
+		var preview = input.parentElement.querySelector( '.vlt-dm-preview' );
+		var type    = preview ? preview.getAttribute( 'data-lookup-type' ) : null;
+		if ( ! preview || ! type ) return;
+
+		var timer = null;
+		input.addEventListener( 'input', function () {
+			clearTimeout( timer );
+			preview.textContent = '';
+			preview.style.color = '';
+			if ( ! input.value ) return;
+			preview.textContent = '…';
+			timer = setTimeout( function () {
+				var restBase = ( window.vltAdminData && window.vltAdminData.restBase ) || '';
+				var nonce    = ( window.vltAdminData && window.vltAdminData.nonce )    || '';
+				fetch( restBase + 'admin/lookup?type=' + type + '&id=' + parseInt( input.value, 10 ), {
+					headers: { 'X-WP-Nonce': nonce },
+				} )
+				.then( function ( r ) { return r.json(); } )
+				.then( function ( data ) {
+					if ( data.success ) {
+						preview.textContent = data.label + ' \u2014 ' + data.sub;
+						preview.style.color = '#1a9e6a';
+					} else {
+						preview.textContent = 'Not found';
+						preview.style.color = '#c22f3a';
+					}
+				} )
+				.catch( function () { preview.textContent = ''; } );
+			}, 500 );
+		} );
+	} );
+
 	/* ---- Heatmap ---- */
 
 	document.addEventListener( 'DOMContentLoaded', function () {
