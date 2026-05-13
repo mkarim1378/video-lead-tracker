@@ -5,6 +5,28 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.1.0] - 2026-05-13
+
+### Added
+- Phase 21: Multi-Video Registry
+  - New `vlt_videos` registry table extended with per-video form fields: `poster_url`, `form_title`, `name_label`, `mobile_label`, `submit_button_text`, `success_message`, `enable_otp`.
+  - **Videos admin page** (`Video Lead Tracker → Videos`): full CRUD — add, edit, delete videos. Each video has its own key, title, URL, poster, duration, form labels, OTP toggle, and active state.
+  - Shortcode now resolves video config from the registry by `key` attribute; falls back to the first registered video if no key is given.
+  - On upgrade from DB version 1.1 → 1.2, existing single-video settings are automatically migrated into the registry as the first video.
+  - OTP enabled/disabled is now a per-video setting; OTP provider infrastructure (API key, sender, template, etc.) remains global in Settings → OTP.
+  - `VLT_DB` gained `get_all_videos()`, `get_first_video()`, `delete_video()`, `maybe_seed_video_registry()`.
+
+### Changed
+- Settings page: video-specific fields (Video Key, Video Title, Video URL, Video Duration) and lead form fields (Form Title, Name/Mobile labels, Submit text, Success message) removed — all now configured per-video in the Videos admin page.
+- `VLT_DB_VERSION` bumped 1.1 → 1.2 to trigger schema upgrade.
+- `VLT_VERSION` bumped 1.0.1 → 1.1.0.
+
+### Fixed
+- `.mo` compilation: replaced broken Python script with `msgfmt` — all Persian translations now load correctly.
+- `.po` duplicate `msgid` entries removed (`Logs`, `Failed to send verification code`).
+
+---
+
 ## [1.0.1] - 2026-05-12
 
 ### Fixed

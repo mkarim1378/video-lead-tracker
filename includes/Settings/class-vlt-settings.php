@@ -12,18 +12,7 @@ class VLT_Settings {
 	private static $defaults = [
 		// General
 		'enable_tracking'         => true,
-		'tracking_page_id'        => 0,
-		'video_key'               => 'main-training-video',
-		'video_title'             => '',
-		'video_url'               => '',
-		'video_duration'          => 0,
 		'delete_on_uninstall'     => false,
-		// Form
-		'form_title'              => 'Watch the Free Training',
-		'name_label'              => 'Full Name',
-		'mobile_label'            => 'Mobile Number',
-		'submit_button_text'      => 'Watch Now',
-		'success_message'         => 'Welcome! Your video is ready.',
 		// Tracking
 		'min_valid_range_seconds' => 1,
 		'heartbeat_interval'      => 10,
@@ -312,78 +301,11 @@ class VLT_Settings {
 						'desc'        => __( 'Master switch. Disable to stop all data collection without removing data.', 'video-lead-tracker' ),
 					],
 					[
-						'key'   => 'tracking_page_id',
-						'label' => __( 'Tracking Page', 'video-lead-tracker' ),
-						'type'  => 'page_select',
-						'desc'  => __( 'Page where the [video_lead_tracker] shortcode is placed.', 'video-lead-tracker' ),
-					],
-					[
-						'key'   => 'video_key',
-						'label' => __( 'Video Key', 'video-lead-tracker' ),
-						'type'  => 'text',
-						'desc'  => __( 'Unique slug for the video. Must match the key attribute of the [video_lead_tracker] shortcode.', 'video-lead-tracker' ),
-					],
-					[
-						'key'   => 'video_title',
-						'label' => __( 'Video Title', 'video-lead-tracker' ),
-						'type'  => 'text',
-						'desc'  => __( 'Display name used in admin reports.', 'video-lead-tracker' ),
-					],
-					[
-						'key'   => 'video_url',
-						'label' => __( 'Video URL', 'video-lead-tracker' ),
-						'type'  => 'url',
-						'desc'  => __( 'Direct URL to the MP4 video file.', 'video-lead-tracker' ),
-					],
-					[
-						'key'   => 'video_duration',
-						'label' => __( 'Video Duration (seconds)', 'video-lead-tracker' ),
-						'type'  => 'number',
-						'min'   => 0,
-						'desc'  => __( 'Used to calculate unique watch percent. Set to 0 to auto-detect from the player.', 'video-lead-tracker' ),
-					],
-					[
 						'key'         => 'delete_on_uninstall',
 						'label'       => __( 'Delete Data on Uninstall', 'video-lead-tracker' ),
 						'type'        => 'checkbox',
 						'check_label' => __( 'Permanently delete all plugin tables and settings when the plugin is removed', 'video-lead-tracker' ),
 						'desc'        => __( 'Warning: this is irreversible. Leave unchecked to preserve data across reinstalls.', 'video-lead-tracker' ),
-					],
-				],
-			],
-
-			'form' => [
-				'title'  => __( 'Lead Form', 'video-lead-tracker' ),
-				'fields' => [
-					[
-						'key'   => 'form_title',
-						'label' => __( 'Form Title', 'video-lead-tracker' ),
-						'type'  => 'text',
-						'desc'  => '',
-					],
-					[
-						'key'   => 'name_label',
-						'label' => __( 'Name Field Label', 'video-lead-tracker' ),
-						'type'  => 'text',
-						'desc'  => '',
-					],
-					[
-						'key'   => 'mobile_label',
-						'label' => __( 'Mobile Field Label', 'video-lead-tracker' ),
-						'type'  => 'text',
-						'desc'  => '',
-					],
-					[
-						'key'   => 'submit_button_text',
-						'label' => __( 'Submit Button Text', 'video-lead-tracker' ),
-						'type'  => 'text',
-						'desc'  => '',
-					],
-					[
-						'key'   => 'success_message',
-						'label' => __( 'Success Message', 'video-lead-tracker' ),
-						'type'  => 'textarea',
-						'desc'  => __( 'Shown briefly after a successful form submission.', 'video-lead-tracker' ),
 					],
 				],
 			],

@@ -44,12 +44,13 @@ class VLT_Admin {
 		);
 
 		$submenus = [
-			[ 'vlt-overview',        __( 'Overview',        'video-lead-tracker' ), [ self::class,   'render_overview' ] ],
-			[ 'vlt-leads',           __( 'Leads',           'video-lead-tracker' ), [ self::class,   'render_leads' ] ],
-			[ 'vlt-video-analytics', __( 'Video Analytics', 'video-lead-tracker' ), [ self::class,   'render_video_analytics' ] ],
-			[ 'vlt-heatmap',         __( 'Heatmap',         'video-lead-tracker' ), [ self::class,   'render_heatmap' ] ],
-			[ 'vlt-settings',        __( 'Settings',        'video-lead-tracker' ), [ 'VLT_Settings', 'render_page' ] ],
-			[ 'vlt-logs',            __( 'Logs',            'video-lead-tracker' ), [ self::class,   'render_logs' ] ],
+			[ 'vlt-overview',        __( 'Overview',        'video-lead-tracker' ), [ self::class,        'render_overview' ] ],
+			[ 'vlt-videos',          __( 'Videos',          'video-lead-tracker' ), [ 'VLT_Videos_Admin', 'render_page' ] ],
+			[ 'vlt-leads',           __( 'Leads',           'video-lead-tracker' ), [ self::class,        'render_leads' ] ],
+			[ 'vlt-video-analytics', __( 'Video Analytics', 'video-lead-tracker' ), [ self::class,        'render_video_analytics' ] ],
+			[ 'vlt-heatmap',         __( 'Heatmap',         'video-lead-tracker' ), [ self::class,        'render_heatmap' ] ],
+			[ 'vlt-settings',        __( 'Settings',        'video-lead-tracker' ), [ 'VLT_Settings',     'render_page' ] ],
+			[ 'vlt-logs',            __( 'Logs',            'video-lead-tracker' ), [ self::class,        'render_logs' ] ],
 		];
 
 		foreach ( $submenus as [ $slug, $label, $callback ] ) {

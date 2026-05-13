@@ -24,6 +24,7 @@ class VLT_Plugin {
 
 		if ( VLT_DB::needs_upgrade() ) {
 			VLT_DB::create_tables();
+			VLT_DB::maybe_seed_video_registry();
 			update_option( 'vlt_db_version', VLT_DB_VERSION );
 		}
 

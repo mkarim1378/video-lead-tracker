@@ -949,6 +949,178 @@ Production-ready first version.
 
 ---
 
+# Phase 21 - Multi-Video Registry
+
+## Objective
+
+Replace single-video settings with a video registry that allows multiple videos to be configured, each with its own key, metadata, and form settings, displayed independently across different pages.
+
+## Tasks
+
+1. Create `wp_vlt_video_registry` table:
+
+text
+video_id (PK, auto-increment)
+video_key (unique slug)
+title
+video_url
+poster_url
+duration_seconds
+form_title
+name_label
+mobile_label
+submit_button_text
+enable_otp (tinyint)
+created_at
+updated_at
+
+2. Migrate existing single-video settings (video_key, video_url, video_title, video_duration, form_title, etc.) into the registry as the first row on activation/upgrade.
+3. Remove single-video fields from the General settings section.
+4. Add admin submenu page: Videos.
+5. Implement Videos list table (WP_List_Table): columns video_key, title, URL, duration, OTP, created_at, actions.
+6. Implement Add/Edit video form (inline or separate page).
+7. Implement Delete action with confirmation.
+8. Update shortcode handler: look up video config from registry by video_key attribute; fall back to first registered video if no key given.
+9. Update `wp_localize_script` to pass per-video config resolved from registry.
+10. Update REST `session/init` and `lead/submit` endpoints to receive and store video_key.
+11. Add `video_key` column to `wp_vlt_video_user_summary` if not already keyed correctly.
+
+## Rules
+
+- video_key must be unique across all registered videos.
+- Deleting a video from the registry must not delete associated analytics data.
+- Shortcode without a key attribute uses the first registered video.
+
+## Deliverable
+
+Admin can manage multiple videos. Each `[video_lead_tracker key="X"]` shortcode on any page loads its own config independently.
+
+---
+
+# Phase 22 - Per-Video Analytics Dashboard
+
+## Objective
+
+Filter all analytics pages by video so that stats for each video are reported independently.
+
+## Tasks
+
+1. Add a video selector dropdown (populated from video registry) to Overview, Leads, Video Analytics, and Heatmap pages.
+2. Overview: recalculate all KPI cards scoped to selected video_key (or "All Videos" aggregate).
+3. Leads page: add "Videos Watched" column listing video keys the lead interacted with; support filtering by video_key.
+4. Video Analytics page: scope all stats (viewers, completions, avg watch %, watch hours) to selected video.
+5. Heatmap page: scope heatmap data to selected video.
+6. Persist selected video in URL query string (`?video=key`) so page refreshes retain selection.
+7. Update export endpoints to include video_key filter.
+
+## Rules
+
+- "All Videos" aggregate view must remain available.
+- No page should show mixed data from different videos without clearly indicating it is an aggregate.
+
+## Deliverable
+
+Admin can switch between videos and see isolated analytics for each.
+
+---
+
+# Phase 23 - Exit Point and Drop-off Analytics
+
+## Objective
+
+Track where viewers exit the video and visualize drop-off patterns on the heatmap.
+
+## Tasks
+
+1. In `vlt-video-tracker.js`, record the last `currentTime` value on every `pause`, `ended`, and `pagehide`/`beforeunload` event.
+2. Send a dedicated `video_exit` event to `POST /track/video-event` with:
+
+json
+{
+  "event_type": "video_exit",
+  "video_time": <currentTime at exit>,
+  "reason": "pause|ended|unload"
+}
+
+3. Store `last_position` in `vlt_video_user_summary` (add column if missing): updated on every exit event.
+4. Build a drop-off curve query: for each second bucket, count how many unique leads/visitors had `last_position` fall within that bucket.
+5. Add a "Drop-off Curve" chart to the Heatmap page (separate toggle from the watch distribution chart).
+6. Highlight the top-3 exit seconds/buckets with a distinct colour on both charts.
+7. Show "Peak Exit Point" stat card on the Video Analytics page.
+
+## Rules
+
+- `ended` exit events must not be counted as drop-off (reaching the end is completion, not exit).
+- If a user exits and returns multiple times, only the final exit position per session counts.
+
+## Deliverable
+
+Admin can see exactly where most viewers stop watching and identify problematic sections of the video.
+
+---
+
+# Phase 24 - Data Reset and Retention Management
+
+## Objective
+
+Allow admins to reset analytics data at various granularities without uninstalling the plugin.
+
+## Tasks
+
+1. Add a "Data Management" section to the Settings page.
+2. Implement reset actions (each behind a confirmation dialog):
+   - Reset all data for a specific video (watch ranges, heatmap, user summaries keyed to that video_key).
+   - Reset all data for a specific lead (ranges, summaries, page visits, sessions).
+   - Reset all data associated with a specific page ID.
+   - Full reset: truncate all plugin analytics tables (leads, visitors, sessions, ranges, summaries, heatmap, page visits, video events, logs).
+3. Each reset action must be a POST request to a dedicated REST endpoint with nonce verification and `manage_options` capability check.
+4. Add a "Retention" setting: auto-delete raw video event rows older than N days (default: disabled). Run via WP-Cron daily.
+5. Add a "Purge Logs" button to the Logs page (deletes all rows from `wp_vlt_logs`).
+6. Log every reset action to `wp_vlt_logs` with admin user ID and scope of deletion.
+
+## Rules
+
+- Reset actions are irreversible; always show a typed-confirmation or checkbox dialog before proceeding.
+- Resetting a video must not delete the video registry row itself, only its analytics.
+- Full reset must not remove plugin settings or video registry.
+
+## Deliverable
+
+Admin can selectively or fully clear analytics data without touching plugin configuration.
+
+---
+
+# Phase 25 - Reporting Upgrade and Funnel Analytics
+
+## Objective
+
+Add cross-video comparison, funnel analytics, and per-video export to complete the reporting suite.
+
+## Tasks
+
+1. Implement a Funnel report for each video:
+
+text
+Page visitors → Form submitters (leads) → OTP verified → Video started → Reached 50% → Reached end
+
+2. Show funnel as a horizontal bar chart with percentage at each step.
+3. Implement a multi-video comparison table: each row is a video; columns are viewers, leads, avg watch %, completions, top exit point.
+4. Add per-video CSV export buttons to the Video Analytics page (exports watch ranges or summary for selected video only).
+5. Add a cross-video aggregate CSV export to the Exports section.
+6. Add configurable dashboard widgets to the Overview page: admin can show/hide KPI cards and reorder sections.
+7. Update all export filenames to include video_key and date range.
+
+## Rules
+
+- Funnel steps must be calculated in a single query or minimal sequential queries; avoid N+1 per lead.
+- Multi-video comparison must support up to 20 registered videos without performance degradation.
+
+## Deliverable
+
+Admin has a complete reporting suite: funnel analytics, cross-video comparison, and granular exports.
+
+---
+
 # Recommended MVP Scope
 
 To reduce complexity, build the MVP in this order:
@@ -981,7 +1153,7 @@ To reduce complexity, build the MVP in this order:
 
 ---
 
-# Notes for Claude Code
+# Important Notes
 
 Please implement this as a clean WordPress plugin.
 
@@ -1000,30 +1172,3 @@ Important principles:
 11. Admin reports should be accessible only to WordPress admins.
 12. Prioritize working admin dashboard before XLSX export.
 13. OTP should be modular and optional.
-
-
----
-
-# نکته مهم درباره «گزارش جامعه»
-
-با شرایطی که گفتی، چون لینک عمومی در شبکه‌های اجتماعی منتشر می‌شود و هیچ لیست اولیه‌ای از مخاطبان نداری، سیستم فقط این جامعه‌ها را می‌تواند گزارش کند:
-
-1. کسانی که وارد صفحه شده‌اند.
-2. کسانی که فرم را پر کرده‌اند و لید شده‌اند.
-3. کسانی که فرم را پر کرده‌اند ولی ویدیو را شروع نکرده‌اند.
-4. کسانی که ویدیو را شروع کرده‌اند.
-5. کسانی که بخش‌های مختلف ویدیو را دیده‌اند.
-6. کسانی که برگشته‌اند و دوباره دیده‌اند.
-7. کسانی که با یک شماره از چند دستگاه آمده‌اند.
-
-اما سیستم نمی‌تواند بفهمد:
-
-> چه کسانی از کل فالوئرهای اینستاگرام/تلگرام لینک را دیده‌اند ولی اصلاً کلیک نکرده‌اند.
-
-چون هیچ لیست مرجعی از آن‌ها در سیستم نیست.
-
-پس در داکیومنت هم نوشتم که مفهوم «نیامده‌ها» در این پروژه یعنی:
-
-- کاربرانی که صفحه را باز کردند ولی فرم را کامل نکردند.
-- لیدهایی که فرم را پر کردند ولی ویدیو را شروع نکردند.
-- لیدهایی که قبلاً آمده‌اند ولی در بازه گزارش جدید فعالیت نداشته‌اند.

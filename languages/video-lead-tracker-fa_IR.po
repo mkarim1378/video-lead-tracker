@@ -732,3 +732,155 @@ msgstr "حداکثر تلاش‌های مجاز تمام شد. کد جدید د�
 #: includes/Services/class-vlt-otp-service.php
 msgid "Invalid verification code."
 msgstr "کد تأیید نامعتبر است."
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "Add New"
+msgstr "افزودن جدید"
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "Video added."
+msgstr "ویدیو اضافه شد."
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "Video updated."
+msgstr "ویدیو بروزرسانی شد."
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "Video deleted."
+msgstr "ویدیو حذف شد."
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "No videos registered yet."
+msgstr "هنوز هیچ ویدیویی ثبت نشده است."
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "Add your first video."
+msgstr "اولین ویدیوی خود را اضافه کنید."
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "Key"
+msgstr "کلید"
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "OTP"
+msgstr "OTP"
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "Active"
+msgstr "فعال"
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "Shortcode"
+msgstr "شورت‌کد"
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "Actions"
+msgstr "عملیات"
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "Edit"
+msgstr "ویرایش"
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "Delete"
+msgstr "حذف"
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "Delete this video? Analytics data will be preserved."
+msgstr "این ویدیو حذف شود؟ داده‌های آنالیتیکس حفظ خواهند شد."
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "Edit Video"
+msgstr "ویرایش ویدیو"
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "Add Video"
+msgstr "افزودن ویدیو"
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "Back to Videos"
+msgstr "بازگشت به ویدیوها"
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "Unique slug used in the shortcode key attribute. Cannot be changed after creation."
+msgstr "شناسه یکتا که در ویژگی key شورت‌کد استفاده می‌شود. پس از ایجاد قابل تغییر نیست."
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "Title"
+msgstr "عنوان"
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "Display name shown in admin reports."
+msgstr "نامی که در گزارش‌های ادمین نمایش داده می‌شود."
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "Poster Image URL"
+msgstr "آدرس تصویر پوستر"
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "Thumbnail shown before the video plays."
+msgstr "تصویری که قبل از پخش ویدیو نمایش داده می‌شود."
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "Duration (seconds)"
+msgstr "مدت زمان (ثانیه)"
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "Used to calculate watch percentage. Set 0 to auto-detect."
+msgstr "برای محاسبه درصد تماشا استفاده می‌شود. صفر برای تشخیص خودکار."
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "Options"
+msgstr "گزینه‌ها"
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "OTP Verification"
+msgstr "تأیید OTP"
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "Require SMS OTP before showing this video"
+msgstr "قبل از نمایش این ویدیو تأیید OTP الزامی است"
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "OTP provider settings are configured in Settings → OTP."
+msgstr "تنظیمات ارائه‌دهنده OTP در تنظیمات → OTP پیکربندی می‌شود."
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "Video is active and visible via shortcode"
+msgstr "ویدیو فعال است و از طریق شورت‌کد نمایش داده می‌شود"
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "Update Video"
+msgstr "بروزرسانی ویدیو"
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "Video Key is required."
+msgstr "کلید ویدیو الزامی است."
+
+#: includes/Admin/class-vlt-videos-admin.php
+msgid "This Video Key is already in use. Choose a different slug."
+msgstr "این کلید ویدیو قبلاً استفاده شده است. یک شناسه دیگر انتخاب کنید."
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "No video configured. Please add a video in Video Lead Tracker → Videos."
+msgstr "هیچ ویدیویی تنظیم نشده است. لطفاً یک ویدیو در ردیاب ویدیو و لید ← ویدیوها اضافه کنید."
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Watch the Free Training"
+msgstr "آموزش رایگان را تماشا کنید"
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Full Name"
+msgstr "نام و نام خانوادگی"
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Mobile Number"
+msgstr "شماره موبایل"
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Watch Now"
+msgstr "همین الان تماشا کن"
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Welcome! Your video is ready."
+msgstr "خوش آمدید! ویدیوی شما آماده است."

@@ -136,7 +136,14 @@ class VLT_DB {
   title varchar(255) DEFAULT NULL,
   page_id bigint(20) UNSIGNED DEFAULT NULL,
   video_url text DEFAULT NULL,
+  poster_url text DEFAULT NULL,
   duration_seconds int(10) UNSIGNED DEFAULT NULL,
+  form_title varchar(255) DEFAULT NULL,
+  name_label varchar(190) DEFAULT NULL,
+  mobile_label varchar(190) DEFAULT NULL,
+  submit_button_text varchar(190) DEFAULT NULL,
+  success_message text DEFAULT NULL,
+  enable_otp tinyint(1) NOT NULL DEFAULT 0,
   is_active tinyint(1) NOT NULL DEFAULT 1,
   created_at datetime NOT NULL,
   updated_at datetime NOT NULL,
@@ -340,6 +347,72 @@ class VLT_DB {
 
 	public static function update_video( $id, array $data ) {
 		return self::update_where( 'vlt_videos', $data, [ 'id' => $id ] );
+	}
+
+	/**
+	 * @return object[]
+	 */
+	public static function get_all_videos() {
+		global $wpdb;
+		return $wpdb->get_results(
+			'SELECT * FROM ' . $wpdb->prefix . 'vlt_videos ORDER BY id ASC'
+		);
+	}
+
+	/**
+	 * @return object|null  First registered video.
+	 */
+	public static function get_first_video() {
+		global $wpdb;
+		return $wpdb->get_row(
+			'SELECT * FROM ' . $wpdb->prefix . 'vlt_videos ORDER BY id ASC LIMIT 1'
+		);
+	}
+
+	public static function delete_video( $id ) {
+		global $wpdb;
+		$wpdb->delete( $wpdb->prefix . 'vlt_videos', [ 'id' => (int) $id ], [ '%d' ] );
+	}
+
+	/**
+	 * Migrate single-video Settings → vlt_videos registry (runs once on 1.1 → 1.2 upgrade).
+	 * Only inserts when the table is empty so it never double-inserts.
+	 */
+	public static function maybe_seed_video_registry() {
+		global $wpdb;
+
+		$count = (int) $wpdb->get_var( 'SELECT COUNT(*) FROM ' . $wpdb->prefix . 'vlt_videos' );
+		if ( $count > 0 ) {
+			return;
+		}
+
+		$s   = (array) get_option( 'vlt_settings', [] );
+		$now = current_time( 'mysql' );
+
+		$key = sanitize_key( $s['video_key'] ?? 'main-training-video' );
+		if ( ! $key ) {
+			$key = 'main-training-video';
+		}
+
+		$wpdb->insert(
+			$wpdb->prefix . 'vlt_videos',
+			[
+				'video_key'          => $key,
+				'title'              => $s['video_title']         ?? '',
+				'video_url'          => $s['video_url']           ?? '',
+				'duration_seconds'   => (int) ( $s['video_duration']    ?? 0 ),
+				'form_title'         => $s['form_title']          ?? 'Watch the Free Training',
+				'name_label'         => $s['name_label']          ?? 'Full Name',
+				'mobile_label'       => $s['mobile_label']        ?? 'Mobile Number',
+				'submit_button_text' => $s['submit_button_text']  ?? 'Watch Now',
+				'success_message'    => $s['success_message']     ?? 'Welcome! Your video is ready.',
+				'enable_otp'         => ! empty( $s['enable_otp'] ) ? 1 : 0,
+				'is_active'          => 1,
+				'created_at'         => $now,
+				'updated_at'         => $now,
+			],
+			[ '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', '%s', '%d', '%d', '%s', '%s' ]
+		);
 	}
 
 	public static function create_video_event( array $data ) {

@@ -42,7 +42,7 @@ class VLT_Frontend {
 	// -------------------------------------------------------------------------
 
 	public static function render_shortcode( $atts ) {
-		// Normalize aliases: [video_lead_tracker key="x" url="y"] → video_key / src
+		// Normalize key/url aliases.
 		if ( is_array( $atts ) ) {
 			if ( isset( $atts['key'] ) && ! isset( $atts['video_key'] ) ) {
 				$atts['video_key'] = $atts['key'];
@@ -53,31 +53,37 @@ class VLT_Frontend {
 		}
 
 		$atts = shortcode_atts(
-			[
-				'video_key' => VLT_Settings::get( 'video_key' ),
-				'src'       => VLT_Settings::get( 'video_url' ),
-				'poster'    => '',
-				'title'     => VLT_Settings::get( 'video_title' ),
-			],
+			[ 'video_key' => '', 'src' => '', 'poster' => '' ],
 			$atts,
 			'video_lead_tracker'
 		);
 
-		$video_key      = sanitize_key( $atts['video_key'] );
-		$video_url      = esc_url( $atts['src'] );
-		$poster_url     = esc_url( $atts['poster'] );
-		$video_duration = (int) VLT_Settings::get( 'video_duration' );
+		$video_key = sanitize_key( $atts['video_key'] );
 
-		self::enqueue_assets( $video_key, $video_url, $video_duration );
+		// Look up video in registry; fall back to first registered video.
+		$video = $video_key ? VLT_DB::get_video_by_key( $video_key ) : null;
+		if ( ! $video ) {
+			$video = VLT_DB::get_first_video();
+		}
+
+		if ( ! $video ) {
+			return '<p>' . esc_html__( 'No video configured. Please add a video in Video Lead Tracker → Videos.', 'video-lead-tracker' ) . '</p>';
+		}
+
+		// Shortcode src/poster attributes override the registry (backwards compat).
+		$video_url  = $atts['src']    ? esc_url( $atts['src'] )    : esc_url( $video->video_url  ?? '' );
+		$poster_url = $atts['poster'] ? esc_url( $atts['poster'] ) : esc_url( $video->poster_url ?? '' );
+
+		self::enqueue_assets( $video->video_key, $video_url, (int) $video->duration_seconds, $video );
 
 		return self::render_html( [
-			'video_key'      => $video_key,
-			'video_url'      => $video_url,
-			'poster_url'     => $poster_url,
-			'form_title'     => VLT_Settings::get( 'form_title' ),
-			'name_label'     => VLT_Settings::get( 'name_label' ),
-			'mobile_label'   => VLT_Settings::get( 'mobile_label' ),
-			'submit_text'    => VLT_Settings::get( 'submit_button_text' ),
+			'video_key'    => $video->video_key,
+			'video_url'    => $video_url,
+			'poster_url'   => $poster_url,
+			'form_title'   => $video->form_title         ?: __( 'Watch the Free Training', 'video-lead-tracker' ),
+			'name_label'   => $video->name_label         ?: __( 'Full Name', 'video-lead-tracker' ),
+			'mobile_label' => $video->mobile_label       ?: __( 'Mobile Number', 'video-lead-tracker' ),
+			'submit_text'  => $video->submit_button_text ?: __( 'Watch Now', 'video-lead-tracker' ),
 		] );
 	}
 
@@ -85,7 +91,7 @@ class VLT_Frontend {
 	// Asset enqueue + localize
 	// -------------------------------------------------------------------------
 
-	private static function enqueue_assets( $video_key, $video_url, $video_duration ) {
+	private static function enqueue_assets( $video_key, $video_url, $video_duration, $video = null ) {
 		if ( self::$enqueued ) {
 			return;
 		}
@@ -94,6 +100,12 @@ class VLT_Frontend {
 		wp_enqueue_style( 'vlt-frontend' );
 		wp_enqueue_script( 'vlt-frontend' );
 		wp_enqueue_script( 'vlt-video-tracker' );
+
+		$submit_text = ( $video && $video->submit_button_text )
+			? $video->submit_button_text
+			: __( 'Watch Now', 'video-lead-tracker' );
+
+		$otp_enabled = $video ? (bool) $video->enable_otp : false;
 
 		wp_localize_script(
 			'vlt-frontend',
@@ -105,14 +117,14 @@ class VLT_Frontend {
 				'videoUrl'   => $video_url,
 				'duration'   => $video_duration,
 				'pageId'     => (int) get_the_ID(),
-				'submitText' => VLT_Settings::get( 'submit_button_text' ),
+				'submitText' => $submit_text,
 				'settings'   => [
 					'minValidRange'     => (int) VLT_Settings::get( 'min_valid_range_seconds' ),
 					'heartbeatInterval' => (int) VLT_Settings::get( 'heartbeat_interval' ),
 					'trackAnonymous'    => (bool) VLT_Settings::get( 'track_anonymous' ),
 				],
 				'otp'        => [
-					'enabled'  => (bool) VLT_Settings::get( 'enable_otp' ),
+					'enabled'  => $otp_enabled,
 					'cooldown' => (int) VLT_Settings::get( 'otp_resend_cooldown' ),
 				],
 				'i18n'       => [
