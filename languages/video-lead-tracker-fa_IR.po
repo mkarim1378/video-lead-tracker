@@ -311,10 +311,6 @@ msgid "No video selected."
 msgstr "ویدیویی انتخاب نشده است."
 
 #: includes/Admin/class-vlt-admin.php
-msgid "Logs"
-msgstr "گزارش‌ها"
-
-#: includes/Admin/class-vlt-admin.php
 msgid "Filter:"
 msgstr "فیلتر:"
 
@@ -688,6 +684,7 @@ msgid "Please enter the verification code."
 msgstr "لطفاً کد تأیید را وارد کنید."
 
 #: includes/Frontend/class-vlt-frontend.php
+#: includes/Services/class-vlt-otp-service.php
 msgid "Failed to send verification code. Please try again."
 msgstr "ارسال کد تأیید ناموفق بود. دوباره تلاش کنید."
 
@@ -723,10 +720,6 @@ msgstr "شماره موبایل نامعتبر است."
 #, php-format
 msgid "Please wait %d seconds before requesting a new code."
 msgstr "لطفاً %d ثانیه صبر کنید و سپس کد جدید درخواست دهید."
-
-#: includes/Services/class-vlt-otp-service.php
-msgid "Failed to send verification code. Please try again."
-msgstr "ارسال کد تأیید ناموفق بود. دوباره تلاش کنید."
 
 #: includes/Services/class-vlt-otp-service.php
 msgid "Verification code has expired or does not exist."
