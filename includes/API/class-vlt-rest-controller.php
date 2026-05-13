@@ -416,10 +416,11 @@ class VLT_REST_Controller {
 		$lead_id       = isset( $body['lead_id'] ) && $body['lead_id'] ? absint( $body['lead_id'] ) : null;
 		$metadata_raw  = isset( $body['metadata'] ) && is_array( $body['metadata'] ) ? $body['metadata'] : null;
 
-		$valid_events = [ 'video_loaded', 'play', 'pause', 'seek_start', 'seek_end', 'heartbeat', 'ended', 'error', 'rate_change' ];
+		$valid_events = [ 'video_loaded', 'play', 'pause', 'seek_start', 'seek_end', 'heartbeat', 'ended', 'error', 'rate_change', 'video_exit' ];
 		if ( ! in_array( $event_type, $valid_events, true ) ) {
 			return self::error( 'invalid_event', 'Invalid event type.', 422 );
 		}
+		$exit_reason = sanitize_key( $body['exit_reason'] ?? '' );
 
 		if ( ! $visitor_uuid || ! $session_uuid || ! $video_key ) {
 			return self::error( 'missing_ids', 'visitor_uuid, session_uuid, and video_key are required.', 422 );
@@ -463,6 +464,11 @@ class VLT_REST_Controller {
 			'event_at'           => $now,
 			'metadata'           => $metadata_raw ? wp_json_encode( $metadata_raw ) : null,
 		] );
+
+		// Update last exit position for drop-off analytics; completions are excluded.
+		if ( 'video_exit' === $event_type && 'ended' !== $exit_reason && $video_time > 0 ) {
+			VLT_DB::update_last_position( $video_id, $lead_id, $visitor_uuid, $video_time );
+		}
 
 		return self::success();
 	}

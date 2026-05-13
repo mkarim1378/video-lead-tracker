@@ -214,6 +214,7 @@ class VLT_DB {
   unique_watch_seconds decimal(12,3) NOT NULL DEFAULT 0.000,
   max_video_time_seconds decimal(10,3) NOT NULL DEFAULT 0.000,
   unique_watch_percent decimal(6,2) NOT NULL DEFAULT 0.00,
+  last_position decimal(10,3) DEFAULT NULL,
   raw_ranges_json longtext DEFAULT NULL,
   merged_ranges_json longtext DEFAULT NULL,
   updated_at datetime NOT NULL,
@@ -552,6 +553,30 @@ class VLT_DB {
 				'lead_id'      => $lead_id,
 				'visitor_uuid' => $visitor_uuid,
 			], $data ) );
+		}
+	}
+
+	/**
+	 * Update last_position for drop-off analytics.
+	 * Only updates existing rows; does not create new summary rows.
+	 * Called for every video_exit event whose reason is not "ended".
+	 */
+	public static function update_last_position( $video_id, $lead_id, $visitor_uuid, $position ) {
+		global $wpdb;
+
+		$table = $wpdb->prefix . 'vlt_video_user_summary';
+		$pos   = max( 0.0, (float) $position );
+
+		if ( $lead_id ) {
+			$wpdb->query( $wpdb->prepare(
+				"UPDATE {$table} SET last_position = %f WHERE video_id = %d AND lead_id = %d LIMIT 1",
+				$pos, (int) $video_id, (int) $lead_id
+			) );
+		} elseif ( $visitor_uuid ) {
+			$wpdb->query( $wpdb->prepare(
+				"UPDATE {$table} SET last_position = %f WHERE video_id = %d AND visitor_uuid = %s AND lead_id IS NULL LIMIT 1",
+				$pos, (int) $video_id, $visitor_uuid
+			) );
 		}
 	}
 

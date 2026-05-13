@@ -65,13 +65,14 @@
 		var wrap = document.getElementById( 'vlt-hm-wrap' );
 		if ( ! wrap ) return;
 
-		var buckets    = JSON.parse( wrap.getAttribute( 'data-buckets' )    || '[]' );
-		var maxTotal   = parseInt(  wrap.getAttribute( 'data-max-total' ),   10 ) || 1;
-		var maxUnique  = parseInt(  wrap.getAttribute( 'data-max-unique' ),  10 ) || 1;
-		var bucketSize = parseInt(  wrap.getAttribute( 'data-bucket-size' ), 10 ) || 1;
-		var metric     = 'total';
+		var buckets     = JSON.parse( wrap.getAttribute( 'data-buckets' )     || '[]' );
+		var maxTotal    = parseInt(  wrap.getAttribute( 'data-max-total' ),    10 ) || 1;
+		var maxUnique   = parseInt(  wrap.getAttribute( 'data-max-unique' ),   10 ) || 1;
+		var maxDropOff  = parseInt(  wrap.getAttribute( 'data-max-drop-off' ), 10 ) || 1;
+		var bucketSize  = parseInt(  wrap.getAttribute( 'data-bucket-size' ),  10 ) || 1;
+		var metric      = 'total';
 
-		drawBars( buckets, metric, maxTotal, maxUnique, bucketSize );
+		drawBars( buckets, metric, maxTotal, maxUnique, maxDropOff, bucketSize );
 
 		document.querySelectorAll( '.vlt-hm-metric' ).forEach( function ( btn ) {
 			btn.addEventListener( 'click', function () {
@@ -80,12 +81,12 @@
 				} );
 				btn.classList.add( 'button-primary' );
 				metric = btn.getAttribute( 'data-metric' );
-				drawBars( buckets, metric, maxTotal, maxUnique, bucketSize );
+				drawBars( buckets, metric, maxTotal, maxUnique, maxDropOff, bucketSize );
 			} );
 		} );
 	}
 
-	function drawBars( buckets, metric, maxTotal, maxUnique, bucketSize ) {
+	function drawBars( buckets, metric, maxTotal, maxUnique, maxDropOff, bucketSize ) {
 		var chart = document.getElementById( 'vlt-hm-chart' );
 		var axis  = document.getElementById( 'vlt-hm-axis' );
 		if ( ! chart ) return;
@@ -95,26 +96,50 @@
 
 		if ( ! buckets.length ) return;
 
-		var maxVal = metric === 'total' ? maxTotal : maxUnique;
+		var isDropOff = metric === 'drop_off';
+		var maxVal;
+		if ( isDropOff ) {
+			maxVal = maxDropOff;
+		} else if ( metric === 'total' ) {
+			maxVal = maxTotal;
+		} else {
+			maxVal = maxUnique;
+		}
 		if ( maxVal < 1 ) maxVal = 1;
+
+		// Compute top-3 exit buckets for drop-off highlight.
+		var top3Seconds = [];
+		if ( isDropOff ) {
+			var sorted = buckets.slice().sort( function ( a, b ) {
+				return ( b.drop_off || 0 ) - ( a.drop_off || 0 );
+			} );
+			top3Seconds = sorted.slice( 0, 3 ).map( function ( b ) { return b.second; } );
+		}
 
 		var labelEvery = Math.max( 1, Math.ceil( buckets.length / 10 ) );
 
 		buckets.forEach( function ( b, i ) {
-			var val    = parseInt( b[ metric ] || b.total, 10 ) || 0;
+			var val = isDropOff
+				? ( parseInt( b.drop_off, 10 ) || 0 )
+				: ( parseInt( b[ metric ] || b.total, 10 ) || 0 );
 			var pct    = Math.round( ( val / maxVal ) * 100 );
 			var bar    = document.createElement( 'div' );
-			bar.className   = 'vlt-hm-bar';
+			bar.className    = 'vlt-hm-bar';
 			bar.style.height = pct + '%';
-			bar.title = formatTime( b.second ) + '–' + formatTime( b.second + bucketSize ) + ': ' + val;
+			bar.title        = formatTime( b.second ) + '–' + formatTime( b.second + bucketSize ) + ': ' + val;
+
+			if ( isDropOff && top3Seconds.indexOf( b.second ) !== -1 && val > 0 ) {
+				bar.style.background = '#c22f3a';
+			}
+
 			chart.appendChild( bar );
 
 			if ( axis ) {
 				var tick = document.createElement( 'div' );
 				tick.className = 'vlt-hm-tick';
 				if ( i % labelEvery === 0 ) {
-					tick.className += ' vlt-hm-tick--label';
-					tick.textContent = formatTime( b.second );
+					tick.className   += ' vlt-hm-tick--label';
+					tick.textContent  = formatTime( b.second );
 				}
 				axis.appendChild( tick );
 			}

@@ -340,6 +340,14 @@ msgid "Showing last %d of %d entries"
 msgstr "نمایش آخرین %d از %d ورودی"
 
 #: includes/Admin/class-vlt-admin.php
+msgid "Drop-off Curve"
+msgstr "منحنی خروج"
+
+#: includes/Admin/class-vlt-admin.php
+msgid "Peak Exit"
+msgstr "نقطه اوج خروج"
+
+#: includes/Admin/class-vlt-admin.php
 msgid "— All Videos —"
 msgstr "— همه ویدیوها —"
 

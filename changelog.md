@@ -5,6 +5,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.0] - 2026-05-13
+
+### Added
+- Phase 24: Exit Point and Drop-off Analytics
+  - `vlt-video-tracker.js` sends a `video_exit` event (with `exit_reason`: `pause`, `ended`, `hidden`, or `unload`) on every meaningful exit trigger — pause, ended, visibilitychange hidden, pagehide, and beforeunload. Unload exits use `sendBeacon` for reliability.
+  - REST endpoint `track/video-event` now accepts `video_exit` event type. For non-completion exits (reason ≠ `ended`), it updates `last_position` on the viewer's `vlt_video_user_summary` row.
+  - New `last_position` column added to `vlt_video_user_summary` (schema version 1.2 → 1.3). `dbDelta` adds it automatically on upgrade.
+  - **Heatmap page**: new "Drop-off Curve" metric button shows where viewers stopped watching. Bars are drawn from `last_position` data bucketed at the same size as the watch heatmap. Top-3 exit buckets are highlighted in red.
+  - **Video Analytics detail**: new "Peak Exit" KPI card showing the most common 5-second exit bucket (formatted as M:SS).
+
+### Changed
+- `VLT_DB_VERSION` bumped 1.2 → 1.3.
+- `VLT_VERSION` bumped 1.1.2 → 1.2.0.
+
+---
+
 ## [1.1.2] - 2026-05-13
 
 ### Added

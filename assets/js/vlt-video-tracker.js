@@ -69,6 +69,7 @@
 		if ( ! videoEl.ended ) {
 			commitRange( 'pause' );
 			sendEvent( 'pause' );
+			sendExitEvent( 'pause' );
 		}
 	}
 
@@ -96,6 +97,7 @@
 		isPlaying = false;
 		commitRange( 'ended' );
 		sendEvent( 'ended' );
+		sendExitEvent( 'ended' );
 	}
 
 	function onRateChange() {
@@ -137,16 +139,23 @@
 		document.addEventListener( 'visibilitychange', function () {
 			if ( document.hidden && isPlaying ) {
 				commitRangeBeacon( 'page_hidden' );
+				sendExitBeacon( 'hidden' );
 			}
 		} );
 
 		window.addEventListener( 'pagehide', function () {
-			if ( isPlaying ) commitRangeBeacon( 'unload' );
+			if ( isPlaying ) {
+				commitRangeBeacon( 'unload' );
+				sendExitBeacon( 'unload' );
+			}
 		} );
 
 		if ( ! ( 'onpagehide' in window ) ) {
 			window.addEventListener( 'beforeunload', function () {
-				if ( isPlaying ) commitRangeBeacon( 'unload' );
+				if ( isPlaying ) {
+					commitRangeBeacon( 'unload' );
+					sendExitBeacon( 'unload' );
+				}
 			} );
 		}
 	}
@@ -229,6 +238,47 @@
 			playback_rate:    videoEl ? videoEl.playbackRate : null,
 			committed_reason: reason,
 		};
+	}
+
+	// -------------------------------------------------------------------------
+	// Exit point tracking (Phase 24)
+	// -------------------------------------------------------------------------
+
+	function sendExitEvent( reason ) {
+		if ( ! videoEl ) return;
+		sendEvent( 'video_exit', { exit_reason: reason } );
+	}
+
+	function sendExitBeacon( reason ) {
+		if ( ! videoEl ) return;
+		if ( ! window.vltState || ! window.vltState.sessionUuid ) return;
+		if ( ! VIDEO_KEY ) return;
+
+		var body = {
+			visitor_uuid:       window.vltState.visitorUuid,
+			session_uuid:       window.vltState.sessionUuid,
+			lead_id:            window.vltState.leadId || null,
+			video_key:          VIDEO_KEY,
+			event_type:         'video_exit',
+			video_time_seconds: videoEl.currentTime,
+			exit_reason:        reason,
+		};
+
+		var payload = JSON.stringify( body );
+		var url     = ( cfg.restBase || '' ) + 'track/video-event';
+		var sent    = false;
+
+		if ( navigator.sendBeacon ) {
+			sent = navigator.sendBeacon( url, new Blob( [ payload ], { type: 'application/json' } ) );
+		}
+		if ( ! sent ) {
+			fetch( url, {
+				method:    'POST',
+				headers:   { 'Content-Type': 'application/json', 'X-WP-Nonce': cfg.nonce || '' },
+				body:      payload,
+				keepalive: true,
+			} ).catch( function () {} );
+		}
 	}
 
 	// -------------------------------------------------------------------------

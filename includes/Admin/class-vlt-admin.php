@@ -818,6 +818,17 @@ class VLT_Admin {
 			$video_id
 		) );
 
+		// Peak exit point: the 5-second bucket with the most non-completion exits.
+		$peak_exit = $wpdb->get_row( $wpdb->prepare(
+			"SELECT FLOOR(last_position / 5) * 5 AS bucket_start, COUNT(*) AS cnt
+			 FROM {$p}vlt_video_user_summary
+			 WHERE video_id = %d AND last_position IS NOT NULL
+			 GROUP BY bucket_start
+			 ORDER BY cnt DESC
+			 LIMIT 1",
+			$video_id
+		) );
+
 		$back_url   = admin_url( 'admin.php?page=vlt-video-analytics' );
 		$dist_total = max( 1, (int) ( $dist->total ?? 1 ) );
 		$dist_colors = [ '#f0a0a0', '#f5c842', '#6ab04c', '#2271b1' ];
@@ -841,12 +852,16 @@ class VLT_Admin {
 
 			<div class="vlt-kpi-row">
 				<?php
+				$peak_exit_value = $peak_exit && $peak_exit->bucket_start !== null
+					? self::format_duration( (int) $peak_exit->bucket_start )
+					: '—';
 				$kpi_cards = [
-					[ __( 'Viewers',     'video-lead-tracker' ), number_format_i18n( (int) $stats->viewers ),                   'dashicons-groups',     '#2271b1' ],
-					[ __( 'Avg %',       'video-lead-tracker' ), round( (float) $stats->avg_completion, 1 ) . '%',               'dashicons-chart-bar',  '#1a9e6a' ],
-					[ __( 'Watch Hours', 'video-lead-tracker' ), number_format( (float) $stats->watch_hours, 2 ),                'dashicons-visibility', '#c22f3a' ],
-					[ __( 'Completions', 'video-lead-tracker' ), number_format_i18n( (int) $stats->completions ),                'dashicons-yes-alt',    '#6e3ec3' ],
-					[ __( 'Sessions',    'video-lead-tracker' ), number_format_i18n( (int) $stats->total_sessions ),             'dashicons-clock',      '#e06800' ],
+					[ __( 'Viewers',        'video-lead-tracker' ), number_format_i18n( (int) $stats->viewers ),       'dashicons-groups',      '#2271b1' ],
+					[ __( 'Avg %',          'video-lead-tracker' ), round( (float) $stats->avg_completion, 1 ) . '%',  'dashicons-chart-bar',   '#1a9e6a' ],
+					[ __( 'Watch Hours',    'video-lead-tracker' ), number_format( (float) $stats->watch_hours, 2 ),   'dashicons-visibility',  '#c22f3a' ],
+					[ __( 'Completions',    'video-lead-tracker' ), number_format_i18n( (int) $stats->completions ),   'dashicons-yes-alt',     '#6e3ec3' ],
+					[ __( 'Sessions',       'video-lead-tracker' ), number_format_i18n( (int) $stats->total_sessions ),'dashicons-clock',       '#e06800' ],
+					[ __( 'Peak Exit',      'video-lead-tracker' ), $peak_exit_value,                                  'dashicons-exit',        '#8b5cf6' ],
 				];
 				foreach ( $kpi_cards as [ $label, $value, $icon, $color ] ) :
 				?>
@@ -975,6 +990,7 @@ class VLT_Admin {
 		$heatmap_data = [];
 		$max_total    = 1;
 		$max_unique   = 1;
+		$max_drop_off = 1;
 
 		if ( $video_id ) {
 			$rows = $wpdb->get_results( $wpdb->prepare(
@@ -995,11 +1011,33 @@ class VLT_Admin {
 					'total'           => (int) $row->total,
 					'unique_visitors' => (int) $row->unique_visitors,
 					'unique_leads'    => (int) $row->unique_leads,
+					'drop_off'        => 0,
 				];
 				$heatmap_data[] = $entry;
 				$max_total  = max( $max_total,  $entry['total'] );
 				$max_unique = max( $max_unique, $entry['unique_visitors'] );
 			}
+
+			// Merge drop-off counts (last_position from vlt_video_user_summary) into heatmap_data.
+			$drop_rows = $wpdb->get_results( $wpdb->prepare(
+				"SELECT FLOOR(last_position / %d) * %d AS bucket_start, COUNT(*) AS cnt
+				 FROM {$p}vlt_video_user_summary
+				 WHERE video_id = %d AND last_position IS NOT NULL
+				 GROUP BY bucket_start",
+				$bucket, $bucket, $video_id
+			) );
+
+			$drop_map = [];
+			foreach ( $drop_rows as $dr ) {
+				$drop_map[ (int) $dr->bucket_start ] = (int) $dr->cnt;
+			}
+
+			foreach ( $heatmap_data as &$entry ) {
+				$cnt              = $drop_map[ $entry['second'] ] ?? 0;
+				$entry['drop_off'] = $cnt;
+				$max_drop_off      = max( $max_drop_off, $cnt );
+			}
+			unset( $entry );
 		}
 		?>
 		<div class="wrap">
@@ -1039,6 +1077,7 @@ class VLT_Admin {
 					<button type="button" class="button button-primary vlt-hm-metric" data-metric="total"><?php esc_html_e( 'Total Views',      'video-lead-tracker' ); ?></button>
 					<button type="button" class="button vlt-hm-metric"               data-metric="unique_visitors"><?php esc_html_e( 'Unique Visitors', 'video-lead-tracker' ); ?></button>
 					<button type="button" class="button vlt-hm-metric"               data-metric="unique_leads"><?php esc_html_e( 'Unique Leads',    'video-lead-tracker' ); ?></button>
+					<button type="button" class="button vlt-hm-metric"               data-metric="drop_off"><?php esc_html_e( 'Drop-off Curve',  'video-lead-tracker' ); ?></button>
 				</div>
 
 				<div class="vlt-hm-wrap"
@@ -1046,6 +1085,7 @@ class VLT_Admin {
 				     data-buckets="<?php echo esc_attr( wp_json_encode( $heatmap_data ) ); ?>"
 				     data-max-total="<?php echo esc_attr( $max_total ); ?>"
 				     data-max-unique="<?php echo esc_attr( $max_unique ); ?>"
+				     data-max-drop-off="<?php echo esc_attr( $max_drop_off ); ?>"
 				     data-bucket-size="<?php echo esc_attr( $bucket ); ?>">
 					<div class="vlt-hm-chart" id="vlt-hm-chart"></div>
 					<div class="vlt-hm-axis"  id="vlt-hm-axis"></div>
