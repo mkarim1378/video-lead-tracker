@@ -980,3 +980,59 @@ msgstr "همین الان تماشا کن"
 #: includes/Frontend/class-vlt-frontend.php
 msgid "Welcome! Your video is ready."
 msgstr "خوش آمدید! ویدیوی شما آماده است."
+
+#: includes/Admin/class-vlt-admin.php (Phase 26 - Funnel)
+msgid "Funnel"
+msgstr "قیف"
+
+#: includes/Admin/class-vlt-admin.php (Phase 26 - Funnel)
+msgid "Funnel Analytics"
+msgstr "تحلیل قیف"
+
+#: includes/Admin/class-vlt-admin.php (Phase 26 - Funnel)
+msgid "Select a video to view its funnel."
+msgstr "یک ویدیو انتخاب کنید تا قیف آن را مشاهده کنید."
+
+#: includes/Admin/class-vlt-admin.php (Phase 26 - Funnel)
+msgid "Page Visitors"
+msgstr "بازدیدکنندگان صفحه"
+
+#: includes/Admin/class-vlt-admin.php (Phase 26 - Funnel)
+msgid "Leads Created"
+msgstr "لیدهای ایجادشده"
+
+#: includes/Admin/class-vlt-admin.php (Phase 26 - Funnel)
+msgid "OTP Verified"
+msgstr "تأیید OTP"
+
+#: includes/Admin/class-vlt-admin.php (Phase 26 - Funnel)
+msgid "Video Started"
+msgstr "شروع ویدیو"
+
+#: includes/Admin/class-vlt-admin.php (Phase 26 - Funnel)
+msgid "Reached 50%"
+msgstr "رسیده به ۵۰٪"
+
+#: includes/Admin/class-vlt-admin.php (Phase 26 - Funnel)
+msgid "Reached End"
+msgstr "رسیده به انتها"
+
+#: includes/Admin/class-vlt-admin.php (Phase 26 - Exports)
+msgid "Export Summary CSV"
+msgstr "دانلود خلاصه CSV"
+
+#: includes/Admin/class-vlt-admin.php (Phase 26 - Exports)
+msgid "Export Ranges CSV"
+msgstr "دانلود محدوده‌ها CSV"
+
+#: includes/Admin/class-vlt-admin.php (Phase 26 - Comparison)
+msgid "Export Comparison CSV"
+msgstr "دانلود CSV مقایسه"
+
+#: includes/Admin/class-vlt-admin.php (Phase 26 - Video list columns)
+msgid "Top Exit"
+msgstr "بالاترین خروج"
+
+#: includes/Admin/class-vlt-admin.php (Phase 26 - KPI)
+msgid "Customize Widgets"
+msgstr "شخصی‌سازی ویجت‌ها"

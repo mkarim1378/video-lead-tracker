@@ -258,4 +258,63 @@
 		return h > 0 ? h + ':' + mm + ':' + ss : m + ':' + ss;
 	}
 
+	/* ---- KPI widget show/hide ---- */
+
+	document.addEventListener( 'DOMContentLoaded', function () {
+		var LS_KEY    = 'vlt_hidden_kpi';
+		var btn       = document.querySelector( '.vlt-kpi-customize-btn' );
+		var cards     = document.querySelectorAll( '.vlt-kpi-card[data-kpi-key]' );
+
+		if ( ! btn || ! cards.length ) return;
+
+		var hidden = JSON.parse( localStorage.getItem( LS_KEY ) || '[]' );
+
+		function applyVisibility() {
+			cards.forEach( function ( card ) {
+				var key = card.getAttribute( 'data-kpi-key' );
+				card.style.display = hidden.indexOf( key ) !== -1 ? 'none' : '';
+			} );
+		}
+
+		applyVisibility();
+
+		btn.addEventListener( 'click', function () {
+			var existing = document.getElementById( 'vlt-kpi-picker' );
+			if ( existing ) { existing.remove(); return; }
+
+			var picker = document.createElement( 'div' );
+			picker.id = 'vlt-kpi-picker';
+			picker.style.cssText = 'background:#fff;border:1px solid #c3c4c7;border-radius:4px;padding:12px 16px;margin:8px 0;display:inline-block;';
+
+			cards.forEach( function ( card ) {
+				var key   = card.getAttribute( 'data-kpi-key' );
+				var label = card.querySelector( '.vlt-kpi-label' );
+				var text  = label ? label.textContent : key;
+
+				var row   = document.createElement( 'label' );
+				row.style.cssText = 'display:block;margin:4px 0;cursor:pointer;';
+
+				var cb    = document.createElement( 'input' );
+				cb.type   = 'checkbox';
+				cb.checked = hidden.indexOf( key ) === -1;
+				cb.style.marginRight = '6px';
+				cb.addEventListener( 'change', function () {
+					if ( cb.checked ) {
+						hidden = hidden.filter( function ( k ) { return k !== key; } );
+					} else {
+						if ( hidden.indexOf( key ) === -1 ) hidden.push( key );
+					}
+					localStorage.setItem( LS_KEY, JSON.stringify( hidden ) );
+					applyVisibility();
+				} );
+
+				row.appendChild( cb );
+				row.appendChild( document.createTextNode( text ) );
+				picker.appendChild( row );
+			} );
+
+			btn.insertAdjacentElement( 'afterend', picker );
+		} );
+	} );
+
 } )();

@@ -52,6 +52,7 @@ class VLT_Admin {
 			[ 'vlt-videos',          __( 'Videos',          'video-lead-tracker' ), [ 'VLT_Videos_Admin', 'render_page' ] ],
 			[ 'vlt-leads',           __( 'Leads',           'video-lead-tracker' ), [ self::class,        'render_leads' ] ],
 			[ 'vlt-video-analytics', __( 'Video Analytics', 'video-lead-tracker' ), [ self::class,        'render_video_analytics' ] ],
+			[ 'vlt-funnel',          __( 'Funnel',          'video-lead-tracker' ), [ self::class,        'render_funnel' ] ],
 			[ 'vlt-heatmap',         __( 'Heatmap',         'video-lead-tracker' ), [ self::class,        'render_heatmap' ] ],
 			[ 'vlt-settings',        __( 'Settings',        'video-lead-tracker' ), [ 'VLT_Settings',     'render_page' ] ],
 			[ 'vlt-logs',            __( 'Logs',            'video-lead-tracker' ), [ self::class,        'render_logs' ] ],
@@ -191,18 +192,19 @@ class VLT_Admin {
 			<?php self::video_filter_select( 'vlt-overview' ); ?>
 
 			<!-- KPI cards -->
+			<button class="button vlt-kpi-customize-btn" style="float:right;margin-top:6px"><?php esc_html_e( 'Customize Widgets', 'video-lead-tracker' ); ?></button>
 			<div class="vlt-kpi-row">
 				<?php
 				$cards = [
-					[ __( 'Total Leads', 'video-lead-tracker' ), number_format_i18n( $total_leads ),    'dashicons-groups',     '#2271b1' ],
-					[ __( 'Verified',    'video-lead-tracker' ), number_format_i18n( $verified_leads ), 'dashicons-yes-alt',    '#1a9e6a' ],
-					[ __( 'Sessions',    'video-lead-tracker' ), number_format_i18n( $total_sessions ), 'dashicons-clock',      '#6e3ec3' ],
-					[ __( 'Videos',      'video-lead-tracker' ), number_format_i18n( $active_videos ),  'dashicons-video-alt3', '#e06800' ],
-					[ __( 'Watch Hours', 'video-lead-tracker' ), $watch_hours,                          'dashicons-visibility', '#c22f3a' ],
+					[ __( 'Total Leads', 'video-lead-tracker' ), number_format_i18n( $total_leads ),    'dashicons-groups',     '#2271b1', 'total_leads' ],
+					[ __( 'Verified',    'video-lead-tracker' ), number_format_i18n( $verified_leads ), 'dashicons-yes-alt',    '#1a9e6a', 'verified' ],
+					[ __( 'Sessions',    'video-lead-tracker' ), number_format_i18n( $total_sessions ), 'dashicons-clock',      '#6e3ec3', 'sessions' ],
+					[ __( 'Videos',      'video-lead-tracker' ), number_format_i18n( $active_videos ),  'dashicons-video-alt3', '#e06800', 'videos' ],
+					[ __( 'Watch Hours', 'video-lead-tracker' ), $watch_hours,                          'dashicons-visibility', '#c22f3a', 'watch_hours' ],
 				];
-				foreach ( $cards as [ $label, $value, $icon, $color ] ) :
+				foreach ( $cards as [ $label, $value, $icon, $color, $key ] ) :
 				?>
-				<div class="vlt-kpi-card">
+				<div class="vlt-kpi-card" data-kpi-key="<?php echo esc_attr( $key ); ?>">
 					<span class="vlt-kpi-icon dashicons <?php echo esc_attr( $icon ); ?>" style="color:<?php echo esc_attr( $color ); ?>"></span>
 					<strong class="vlt-kpi-number"><?php echo esc_html( $value ); ?></strong>
 					<span class="vlt-kpi-label"><?php echo esc_html( $label ); ?></span>
@@ -710,6 +712,7 @@ class VLT_Admin {
 			        COUNT( DISTINCT CASE WHEN s.lead_id IS NOT NULL
 			            THEN CONCAT( 'l', s.lead_id )
 			            ELSE s.visitor_uuid END )               AS viewers,
+			        COUNT( DISTINCT s.lead_id )                 AS leads_count,
 			        COALESCE( AVG(s.unique_watch_percent), 0 )  AS avg_completion,
 			        COALESCE( SUM(s.unique_watch_seconds), 0 ) / 3600 AS watch_hours,
 			        COALESCE( SUM(s.reached_end), 0 )           AS completions,
@@ -720,11 +723,27 @@ class VLT_Admin {
 			 GROUP BY v.id
 			 ORDER BY watch_hours DESC"
 		);
+
+		// Peak exit bucket per video (5-second buckets, one query for all videos).
+		$peak_exit_map = [];
+		$exit_rows     = $wpdb->get_results(
+			"SELECT video_id, FLOOR(last_position / 5) * 5 AS bucket, COUNT(*) AS cnt
+			 FROM {$p}vlt_video_user_summary
+			 WHERE last_position IS NOT NULL
+			 GROUP BY video_id, bucket"
+		);
+		foreach ( $exit_rows as $er ) {
+			$vid = (int) $er->video_id;
+			$cnt = (int) $er->cnt;
+			if ( ! isset( $peak_exit_map[ $vid ] ) || $cnt > $peak_exit_map[ $vid ]['cnt'] ) {
+				$peak_exit_map[ $vid ] = [ 'bucket' => (int) $er->bucket, 'cnt' => $cnt ];
+			}
+		}
 		?>
 		<div class="wrap">
 			<h1 class="wp-heading-inline"><?php esc_html_e( 'Video Analytics', 'video-lead-tracker' ); ?></h1>
 			<a href="<?php echo esc_url( VLT_Exporter::export_url( 'videos' ) ); ?>" class="page-title-action">
-				<?php esc_html_e( 'Export CSV', 'video-lead-tracker' ); ?>
+				<?php esc_html_e( 'Export Comparison CSV', 'video-lead-tracker' ); ?>
 			</a>
 			<hr class="wp-header-end">
 
@@ -733,9 +752,11 @@ class VLT_Admin {
 					<tr>
 						<th><?php esc_html_e( 'Video',       'video-lead-tracker' ); ?></th>
 						<th><?php esc_html_e( 'Viewers',     'video-lead-tracker' ); ?></th>
+						<th><?php esc_html_e( 'Leads',       'video-lead-tracker' ); ?></th>
 						<th><?php esc_html_e( 'Avg %',       'video-lead-tracker' ); ?></th>
 						<th><?php esc_html_e( 'Watch hrs',   'video-lead-tracker' ); ?></th>
 						<th><?php esc_html_e( 'Completions', 'video-lead-tracker' ); ?></th>
+						<th><?php esc_html_e( 'Top Exit',    'video-lead-tracker' ); ?></th>
 						<th><?php esc_html_e( 'First Play',  'video-lead-tracker' ); ?></th>
 					</tr>
 				</thead>
@@ -743,6 +764,7 @@ class VLT_Admin {
 				<?php if ( $videos ) : ?>
 					<?php foreach ( $videos as $v ) :
 						$detail_url = add_query_arg( [ 'page' => 'vlt-video-analytics', 'video_id' => $v->id ], admin_url( 'admin.php' ) );
+						$peak       = $peak_exit_map[ (int) $v->id ] ?? null;
 					?>
 					<tr>
 						<td>
@@ -754,6 +776,7 @@ class VLT_Admin {
 							<?php endif; ?>
 						</td>
 						<td><?php echo esc_html( number_format_i18n( (int) $v->viewers ) ); ?></td>
+						<td><?php echo esc_html( number_format_i18n( (int) $v->leads_count ) ); ?></td>
 						<td>
 							<div class="vlt-progress">
 								<div class="vlt-progress-bar" style="width:<?php echo esc_attr( min( 100, (int) round( $v->avg_completion ) ) ); ?>%"></div>
@@ -762,11 +785,12 @@ class VLT_Admin {
 						</td>
 						<td><?php echo esc_html( number_format( (float) $v->watch_hours, 2 ) ); ?></td>
 						<td><?php echo esc_html( number_format_i18n( (int) $v->completions ) ); ?></td>
+						<td class="vlt-muted"><?php echo esc_html( $peak ? self::format_duration( $peak['bucket'] ) : '—' ); ?></td>
 						<td class="vlt-muted"><?php echo esc_html( $v->first_play_at ? wp_date( 'Y-m-d', strtotime( $v->first_play_at ) ) : '—' ); ?></td>
 					</tr>
 					<?php endforeach; ?>
 				<?php else : ?>
-					<tr><td colspan="6" class="vlt-empty"><?php esc_html_e( 'No videos found.', 'video-lead-tracker' ); ?></td></tr>
+					<tr><td colspan="8" class="vlt-empty"><?php esc_html_e( 'No videos found.', 'video-lead-tracker' ); ?></td></tr>
 				<?php endif; ?>
 				</tbody>
 			</table>
@@ -849,6 +873,12 @@ class VLT_Admin {
 				<a href="<?php echo esc_url( $back_url ); ?>" class="vlt-back-link">&larr; <?php esc_html_e( 'Video Analytics', 'video-lead-tracker' ); ?></a>
 				<?php echo esc_html( $video->title ?: $video->video_key ); ?>
 			</h1>
+			<a href="<?php echo esc_url( VLT_Exporter::export_url( 'video_summary', [ 'video_id' => $video_id ] ) ); ?>" class="page-title-action">
+				<?php esc_html_e( 'Export Summary CSV', 'video-lead-tracker' ); ?>
+			</a>
+			<a href="<?php echo esc_url( VLT_Exporter::export_url( 'video_ranges', [ 'video_id' => $video_id ] ) ); ?>" class="page-title-action">
+				<?php esc_html_e( 'Export Ranges CSV', 'video-lead-tracker' ); ?>
+			</a>
 			<?php if ( $video->duration_seconds ) : ?>
 				<span class="vlt-muted" style="margin-left:10px"><?php echo esc_html( self::format_duration( (int) $video->duration_seconds ) ); ?></span>
 			<?php endif; ?>
@@ -943,6 +973,151 @@ class VLT_Admin {
 				</tbody>
 			</table>
 
+		</div>
+		<?php
+	}
+
+	// -------------------------------------------------------------------------
+	// Funnel Analytics (Phase 26)
+	// -------------------------------------------------------------------------
+
+	public static function render_funnel() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		global $wpdb;
+		$p = $wpdb->prefix;
+
+		$video_id   = isset( $_GET['video_id'] ) ? absint( $_GET['video_id'] ) : 0;
+		$all_videos = $wpdb->get_results(
+			"SELECT id, title, video_key, enable_otp FROM {$p}vlt_videos WHERE is_active = 1 ORDER BY id ASC"
+		);
+
+		$video  = null;
+		$funnel = null;
+
+		if ( $video_id ) {
+			foreach ( $all_videos as $v ) {
+				if ( (int) $v->id === $video_id ) {
+					$video = $v;
+					break;
+				}
+			}
+
+			if ( $video ) {
+				$ve = "COUNT(DISTINCT CASE WHEN lead_id IS NOT NULL THEN CONCAT('l',lead_id) ELSE visitor_uuid END)";
+
+				$page_visitors = (int) $wpdb->get_var( $wpdb->prepare(
+					"SELECT COUNT(DISTINCT CASE WHEN lead_id IS NOT NULL THEN CONCAT('l',lead_id) ELSE visitor_uuid END)
+					 FROM {$p}vlt_video_events WHERE video_id = %d AND event_type = 'video_loaded'",
+					$video_id
+				) );
+				$leads_created = (int) $wpdb->get_var( $wpdb->prepare(
+					"SELECT COUNT(DISTINCT lead_id) FROM {$p}vlt_video_user_summary WHERE video_id = %d AND lead_id IS NOT NULL",
+					$video_id
+				) );
+				$otp_verified  = (int) $wpdb->get_var( $wpdb->prepare(
+					"SELECT COUNT(DISTINCT s.lead_id)
+					 FROM {$p}vlt_video_user_summary s
+					 JOIN {$p}vlt_leads l ON l.id = s.lead_id
+					 WHERE s.video_id = %d AND l.is_verified = 1",
+					$video_id
+				) );
+				$video_started = (int) $wpdb->get_var( $wpdb->prepare(
+					"SELECT {$ve} FROM {$p}vlt_video_user_summary WHERE video_id = %d AND started = 1",
+					$video_id
+				) );
+				$reached_half  = (int) $wpdb->get_var( $wpdb->prepare(
+					"SELECT {$ve} FROM {$p}vlt_video_user_summary WHERE video_id = %d AND unique_watch_percent >= 50",
+					$video_id
+				) );
+				$reached_end   = (int) $wpdb->get_var( $wpdb->prepare(
+					"SELECT {$ve} FROM {$p}vlt_video_user_summary WHERE video_id = %d AND reached_end = 1",
+					$video_id
+				) );
+
+				$otp_on = (bool) $video->enable_otp;
+				$funnel = [
+					[ 'label' => __( 'Page Visitors',  'video-lead-tracker' ), 'count' => $page_visitors, 'active' => true ],
+					[ 'label' => __( 'Leads Created',  'video-lead-tracker' ), 'count' => $leads_created,  'active' => true ],
+					[ 'label' => __( 'OTP Verified',   'video-lead-tracker' ), 'count' => $otp_on ? $otp_verified : null, 'active' => $otp_on ],
+					[ 'label' => __( 'Video Started',  'video-lead-tracker' ), 'count' => $video_started,  'active' => true ],
+					[ 'label' => __( 'Reached 50%',    'video-lead-tracker' ), 'count' => $reached_half,   'active' => true ],
+					[ 'label' => __( 'Reached End',    'video-lead-tracker' ), 'count' => $reached_end,    'active' => true ],
+				];
+			}
+		}
+
+		$base = (int) ( $funnel[0]['count'] ?? 1 );
+		if ( $base < 1 ) {
+			$base = 1;
+		}
+		?>
+		<div class="wrap">
+			<h1 class="wp-heading-inline"><?php esc_html_e( 'Funnel Analytics', 'video-lead-tracker' ); ?></h1>
+			<hr class="wp-header-end">
+
+			<form method="get" style="margin:12px 0">
+				<input type="hidden" name="page" value="vlt-funnel">
+				<select name="video_id" onchange="this.form.submit()" style="min-width:220px">
+					<option value=""><?php esc_html_e( '— Select a video —', 'video-lead-tracker' ); ?></option>
+					<?php foreach ( $all_videos as $v ) : ?>
+						<option value="<?php echo esc_attr( $v->id ); ?>" <?php selected( $video_id, (int) $v->id ); ?>>
+							<?php echo esc_html( $v->title ?: $v->video_key ); ?>
+						</option>
+					<?php endforeach; ?>
+				</select>
+			</form>
+
+			<?php if ( ! $video_id ) : ?>
+				<p class="vlt-muted"><?php esc_html_e( 'Select a video to view its funnel.', 'video-lead-tracker' ); ?></p>
+
+			<?php elseif ( ! $video ) : ?>
+				<p class="vlt-muted"><?php esc_html_e( 'Video not found.', 'video-lead-tracker' ); ?></p>
+
+			<?php else : ?>
+
+				<h2 style="margin-top:4px"><?php echo esc_html( $video->title ?: $video->video_key ); ?></h2>
+
+				<div class="vlt-funnel">
+				<?php foreach ( $funnel as $step ) :
+					if ( ! $step['active'] ) {
+						continue;
+					}
+					$count   = $step['count'];
+					$is_na   = ( $count === null );
+					$display = $is_na ? 0 : $count;
+					$pct     = $is_na ? 0 : round( $display / $base * 100, 1 );
+					$bar_w   = min( 100, $pct );
+				?>
+				<div class="vlt-funnel-step">
+					<span class="vlt-funnel-label"><?php echo esc_html( $step['label'] ); ?></span>
+					<div class="vlt-funnel-bar-wrap">
+						<div class="vlt-funnel-bar" style="width:<?php echo esc_attr( $bar_w ); ?>%"></div>
+					</div>
+					<span class="vlt-funnel-count">
+						<?php if ( $is_na ) : ?>
+							<span class="vlt-muted"><?php esc_html_e( 'N/A', 'video-lead-tracker' ); ?></span>
+						<?php else : ?>
+							<?php echo esc_html( number_format_i18n( $display ) ); ?>
+							<span class="vlt-muted">(<?php echo esc_html( $pct ); ?>%)</span>
+						<?php endif; ?>
+					</span>
+				</div>
+				<?php endforeach; ?>
+				</div>
+
+				<style>
+				.vlt-funnel { max-width:720px; margin-top:16px; }
+				.vlt-funnel-step { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+				.vlt-funnel-label { width:160px; font-size:13px; flex-shrink:0; text-align:right; }
+				.vlt-funnel-bar-wrap { flex:1; background:#f0f0f1; border-radius:3px; height:24px; overflow:hidden; }
+				.vlt-funnel-bar { height:100%; background:#2d2c74; border-radius:3px; transition:width .3s; }
+				.vlt-funnel-count { width:120px; font-size:13px; flex-shrink:0; }
+				</style>
+
+			<?php endif; ?>
 		</div>
 		<?php
 	}

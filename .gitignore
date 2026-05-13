@@ -1,1 +1,25 @@
+# Planning / internal docs
 sms-docs.md
+01-requirements.md
+02-implementation-plan.md
+03-system-flows.md
+04-tracking-and-reporting-rules.md
+05-technical-tasks-checklist.md
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Dependencies (if ever added)
+node_modules/
+vendor/
+
+# Build artifacts
+*.zip

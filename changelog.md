@@ -5,6 +5,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.2] - 2026-05-13
+
+### Added
+- Phase 26: Reporting Upgrade and Funnel Analytics
+  - **Funnel Analytics page** (`vlt-funnel` submenu): 6-step horizontal bar chart per video — Page Visitors → Leads Created → OTP Verified (N/A if OTP is disabled) → Video Started → Reached 50% → Reached End. Each step shows count and percentage of the first step.
+  - **Video Analytics list**: added Leads count and Top Exit columns; "Export Comparison CSV" link; peak-exit bucket computed in a single GROUP BY query (no N+1).
+  - **Video Analytics detail**: two per-video export buttons — "Export Summary CSV" (viewer-level summary with watch %, sessions, last position) and "Export Ranges CSV" (all raw watch ranges as start/end pairs per viewer).
+  - **Overview KPI customization**: "Customize Widgets" button reveals a checkbox picker; visibility is persisted per-browser in `localStorage` (`vlt_hidden_kpi`).
+  - Exporter (`class-vlt-exporter.php`): added `video_summary` and `video_ranges` export types, each scoped to a single `video_id` with a slug-prefixed filename.
+  - Translations: added fa_IR strings for all Phase 26 UI labels (Funnel, Funnel Analytics, Page Visitors, Leads Created, OTP Verified, Video Started, Reached 50%, Reached End, Export Summary CSV, Export Ranges CSV, Export Comparison CSV, Top Exit, Customize Widgets, Select a video to view its funnel). .mo recompiled with `msgfmt`.
+
+### Changed
+- `VLT_VERSION` bumped 1.2.1 → 1.2.2.
+
+---
+
 ## [1.2.1] - 2026-05-13
 
 ### Added
