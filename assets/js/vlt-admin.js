@@ -202,14 +202,14 @@
 		var wrap = document.getElementById( 'vlt-hm-wrap' );
 		if ( ! wrap ) return;
 
-		var buckets     = JSON.parse( wrap.getAttribute( 'data-buckets' )     || '[]' );
-		var maxTotal    = parseInt(  wrap.getAttribute( 'data-max-total' ),    10 ) || 1;
-		var maxUnique   = parseInt(  wrap.getAttribute( 'data-max-unique' ),   10 ) || 1;
-		var maxDropOff  = parseInt(  wrap.getAttribute( 'data-max-drop-off' ), 10 ) || 1;
-		var bucketSize  = parseInt(  wrap.getAttribute( 'data-bucket-size' ),  10 ) || 1;
-		var metric      = 'total';
+		var buckets    = JSON.parse( wrap.getAttribute( 'data-buckets' )     || '[]' );
+		var maxTotal   = parseInt(   wrap.getAttribute( 'data-max-total' ),   10 ) || 1;
+		var maxUnique  = parseInt(   wrap.getAttribute( 'data-max-unique' ),  10 ) || 1;
+		var maxDropOff = parseInt(   wrap.getAttribute( 'data-max-drop-off' ), 10 ) || 1;
+		var bucketSize = parseInt(   wrap.getAttribute( 'data-bucket-size' ), 10 ) || 1;
+		var metric     = 'total';
 
-		drawBars( buckets, metric, maxTotal, maxUnique, maxDropOff, bucketSize );
+		drawLine( buckets, metric, maxTotal, maxUnique, maxDropOff, bucketSize );
 
 		document.querySelectorAll( '.vlt-hm-metric' ).forEach( function ( btn ) {
 			btn.addEventListener( 'click', function () {
@@ -218,69 +218,143 @@
 				} );
 				btn.classList.add( 'button-primary' );
 				metric = btn.getAttribute( 'data-metric' );
-				drawBars( buckets, metric, maxTotal, maxUnique, maxDropOff, bucketSize );
+				drawLine( buckets, metric, maxTotal, maxUnique, maxDropOff, bucketSize );
 			} );
 		} );
 	}
 
-	function drawBars( buckets, metric, maxTotal, maxUnique, maxDropOff, bucketSize ) {
+	function drawLine( buckets, metric, maxTotal, maxUnique, maxDropOff, bucketSize ) {
 		var chart = document.getElementById( 'vlt-hm-chart' );
 		var axis  = document.getElementById( 'vlt-hm-axis' );
 		if ( ! chart ) return;
 
 		chart.innerHTML = '';
 		if ( axis ) axis.innerHTML = '';
-
 		if ( ! buckets.length ) return;
 
-		var isDropOff = metric === 'drop_off';
-		var maxVal;
-		if ( isDropOff ) {
-			maxVal = maxDropOff;
-		} else if ( metric === 'total' ) {
-			maxVal = maxTotal;
-		} else {
-			maxVal = maxUnique;
-		}
+		var isDropOff  = metric === 'drop_off';
+		var maxVal     = isDropOff ? maxDropOff : ( metric === 'total' ? maxTotal : maxUnique );
 		if ( maxVal < 1 ) maxVal = 1;
 
-		// Compute top-3 exit buckets for drop-off highlight.
-		var top3Seconds = [];
-		if ( isDropOff ) {
-			var sorted = buckets.slice().sort( function ( a, b ) {
-				return ( b.drop_off || 0 ) - ( a.drop_off || 0 );
-			} );
-			top3Seconds = sorted.slice( 0, 3 ).map( function ( b ) { return b.second; } );
+		var lineColor  = isDropOff ? '#c22f3a' : '#2d2c74';
+		var n          = buckets.length;
+
+		// SVG viewport (fixed logical size, scales via viewBox).
+		var VW = 900, VH = 200;
+		var padL = 46, padR = 20, padT = 10, padB = 36;
+		var cW = VW - padL - padR;
+		var cH = VH - padT - padB;
+		var ns = 'http://www.w3.org/2000/svg';
+
+		var svg = document.createElementNS( ns, 'svg' );
+		svg.setAttribute( 'viewBox', '0 0 ' + VW + ' ' + VH );
+		svg.setAttribute( 'width', '100%' );
+		svg.style.display = 'block';
+
+		// Y grid lines + labels (5 levels).
+		for ( var gi = 0; gi <= 4; gi++ ) {
+			var gy     = padT + ( cH / 4 ) * gi;
+			var yLabel = Math.round( maxVal * ( 4 - gi ) / 4 );
+
+			var gLine = document.createElementNS( ns, 'line' );
+			gLine.setAttribute( 'x1', padL );     gLine.setAttribute( 'y1', gy );
+			gLine.setAttribute( 'x2', padL + cW ); gLine.setAttribute( 'y2', gy );
+			gLine.setAttribute( 'stroke', '#e8e8e8' ); gLine.setAttribute( 'stroke-width', '1' );
+			svg.appendChild( gLine );
+
+			var gTxt = document.createElementNS( ns, 'text' );
+			gTxt.setAttribute( 'x', padL - 6 ); gTxt.setAttribute( 'y', gy + 4 );
+			gTxt.setAttribute( 'text-anchor', 'end' );
+			gTxt.setAttribute( 'font-size', '11' ); gTxt.setAttribute( 'fill', '#8c8f94' );
+			gTxt.textContent = yLabel;
+			svg.appendChild( gTxt );
 		}
 
-		var labelEvery = Math.max( 1, Math.ceil( buckets.length / 10 ) );
-
-		buckets.forEach( function ( b, i ) {
+		// Map each bucket to an SVG point.
+		var pts = buckets.map( function ( b, i ) {
 			var val = isDropOff
 				? ( parseInt( b.drop_off, 10 ) || 0 )
 				: ( parseInt( b[ metric ] || b.total, 10 ) || 0 );
-			var pct    = Math.round( ( val / maxVal ) * 100 );
-			var bar    = document.createElement( 'div' );
-			bar.className    = 'vlt-hm-bar';
-			bar.style.height = pct + '%';
-			bar.title        = formatTime( b.second ) + '–' + formatTime( b.second + bucketSize ) + ': ' + val;
-
-			if ( isDropOff && top3Seconds.indexOf( b.second ) !== -1 && val > 0 ) {
-				bar.style.background = '#c22f3a';
-			}
-
-			chart.appendChild( bar );
-
-			if ( axis ) {
-				var tick = document.createElement( 'div' );
-				tick.className = 'vlt-hm-tick';
-				if ( i % labelEvery === 0 ) {
-					tick.className   += ' vlt-hm-tick--label';
-					tick.textContent  = formatTime( b.second );
-				}
-				axis.appendChild( tick );
-			}
+			var x = padL + ( n > 1 ? i / ( n - 1 ) : 0.5 ) * cW;
+			var y = padT + cH - ( val / maxVal ) * cH;
+			return { x: x, y: y, val: val, second: b.second };
 		} );
+
+		// Filled area under the line.
+		var baseY     = padT + cH;
+		var areaCoord = pts[ 0 ].x + ',' + baseY + ' '
+			+ pts.map( function ( p ) { return p.x + ',' + p.y; } ).join( ' ' )
+			+ ' ' + pts[ n - 1 ].x + ',' + baseY;
+		var area = document.createElementNS( ns, 'polygon' );
+		area.setAttribute( 'points', areaCoord );
+		area.setAttribute( 'fill', lineColor );
+		area.setAttribute( 'fill-opacity', '0.08' );
+		svg.appendChild( area );
+
+		// Polyline.
+		var poly = document.createElementNS( ns, 'polyline' );
+		poly.setAttribute( 'points', pts.map( function ( p ) { return p.x + ',' + p.y; } ).join( ' ' ) );
+		poly.setAttribute( 'fill', 'none' );
+		poly.setAttribute( 'stroke', lineColor );
+		poly.setAttribute( 'stroke-width', '2' );
+		poly.setAttribute( 'stroke-linejoin', 'round' );
+		poly.setAttribute( 'stroke-linecap', 'round' );
+		svg.appendChild( poly );
+
+		// Top-3 exit seconds (drop-off mode only).
+		var top3 = [];
+		if ( isDropOff ) {
+			top3 = pts.slice()
+				.sort( function ( a, b ) { return b.val - a.val; } )
+				.slice( 0, 3 )
+				.map( function ( p ) { return p.second; } );
+		}
+
+		// Dots + native tooltips (thin out on dense charts).
+		var dotEvery = Math.max( 1, Math.ceil( n / 60 ) );
+		pts.forEach( function ( p, i ) {
+			var isTop = isDropOff && top3.indexOf( p.second ) !== -1 && p.val > 0;
+			if ( ! isTop && i % dotEvery !== 0 ) return;
+
+			var c = document.createElementNS( ns, 'circle' );
+			c.setAttribute( 'cx', p.x ); c.setAttribute( 'cy', p.y );
+			c.setAttribute( 'r',  isTop ? 5 : 3 );
+			c.setAttribute( 'fill',         isTop ? '#c22f3a' : lineColor );
+			c.setAttribute( 'stroke',        '#fff' );
+			c.setAttribute( 'stroke-width', '1.5' );
+			var t = document.createElementNS( ns, 'title' );
+			t.textContent = formatTime( p.second ) + '–' + formatTime( p.second + bucketSize ) + ': ' + p.val;
+			c.appendChild( t );
+			svg.appendChild( c );
+		} );
+
+		// X axis baseline.
+		var bl = document.createElementNS( ns, 'line' );
+		bl.setAttribute( 'x1', padL );      bl.setAttribute( 'y1', padT + cH );
+		bl.setAttribute( 'x2', padL + cW ); bl.setAttribute( 'y2', padT + cH );
+		bl.setAttribute( 'stroke', '#c3c4c7' ); bl.setAttribute( 'stroke-width', '1' );
+		svg.appendChild( bl );
+
+		// X axis labels (up to ~10 labels).
+		var labelEvery = Math.max( 1, Math.ceil( n / 10 ) );
+		pts.forEach( function ( p, i ) {
+			if ( i % labelEvery !== 0 && i !== n - 1 ) return;
+
+			var tk = document.createElementNS( ns, 'line' );
+			tk.setAttribute( 'x1', p.x ); tk.setAttribute( 'y1', padT + cH );
+			tk.setAttribute( 'x2', p.x ); tk.setAttribute( 'y2', padT + cH + 4 );
+			tk.setAttribute( 'stroke', '#c3c4c7' ); tk.setAttribute( 'stroke-width', '1' );
+			svg.appendChild( tk );
+
+			var xt = document.createElementNS( ns, 'text' );
+			xt.setAttribute( 'x', p.x ); xt.setAttribute( 'y', VH - padB + 16 );
+			xt.setAttribute( 'text-anchor', 'middle' );
+			xt.setAttribute( 'font-size', '10' ); xt.setAttribute( 'fill', '#8c8f94' );
+			xt.textContent = formatTime( p.second );
+			svg.appendChild( xt );
+		} );
+
+		chart.appendChild( svg );
 	}
 
 	function formatTime( seconds ) {

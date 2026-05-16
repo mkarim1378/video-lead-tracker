@@ -382,45 +382,5 @@
 }
 
 .vlt-hm-chart {
-	display: flex;
-	align-items: flex-end;
-	gap: 2px;
-	height: 120px;
-	padding-bottom: 4px;
-	border-bottom: 1px solid #c3c4c7;
-	min-width: 300px;
-}
-
-.vlt-hm-bar {
-	flex: 1;
-	min-width: 4px;
-	background: #2271b1;
-	border-radius: 2px 2px 0 0;
-	cursor: default;
-	transition: background .15s;
-}
-
-.vlt-hm-bar:hover {
-	background: #135e96;
-}
-
-.vlt-hm-axis {
-	display: flex;
-	gap: 2px;
-	margin-top: 4px;
-	min-width: 300px;
-}
-
-.vlt-hm-tick {
-	flex: 1;
-	min-width: 4px;
-	height: 4px;
-	border-left: 1px solid #c3c4c7;
-}
-
-.vlt-hm-tick--label {
-	font-size: 10px;
-	color: #8c8f94;
-	white-space: nowrap;
-	overflow: visible;
+	min-width: 400px;
 }
