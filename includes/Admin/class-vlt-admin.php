@@ -1140,28 +1140,13 @@ class VLT_Admin {
 			"SELECT id, title, video_key, duration_seconds FROM {$p}vlt_videos WHERE is_active = 1 ORDER BY created_at DESC"
 		);
 
-		// Auto-calculate bucket size so the chart has at most ~120 bars.
-		$bucket = 1;
+		$bucket         = max( 1, (int) VLT_Settings::get( 'heatmap_default_bucket' ) );
+		$selected_video = null;
 		if ( $video_id ) {
-			$selected_video = null;
 			foreach ( $all_videos as $v ) {
 				if ( (int) $v->id === $video_id ) {
 					$selected_video = $v;
 					break;
-				}
-			}
-			$duration_s = $selected_video ? (int) $selected_video->duration_seconds : 0;
-			if ( $duration_s > 0 ) {
-				$ideal        = (int) ceil( $duration_s / 120 );
-				$bucket_steps = [ 1, 5, 10, 30, 60, 300, 600 ];
-				foreach ( $bucket_steps as $step ) {
-					if ( $step >= $ideal ) {
-						$bucket = $step;
-						break;
-					}
-				}
-				if ( $bucket === 1 && $ideal > 600 ) {
-					$bucket = (int) ceil( $ideal / 60 ) * 60;
 				}
 			}
 		}
