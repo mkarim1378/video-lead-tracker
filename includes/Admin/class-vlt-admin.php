@@ -1140,16 +1140,7 @@ class VLT_Admin {
 			"SELECT id, title, video_key, duration_seconds FROM {$p}vlt_videos WHERE is_active = 1 ORDER BY created_at DESC"
 		);
 
-		$bucket         = max( 1, (int) VLT_Settings::get( 'heatmap_default_bucket' ) );
-		$selected_video = null;
-		if ( $video_id ) {
-			foreach ( $all_videos as $v ) {
-				if ( (int) $v->id === $video_id ) {
-					$selected_video = $v;
-					break;
-				}
-			}
-		}
+		$bucket = max( 1, (int) VLT_Settings::get( 'heatmap_default_bucket' ) );
 
 		$heatmap_data = [];
 		$max_total    = 1;
@@ -1258,7 +1249,7 @@ class VLT_Admin {
 				<p class="vlt-muted" style="font-size:12px;margin-top:6px">
 					<?php printf(
 						/* translators: %d = bucket size in seconds */
-						esc_html__( 'Bucket size: %d second(s). Hover over a bar for details.', 'video-lead-tracker' ),
+						esc_html__( 'Bucket size: %d second(s). Hover over a point for details.', 'video-lead-tracker' ),
 						$bucket
 					); ?>
 				</p>
