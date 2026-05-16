@@ -5,6 +5,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.3] - 2026-05-16
+
+### Added
+- **Data Management — ID preview lookup**: typing a Lead ID or Page ID in the Data Management tab now shows a live preview (name + masked mobile for leads; page title + post type for pages) fetched via a new `GET /vlt/v1/admin/lookup` REST endpoint, before the user confirms deletion.
+
+### Fixed
+- **Lead deletion — ghost re-registration**: after deleting a lead, the visitor's `identity_token_hash` is now rotated to a random value. Previously the deleted lead's browser could re-submit the form using the still-valid token and recreate the lead immediately.
+- **Leads list — `#` column**: was displaying the row's position in the current sort view (`$offset + $i + 1`) instead of the real database `id`. Now shows `$row->id`. The column is also sortable.
+- **Leads list — mobile masking**: the Mobile column in the leads list was applying `mask_mobile()`. Now shows the full number as stored.
+
+### Changed
+- **Heatmap chart**: replaced CSS bar chart with a responsive inline SVG line chart. Polyline with filled area, Y-axis grid lines with value labels, X-axis time labels, native hover tooltip per point. Drop-off mode still highlights top-3 exit buckets (larger red dots). Bucket size and data structure are unchanged.
+- `VLT_VERSION` bumped 1.2.2 → 1.2.3.
+
+---
+
 ## [1.2.2] - 2026-05-13
 
 ### Added
