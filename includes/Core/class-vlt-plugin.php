@@ -36,14 +36,25 @@ class VLT_Plugin {
 		VLT_REST_Controller::init();
 		VLT_Frontend::init();
 
-		// Elementor Dynamic Tags — loaded only after Elementor's own classes are available.
-		// elementor/loaded fires at plugins_loaded priority 0; our init runs at priority 10,
-		// so did_action() is already true here when Elementor is active.
+		// Elementor integration — only when Elementor is active.
+		// We defer require_once of files that extend Elementor base classes until the
+		// specific Elementor hooks fire, because Widget_Base and Data_Tag are only
+		// guaranteed to be in memory at those points (not at plugins_loaded priority 10).
 		if ( did_action( 'elementor/loaded' ) ) {
-			require_once VLT_PLUGIN_DIR . 'includes/Elementor/class-vlt-dynamic-tags.php';
-			require_once VLT_PLUGIN_DIR . 'includes/Elementor/class-vlt-widget.php';
-			VLT_Dynamic_Tags::init();
-			VLT_Widget::init();
+			add_action( 'elementor/dynamic_tags/register', function ( $manager ) {
+				require_once VLT_PLUGIN_DIR . 'includes/Elementor/class-vlt-dynamic-tags.php';
+				VLT_Dynamic_Tags::register_tags( $manager );
+			} );
+			add_action( 'elementor/elements/categories_registered', function ( $elements_manager ) {
+				$elements_manager->add_category( 'vlt', [
+					'title' => __( 'Video Lead Tracker', 'video-lead-tracker' ),
+					'icon'  => 'eicon-play',
+				] );
+			} );
+			add_action( 'elementor/widgets/register', function ( $widgets_manager ) {
+				require_once VLT_PLUGIN_DIR . 'includes/Elementor/class-vlt-widget.php';
+				$widgets_manager->register( new VLT_Widget() );
+			} );
 		}
 
 		// Event retention cron.

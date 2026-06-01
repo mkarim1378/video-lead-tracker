@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.3.0] - 2026-06-01
+
+### Fixed
+- **Fatal error on activation — Elementor `Widget_Base` not found**: `class-vlt-widget.php` and `class-vlt-dynamic-tags.php` were `require_once`'d immediately inside `plugins_loaded` (priority 10). PHP resolves parent class names at parse time, but Elementor only loads `Widget_Base` and `Data_Tag` lazily during its own init phase (after `plugins_loaded`). Fixed by deferring `require_once` of both files to inside their respective Elementor action hook callbacks (`elementor/widgets/register` and `elementor/dynamic_tags/register`), where those base classes are guaranteed to be in memory. Category registration (`elementor/elements/categories_registered`) is now also inlined in the plugin boot rather than delegated through `VLT_Widget::init()`.
+- `VLT_VERSION` bumped 1.2.9 → 1.3.0.
+
+---
+
 ## [1.2.9] - 2026-06-01
 
 ### Fixed
