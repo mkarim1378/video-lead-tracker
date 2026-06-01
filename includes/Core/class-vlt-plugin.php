@@ -36,6 +36,14 @@ class VLT_Plugin {
 		VLT_REST_Controller::init();
 		VLT_Frontend::init();
 
+		// Elementor Dynamic Tags — loaded only after Elementor's own classes are available.
+		// elementor/loaded fires at plugins_loaded priority 0; our init runs at priority 10,
+		// so did_action() is already true here when Elementor is active.
+		if ( did_action( 'elementor/loaded' ) ) {
+			require_once VLT_PLUGIN_DIR . 'includes/Elementor/class-vlt-dynamic-tags.php';
+			VLT_Dynamic_Tags::init();
+		}
+
 		// Event retention cron.
 		add_action( 'vlt_daily_cleanup', [ self::class, 'run_event_retention' ] );
 		if ( ! wp_next_scheduled( 'vlt_daily_cleanup' ) ) {

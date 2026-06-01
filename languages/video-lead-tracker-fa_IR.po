@@ -1368,3 +1368,19 @@ msgstr "پست مرتبط"
 #: includes/Admin/class-vlt-videos-admin.php (Phase 29)
 msgid "no title"
 msgstr "بدون عنوان"
+
+#: includes/Elementor/class-vlt-dynamic-tags.php (Phase 30)
+msgid "VLT Video"
+msgstr "ویدیو VLT"
+
+#: includes/Elementor/class-vlt-dynamic-tags.php (Phase 30)
+msgid "VLT Video URL"
+msgstr "آدرس ویدیو VLT"
+
+#: includes/Elementor/class-vlt-dynamic-tags.php (Phase 30)
+msgid "VLT Poster URL"
+msgstr "آدرس پوستر VLT"
+
+#: includes/Elementor/class-vlt-dynamic-tags.php (Phase 30)
+msgid "VLT Video Title"
+msgstr "عنوان ویدیو VLT"

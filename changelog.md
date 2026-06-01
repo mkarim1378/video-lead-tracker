@@ -5,6 +5,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.7] - 2026-06-01
+
+### Added
+- **Phase 30 — Elementor Dynamic Tags**: when Elementor is active, three Dynamic Tags appear in the "VLT Video" group inside the Elementor editor:
+  - **VLT Video URL** — returns the `video_url` of the video linked to the current post via `_vlt_video_key` meta. Usable in any URL-type control (e.g. Video widget source, Button link).
+  - **VLT Poster URL** — returns the `poster_url`. Usable in any URL-type control.
+  - **VLT Video Title** — returns the video's `title` field as plain text. Usable in any text control (heading, text editor, etc.).
+  - All three read from the post's `_vlt_video_key` meta, set automatically by the CPT meta box or the post/page meta box.
+  - Integration is loaded conditionally (`did_action('elementor/loaded')`) — the plugin functions fully without Elementor.
+- `VLT_VERSION` bumped 1.2.6 → 1.2.7.
+
+---
+
 ## [1.2.6] - 2026-06-01
 
 ### Added
