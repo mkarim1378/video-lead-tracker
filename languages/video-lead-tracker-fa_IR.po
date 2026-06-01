@@ -1328,3 +1328,43 @@ msgstr "لطفاً ابتدا چک‌باکس تأیید را تیک بزنید.
 #: includes/CPT/class-vlt-cpt.php (Phase 28 — modal)
 msgid "Failed to delete terms. Please try again."
 msgstr "حذف ترم‌ها ناموفق بود. دوباره تلاش کنید."
+
+#: includes/Admin/class-vlt-videos-admin.php (Phase 29)
+msgid "Video Settings"
+msgstr "تنظیمات ویدیو"
+
+#: includes/Admin/class-vlt-videos-admin.php (Phase 29)
+msgid "Test ↗"
+msgstr "آزمایش ↗"
+
+#: includes/Admin/class-vlt-videos-admin.php (Phase 29)
+msgid "Direct URL to the MP4 hosted on your CDN."
+msgstr "آدرس مستقیم فایل MP4 روی CDN شما."
+
+#: includes/Admin/class-vlt-videos-admin.php (Phase 29)
+msgid "Poster URL"
+msgstr "آدرس پوستر"
+
+#: includes/Admin/class-vlt-videos-admin.php (Phase 29)
+msgid "Use [vlt_video] in the content to embed this video."
+msgstr "از [vlt_video] در محتوا برای جاسازی این ویدیو استفاده کنید."
+
+#: includes/Admin/class-vlt-videos-admin.php (Phase 29)
+msgid "Linked Video"
+msgstr "ویدیوی مرتبط"
+
+#: includes/Admin/class-vlt-videos-admin.php (Phase 29)
+msgid "— None —"
+msgstr "— هیچ —"
+
+#: includes/Admin/class-vlt-videos-admin.php (Phase 29)
+msgid "Place [vlt_video] in the content to embed the selected video."
+msgstr "از [vlt_video] در محتوا برای جاسازی ویدیوی انتخاب‌شده استفاده کنید."
+
+#: includes/Admin/class-vlt-videos-admin.php (Phase 29)
+msgid "Linked Post"
+msgstr "پست مرتبط"
+
+#: includes/Admin/class-vlt-videos-admin.php (Phase 29)
+msgid "no title"
+msgstr "بدون عنوان"

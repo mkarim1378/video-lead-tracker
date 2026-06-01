@@ -10,7 +10,9 @@ class VLT_Frontend {
 	public static function init() {
 		add_shortcode( 'video_lead_tracker',  [ self::class, 'render_shortcode' ] );
 		add_shortcode( 'vlt_video_lead_gate', [ self::class, 'render_shortcode' ] ); // legacy alias
+		add_shortcode( 'vlt_video',           [ self::class, 'render_vlt_video_shortcode' ] );
 		add_action( 'wp_enqueue_scripts', [ self::class, 'register_assets' ] );
+		add_action( 'wp_head', [ self::class, 'inject_single_cpt_json_ld' ] );
 	}
 
 	// Register (not enqueue) so scripts are available when shortcode calls enqueue.
@@ -255,5 +257,106 @@ class VLT_Frontend {
 		</div>
 		<?php
 		return ob_get_clean();
+	}
+
+	// -------------------------------------------------------------------------
+	// [vlt_video] shortcode — CPT-aware embed
+	// -------------------------------------------------------------------------
+
+	public static function render_vlt_video_shortcode( $atts ) {
+		$atts      = shortcode_atts( [ 'key' => '' ], $atts, 'vlt_video' );
+		$video_key = sanitize_key( $atts['key'] );
+
+		// Fall back to the video_key linked via post meta (set by meta box or CPT save).
+		if ( ! $video_key ) {
+			$video_key = sanitize_key( (string) get_post_meta( get_the_ID(), '_vlt_video_key', true ) );
+		}
+
+		if ( ! $video_key ) {
+			return '';
+		}
+
+		$video = VLT_DB::get_video_by_key( $video_key );
+		if ( ! $video ) {
+			return '';
+		}
+
+		$video_url  = esc_url( $video->video_url  ?? '' );
+		$poster_url = esc_url( $video->poster_url ?? '' );
+
+		self::enqueue_assets( $video->video_key, $video_url, (int) $video->duration_seconds, $video );
+
+		$output = self::render_html( [
+			'video_key'    => $video->video_key,
+			'video_url'    => $video_url,
+			'poster_url'   => $poster_url,
+			'form_title'   => $video->form_title         ?: __( 'Watch the Free Training', 'video-lead-tracker' ),
+			'name_label'   => $video->name_label         ?: __( 'Full Name', 'video-lead-tracker' ),
+			'mobile_label' => $video->mobile_label       ?: __( 'Mobile Number', 'video-lead-tracker' ),
+			'submit_text'  => $video->submit_button_text ?: __( 'Watch Now', 'video-lead-tracker' ),
+		] );
+
+		// CPT single pages emit JSON-LD via wp_head; inject inline for all other contexts.
+		if ( ! is_singular( VLT_CPT::POST_TYPE ) ) {
+			$post_id = get_the_ID();
+			$output .= self::build_json_ld_script(
+				get_the_title( $post_id ),
+				get_post_field( 'post_excerpt', $post_id ) ?: '',
+				$video,
+				$post_id
+			);
+		}
+
+		return $output;
+	}
+
+	// -------------------------------------------------------------------------
+	// JSON-LD — VideoObject structured data
+	// -------------------------------------------------------------------------
+
+	public static function inject_single_cpt_json_ld() {
+		if ( ! is_singular( VLT_CPT::POST_TYPE ) ) {
+			return;
+		}
+		$post_id   = get_the_ID();
+		$video_key = get_post_meta( $post_id, '_vlt_video_key', true );
+		if ( ! $video_key ) {
+			return;
+		}
+		$video = VLT_DB::get_video_by_key( $video_key );
+		if ( ! $video ) {
+			return;
+		}
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo self::build_json_ld_script(
+			get_the_title( $post_id ),
+			get_post_field( 'post_excerpt', $post_id ) ?: '',
+			$video,
+			$post_id
+		);
+	}
+
+	private static function build_json_ld_script( $name, $description, $video, $post_id = null ) {
+		$data = [
+			'@context'   => 'https://schema.org',
+			'@type'      => 'VideoObject',
+			'name'       => $name ?: ( $video->title ?? '' ),
+			'contentUrl' => $video->video_url ?? '',
+		];
+
+		$desc = wp_strip_all_tags( $description );
+		if ( $desc ) {
+			$data['description'] = $desc;
+		}
+		if ( ! empty( $video->poster_url ) ) {
+			$data['thumbnailUrl'] = $video->poster_url;
+		}
+		if ( $post_id ) {
+			$data['uploadDate'] = get_the_date( 'c', $post_id );
+		}
+
+		return '<script type="application/ld+json">'
+			. wp_json_encode( $data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE )
+			. "</script>\n";
 	}
 }

@@ -5,6 +5,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.6] - 2026-06-01
+
+### Added
+- **Phase 29 — Video-Post Integration & Shortcode**:
+  - **`vlt_video` CPT meta box**: a "Video Settings" meta box on `vlt_video` posts lets editors set the direct CDN URL and poster image URL. Saving auto-creates or updates the matching `vlt_videos` registry entry using the post slug as the video key, and sets `_vlt_video_key` post meta. Includes live Test link and poster thumbnail preview.
+  - **Post / Page meta box**: a "Video Lead Tracker" sidebar meta box on posts and pages offers a dropdown of all registered videos and shows the selected video's poster. Saving stores `_vlt_video_key` post meta, enabling the `[vlt_video]` shortcode to auto-resolve with no `key` attribute needed.
+  - **`[vlt_video]` shortcode**: renders the full gated-video player. Uses the `key` attribute if provided; otherwise reads `_vlt_video_key` from the current post's meta. Returns empty string silently if no video is found.
+  - **VideoObject JSON-LD**: for single `vlt_video` CPT pages the structured-data script is injected in `<head>` via `wp_head`. For regular posts/pages the same JSON-LD is appended inline to the shortcode output.
+  - **"Linked Post" column** in the Videos list: shows the CPT post title (with edit link) that links to each video, or "—" if none.
+  - **Shortcode column** updated to `[vlt_video key="…"]`.
+- `VLT_VERSION` bumped 1.2.5 → 1.2.6.
+
+---
+
 ## [1.2.5] - 2026-06-01
 
 ### Added

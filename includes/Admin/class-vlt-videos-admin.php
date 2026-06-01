@@ -5,12 +5,279 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class VLT_Videos_Admin {
 
+	// -------------------------------------------------------------------------
+	// Boot
+	// -------------------------------------------------------------------------
+
+	public static function init() {
+		add_action( 'add_meta_boxes', [ self::class, 'register_meta_boxes' ] );
+		add_action( 'save_post',      [ self::class, 'handle_meta_box_save' ], 10, 2 );
+	}
+
+	// -------------------------------------------------------------------------
+	// Meta boxes
+	// -------------------------------------------------------------------------
+
+	public static function register_meta_boxes() {
+		// CPT posts: video URL + poster URL fields, auto-creates vlt_videos on save.
+		add_meta_box(
+			'vlt_video_cpt',
+			__( 'Video Settings', 'video-lead-tracker' ),
+			[ self::class, 'render_meta_box_cpt' ],
+			VLT_CPT::POST_TYPE,
+			'normal',
+			'high'
+		);
+
+		// Regular posts and pages: dropdown of existing vlt_videos.
+		foreach ( [ 'post', 'page' ] as $pt ) {
+			add_meta_box(
+				'vlt_video_post',
+				__( 'Video Lead Tracker', 'video-lead-tracker' ),
+				[ self::class, 'render_meta_box_post' ],
+				$pt,
+				'side',
+				'default'
+			);
+		}
+	}
+
+	public static function render_meta_box_cpt( $post ) {
+		wp_nonce_field( 'vlt_meta_box_save', 'vlt_meta_box_nonce' );
+
+		$video_key  = get_post_meta( $post->ID, '_vlt_video_key', true );
+		$video_url  = get_post_meta( $post->ID, '_vlt_meta_video_url',  true );
+		$poster_url = get_post_meta( $post->ID, '_vlt_meta_poster_url', true );
+
+		// If already linked to a video in registry, use its values as fallback.
+		if ( $video_key && ( ! $video_url || ! $poster_url ) ) {
+			$v = VLT_DB::get_video_by_key( $video_key );
+			if ( $v ) {
+				$video_url  = $video_url  ?: ( $v->video_url  ?? '' );
+				$poster_url = $poster_url ?: ( $v->poster_url ?? '' );
+			}
+		}
+		?>
+		<table class="form-table" style="margin:0">
+			<tr>
+				<th style="padding:6px 4px 6px 0;font-weight:600;width:100px">
+					<label for="vlt_mb_video_url"><?php esc_html_e( 'Video URL', 'video-lead-tracker' ); ?></label>
+				</th>
+				<td style="padding:6px 0">
+					<div style="display:flex;align-items:center;gap:8px">
+						<input type="url" id="vlt_mb_video_url" name="vlt_video_url"
+						       value="<?php echo esc_attr( $video_url ); ?>" class="widefat">
+						<a id="vlt-mb-test-link"
+						   href="<?php echo $video_url ? esc_url( $video_url ) : '#'; ?>"
+						   target="_blank" rel="noopener"
+						   style="white-space:nowrap;font-size:12px<?php echo $video_url ? '' : ';visibility:hidden'; ?>">
+							<?php esc_html_e( 'Test ↗', 'video-lead-tracker' ); ?>
+						</a>
+					</div>
+					<p class="description" style="margin:4px 0 0"><?php esc_html_e( 'Direct URL to the MP4 hosted on your CDN.', 'video-lead-tracker' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th style="padding:6px 4px 6px 0;font-weight:600">
+					<label for="vlt_mb_poster_url"><?php esc_html_e( 'Poster URL', 'video-lead-tracker' ); ?></label>
+				</th>
+				<td style="padding:6px 0">
+					<input type="url" id="vlt_mb_poster_url" name="vlt_poster_url"
+					       value="<?php echo esc_attr( $poster_url ); ?>" class="widefat">
+					<div id="vlt-mb-poster-wrap" style="margin-top:8px<?php echo $poster_url ? '' : ';display:none'; ?>">
+						<img id="vlt-mb-poster-img"
+						     src="<?php echo esc_url( $poster_url ); ?>"
+						     alt=""
+						     style="max-width:160px;max-height:90px;border:1px solid #c3c4c7;border-radius:2px">
+					</div>
+				</td>
+			</tr>
+			<?php if ( $video_key ) : ?>
+			<tr>
+				<th style="padding:6px 4px 6px 0;font-weight:600"><?php esc_html_e( 'Video Key', 'video-lead-tracker' ); ?></th>
+				<td style="padding:6px 0">
+					<code><?php echo esc_html( $video_key ); ?></code>
+					<p class="description" style="margin:2px 0 0"><?php esc_html_e( 'Use [vlt_video] in the content to embed this video.', 'video-lead-tracker' ); ?></p>
+				</td>
+			</tr>
+			<?php endif; ?>
+		</table>
+		<script>
+		( function () {
+			var videoIn  = document.getElementById( 'vlt_mb_video_url' );
+			var testLink = document.getElementById( 'vlt-mb-test-link' );
+			var posterIn = document.getElementById( 'vlt_mb_poster_url' );
+			var posterWr = document.getElementById( 'vlt-mb-poster-wrap' );
+			var posterIm = document.getElementById( 'vlt-mb-poster-img' );
+
+			if ( videoIn && testLink ) {
+				videoIn.addEventListener( 'input', function () {
+					var u = videoIn.value.trim();
+					testLink.href = u || '#';
+					testLink.style.visibility = u ? '' : 'hidden';
+				} );
+			}
+
+			if ( posterIn && posterWr && posterIm ) {
+				posterIn.addEventListener( 'blur', function () {
+					var u = posterIn.value.trim();
+					if ( u ) {
+						posterIm.src = u;
+						posterWr.style.display = '';
+					} else {
+						posterWr.style.display = 'none';
+					}
+				} );
+			}
+		}() );
+		</script>
+		<?php
+	}
+
+	public static function render_meta_box_post( $post ) {
+		wp_nonce_field( 'vlt_meta_box_save', 'vlt_meta_box_nonce' );
+
+		$current_key = get_post_meta( $post->ID, '_vlt_video_key', true );
+		$videos      = VLT_DB::get_all_videos();
+
+		// Build a map of key → poster for the preview.
+		$poster_map = [];
+		foreach ( $videos as $v ) {
+			if ( $v->poster_url ) {
+				$poster_map[ esc_js( $v->video_key ) ] = esc_url( $v->poster_url );
+			}
+		}
+		?>
+		<p>
+			<label for="vlt_post_video_key" style="display:block;margin-bottom:4px;font-weight:600">
+				<?php esc_html_e( 'Linked Video', 'video-lead-tracker' ); ?>
+			</label>
+			<select id="vlt_post_video_key" name="vlt_video_key_select" style="width:100%">
+				<option value=""><?php esc_html_e( '— None —', 'video-lead-tracker' ); ?></option>
+				<?php foreach ( $videos as $v ) : ?>
+					<option value="<?php echo esc_attr( $v->video_key ); ?>"
+					        data-poster="<?php echo esc_attr( $v->poster_url ?? '' ); ?>"
+					        <?php selected( $current_key, $v->video_key ); ?>>
+						<?php echo esc_html( $v->title ?: $v->video_key ); ?>
+					</option>
+				<?php endforeach; ?>
+			</select>
+		</p>
+		<div id="vlt-post-poster-wrap" style="margin-top:8px<?php echo ( $current_key && self::get_video_poster( $current_key, $videos ) ) ? '' : ';display:none'; ?>">
+			<img id="vlt-post-poster-img"
+			     src="<?php echo esc_url( self::get_video_poster( $current_key, $videos ) ); ?>"
+			     alt=""
+			     style="max-width:100%;border:1px solid #c3c4c7;border-radius:2px">
+		</div>
+		<p class="description" style="margin-top:4px">
+			<?php esc_html_e( 'Place [vlt_video] in the content to embed the selected video.', 'video-lead-tracker' ); ?>
+		</p>
+		<script>
+		( function () {
+			var sel  = document.getElementById( 'vlt_post_video_key' );
+			var wrap = document.getElementById( 'vlt-post-poster-wrap' );
+			var img  = document.getElementById( 'vlt-post-poster-img' );
+			if ( ! sel ) return;
+			sel.addEventListener( 'change', function () {
+				var opt    = sel.options[ sel.selectedIndex ];
+				var poster = opt ? opt.getAttribute( 'data-poster' ) : '';
+				if ( poster ) {
+					img.src         = poster;
+					wrap.style.display = '';
+				} else {
+					wrap.style.display = 'none';
+				}
+			} );
+		}() );
+		</script>
+		<?php
+	}
+
+	private static function get_video_poster( $video_key, $videos ) {
+		foreach ( $videos as $v ) {
+			if ( $v->video_key === $video_key ) {
+				return $v->poster_url ?? '';
+			}
+		}
+		return '';
+	}
+
+	public static function handle_meta_box_save( $post_id, $post ) {
+		if ( ! isset( $_POST['vlt_meta_box_nonce'] ) ) {
+			return;
+		}
+		if ( ! wp_verify_nonce( $_POST['vlt_meta_box_nonce'], 'vlt_meta_box_save' ) ) {
+			return;
+		}
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return;
+		}
+		if ( wp_is_post_autosave( $post_id ) || wp_is_post_revision( $post_id ) ) {
+			return;
+		}
+
+		// ---- CPT: URL fields → auto-create/update vlt_videos ----
+		if ( VLT_CPT::POST_TYPE === $post->post_type ) {
+			$video_url  = esc_url_raw( $_POST['vlt_video_url']  ?? '' );
+			$poster_url = esc_url_raw( $_POST['vlt_poster_url'] ?? '' );
+
+			update_post_meta( $post_id, '_vlt_meta_video_url',  $video_url );
+			update_post_meta( $post_id, '_vlt_meta_poster_url', $poster_url );
+
+			if ( $video_url ) {
+				$slug = $post->post_name ?: sanitize_title( $post->post_title );
+				if ( $slug ) {
+					self::upsert_video_from_cpt( $post_id, $slug, $post->post_title, $video_url, $poster_url );
+				}
+			}
+			return;
+		}
+
+		// ---- post / page: dropdown → _vlt_video_key meta ----
+		$selected_key = sanitize_key( $_POST['vlt_video_key_select'] ?? '' );
+		if ( $selected_key ) {
+			update_post_meta( $post_id, '_vlt_video_key', $selected_key );
+		} else {
+			delete_post_meta( $post_id, '_vlt_video_key' );
+		}
+	}
+
+	private static function upsert_video_from_cpt( $post_id, $slug, $title, $video_url, $poster_url ) {
+		$now      = current_time( 'mysql' );
+		$existing = VLT_DB::get_video_by_key( $slug );
+
+		if ( $existing ) {
+			VLT_DB::update_video( (int) $existing->id, [
+				'title'      => $title,
+				'video_url'  => $video_url,
+				'poster_url' => $poster_url,
+				'is_active'  => 1,
+				'updated_at' => $now,
+			] );
+		} else {
+			VLT_DB::create_video( [
+				'video_key'  => $slug,
+				'title'      => $title,
+				'video_url'  => $video_url,
+				'poster_url' => $poster_url,
+				'is_active'  => 1,
+				'created_at' => $now,
+				'updated_at' => $now,
+			] );
+		}
+
+		update_post_meta( $post_id, '_vlt_video_key', $slug );
+	}
+
+	// -------------------------------------------------------------------------
+	// Admin page dispatcher
+	// -------------------------------------------------------------------------
+
 	public static function render_page() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
 
-		// Handle form actions before any output.
 		self::handle_actions();
 
 		$action   = sanitize_key( $_GET['action'] ?? '' );
@@ -56,7 +323,6 @@ class VLT_Videos_Admin {
 
 		$data = self::collect_and_sanitize();
 		if ( is_wp_error( $data ) ) {
-			// Store error in transient for display.
 			set_transient( 'vlt_video_error_' . get_current_user_id(), $data->get_error_message(), 60 );
 			return;
 		}
@@ -83,7 +349,6 @@ class VLT_Videos_Admin {
 			return new WP_Error( 'missing_key', __( 'Video Key is required.', 'video-lead-tracker' ) );
 		}
 
-		// Uniqueness check: if adding new, or if key changed during edit.
 		$existing_by_key = VLT_DB::get_video_by_key( $key );
 		$editing_id      = absint( $_POST['video_id'] ?? 0 );
 		if ( $existing_by_key && (int) $existing_by_key->id !== $editing_id ) {
@@ -143,24 +408,36 @@ class VLT_Videos_Admin {
 				<table class="wp-list-table widefat fixed striped">
 					<thead>
 						<tr>
-							<th><?php esc_html_e( 'Key',      'video-lead-tracker' ); ?></th>
-							<th><?php esc_html_e( 'Title',    'video-lead-tracker' ); ?></th>
-							<th><?php esc_html_e( 'Duration', 'video-lead-tracker' ); ?></th>
-							<th><?php esc_html_e( 'OTP',      'video-lead-tracker' ); ?></th>
-							<th><?php esc_html_e( 'Active',   'video-lead-tracker' ); ?></th>
-							<th><?php esc_html_e( 'Shortcode','video-lead-tracker' ); ?></th>
-							<th><?php esc_html_e( 'Actions',  'video-lead-tracker' ); ?></th>
+							<th><?php esc_html_e( 'Key',          'video-lead-tracker' ); ?></th>
+							<th><?php esc_html_e( 'Title',        'video-lead-tracker' ); ?></th>
+							<th><?php esc_html_e( 'Linked Post',  'video-lead-tracker' ); ?></th>
+							<th><?php esc_html_e( 'Duration',     'video-lead-tracker' ); ?></th>
+							<th><?php esc_html_e( 'OTP',          'video-lead-tracker' ); ?></th>
+							<th><?php esc_html_e( 'Active',       'video-lead-tracker' ); ?></th>
+							<th><?php esc_html_e( 'Shortcode',    'video-lead-tracker' ); ?></th>
+							<th><?php esc_html_e( 'Actions',      'video-lead-tracker' ); ?></th>
 						</tr>
 					</thead>
 					<tbody>
-					<?php foreach ( $videos as $v ) : ?>
+					<?php foreach ( $videos as $v ) :
+						$linked_post = self::get_linked_post( $v->video_key );
+					?>
 						<tr>
 							<td><code><?php echo esc_html( $v->video_key ); ?></code></td>
 							<td><?php echo esc_html( $v->title ?: '—' ); ?></td>
+							<td>
+								<?php if ( $linked_post ) : ?>
+									<a href="<?php echo esc_url( get_edit_post_link( $linked_post->ID ) ); ?>">
+										<?php echo esc_html( $linked_post->post_title ?: '(' . __( 'no title', 'video-lead-tracker' ) . ')' ); ?>
+									</a>
+								<?php else : ?>
+									—
+								<?php endif; ?>
+							</td>
 							<td><?php echo $v->duration_seconds ? esc_html( $v->duration_seconds ) . 's' : '—'; ?></td>
 							<td><?php echo $v->enable_otp ? '✓' : '—'; ?></td>
 							<td><?php echo $v->is_active ? '✓' : '—'; ?></td>
-							<td><code>[video_lead_tracker key="<?php echo esc_attr( $v->video_key ); ?>"]</code></td>
+							<td><code>[vlt_video key="<?php echo esc_attr( $v->video_key ); ?>"]</code></td>
 							<td>
 								<a href="<?php echo esc_url( add_query_arg( [ 'action' => 'edit', 'video_id' => $v->id ], $base_url ) ); ?>">
 									<?php esc_html_e( 'Edit', 'video-lead-tracker' ); ?>
@@ -182,6 +459,18 @@ class VLT_Videos_Admin {
 		<?php
 	}
 
+	private static function get_linked_post( $video_key ) {
+		$posts = get_posts( [
+			'post_type'      => VLT_CPT::POST_TYPE,
+			'posts_per_page' => 1,
+			'meta_key'       => '_vlt_video_key',
+			'meta_value'     => $video_key,
+			'post_status'    => 'any',
+			'fields'         => 'ids',
+		] );
+		return $posts ? get_post( $posts[0] ) : null;
+	}
+
 	// -------------------------------------------------------------------------
 	// Add / Edit form
 	// -------------------------------------------------------------------------
@@ -193,8 +482,8 @@ class VLT_Videos_Admin {
 		$f = [
 			'video_key'          => $is_edit ? $video->video_key          : '',
 			'title'              => $is_edit ? $video->title               : '',
-			'video_url'          => $is_edit ? $video->video_url           : '',
-			'poster_url'         => $is_edit ? $video->poster_url          : '',
+			'video_url'          => $is_edit ? ( $video->video_url  ?? '' ) : '',
+			'poster_url'         => $is_edit ? ( $video->poster_url ?? '' ) : '',
 			'duration_seconds'   => $is_edit ? $video->duration_seconds    : '',
 			'form_title'         => $is_edit ? $video->form_title          : __( 'Watch the Free Training', 'video-lead-tracker' ),
 			'name_label'         => $is_edit ? $video->name_label          : __( 'Full Name', 'video-lead-tracker' ),
@@ -237,13 +526,31 @@ class VLT_Videos_Admin {
 
 					<tr>
 						<th><label for="vlt_video_url"><?php esc_html_e( 'Video URL', 'video-lead-tracker' ); ?></label></th>
-						<td><input type="url" id="vlt_video_url" name="video_url" value="<?php echo esc_attr( $f['video_url'] ); ?>" class="large-text" /></td>
+						<td>
+							<div style="display:flex;align-items:center;gap:8px">
+								<input type="url" id="vlt_video_url" name="video_url"
+								       value="<?php echo esc_attr( $f['video_url'] ); ?>" class="large-text" />
+								<a id="vlt-form-test-link"
+								   href="<?php echo $f['video_url'] ? esc_url( $f['video_url'] ) : '#'; ?>"
+								   target="_blank" rel="noopener"
+								   style="white-space:nowrap<?php echo $f['video_url'] ? '' : ';visibility:hidden'; ?>">
+									<?php esc_html_e( 'Test ↗', 'video-lead-tracker' ); ?>
+								</a>
+							</div>
+						</td>
 					</tr>
 
 					<tr>
 						<th><label for="vlt_poster_url"><?php esc_html_e( 'Poster Image URL', 'video-lead-tracker' ); ?></label></th>
 						<td>
-							<input type="url" id="vlt_poster_url" name="poster_url" value="<?php echo esc_attr( $f['poster_url'] ); ?>" class="large-text" />
+							<input type="url" id="vlt_poster_url" name="poster_url"
+							       value="<?php echo esc_attr( $f['poster_url'] ); ?>" class="large-text" />
+							<div id="vlt-form-poster-wrap" style="margin-top:8px<?php echo $f['poster_url'] ? '' : ';display:none'; ?>">
+								<img id="vlt-form-poster-img"
+								     src="<?php echo esc_url( $f['poster_url'] ); ?>"
+								     alt=""
+								     style="max-width:240px;max-height:135px;border:1px solid #c3c4c7;border-radius:2px">
+							</div>
 							<p class="description"><?php esc_html_e( 'Thumbnail shown before the video plays.', 'video-lead-tracker' ); ?></p>
 						</td>
 					</tr>
@@ -311,6 +618,36 @@ class VLT_Videos_Admin {
 				<?php submit_button( $is_edit ? __( 'Update Video', 'video-lead-tracker' ) : __( 'Add Video', 'video-lead-tracker' ) ); ?>
 			</form>
 		</div>
+
+		<script>
+		( function () {
+			var videoIn  = document.getElementById( 'vlt_video_url' );
+			var testLink = document.getElementById( 'vlt-form-test-link' );
+			var posterIn = document.getElementById( 'vlt_poster_url' );
+			var posterWr = document.getElementById( 'vlt-form-poster-wrap' );
+			var posterIm = document.getElementById( 'vlt-form-poster-img' );
+
+			if ( videoIn && testLink ) {
+				videoIn.addEventListener( 'input', function () {
+					var u = videoIn.value.trim();
+					testLink.href = u || '#';
+					testLink.style.visibility = u ? '' : 'hidden';
+				} );
+			}
+
+			if ( posterIn && posterWr && posterIm ) {
+				posterIn.addEventListener( 'blur', function () {
+					var u = posterIn.value.trim();
+					if ( u ) {
+						posterIm.src = u;
+						posterWr.style.display = '';
+					} else {
+						posterWr.style.display = 'none';
+					}
+				} );
+			}
+		}() );
+		</script>
 		<?php
 	}
 }
