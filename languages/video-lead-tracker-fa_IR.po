@@ -1039,7 +1039,7 @@ msgstr "شخصی‌سازی ویجت‌ها"
 
 #: includes/Settings/class-vlt-settings.php (Phase 27)
 msgid "Content Type"
-msgstr "نوع محتوا"
+msgstr "پست تایپ"
 
 #: includes/CPT/class-vlt-cpt.php (Phase 27)
 msgid "Custom Post Type"
@@ -1131,7 +1131,7 @@ msgstr "اسلاگ URL آرشیو (خالی بگذارید تا از اسلاگ 
 
 #: includes/CPT/class-vlt-cpt.php (Phase 27)
 msgid "Save Content Type Settings"
-msgstr "ذخیره تنظیمات نوع محتوا"
+msgstr "ذخیره تنظیمات پست تایپ"
 
 #: includes/CPT/class-vlt-cpt.php (Phase 27)
 msgid "The URL slug has changed. Existing post URLs will break unless you update your permalink settings. Continue saving?"
