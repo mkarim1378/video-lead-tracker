@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Video Lead Tracker
  * Description: Gates an HTML5 video behind a lead form, tracks watch ranges, and provides analytics inside WordPress admin.
- * Version:     1.2.5
+ * Version:     1.3.0
  * Author:      Mohamad Karim
  * Author-URI:  https://m-karim.ir
  * Text Domain: video-lead-tracker
