@@ -302,6 +302,9 @@
 			} )
 			.catch( function ( err ) {
 				showOtpError( ( err && err.message ) || i18n.otpSendError || 'Failed to send code.' );
+				// Re-enable resend button so the user can try again (covers both the
+				// initial send failure and subsequent resend failures).
+				if ( resendBtn ) resendBtn.disabled = false;
 			} );
 	}
 

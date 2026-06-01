@@ -154,7 +154,7 @@ class VLT_OTP_Service {
 			case 'kavenegar':
 				return self::send_kavenegar( $mobile, $message, $api_key, $sender );
 			case 'sms_ir':
-				return self::send_smsir( $mobile, $message, $api_key );
+				return self::send_smsir( $mobile, $message, $api_key, $sender );
 			default:
 				// No real provider — log the code so it can be tested without an SMS account.
 				VLT_Logger::info( 'OTP (no provider): ' . $message, 'otp' );
@@ -213,6 +213,11 @@ class VLT_OTP_Service {
 	}
 
 	private static function send_kavenegar( $mobile, $message, $api_key, $sender ) {
+		if ( ! $api_key ) {
+			VLT_Logger::error( 'Kavenegar: API key not configured.', 'otp' );
+			return false;
+		}
+
 		$url = 'https://api.kavenegar.com/v1/' . rawurlencode( $api_key ) . '/sms/send.json';
 
 		$response = wp_remote_post( $url, [
@@ -225,20 +230,35 @@ class VLT_OTP_Service {
 		] );
 
 		if ( is_wp_error( $response ) ) {
+			VLT_Logger::error( 'Kavenegar HTTP error: ' . $response->get_error_message(), 'otp' );
 			return false;
 		}
 
-		return 200 === (int) wp_remote_retrieve_response_code( $response );
+		$http_code = (int) wp_remote_retrieve_response_code( $response );
+		if ( 200 !== $http_code ) {
+			$body = wp_remote_retrieve_body( $response );
+			$data = json_decode( $body, true );
+			$msg  = isset( $data['return']['message'] ) ? $data['return']['message'] : $body;
+			VLT_Logger::error( 'Kavenegar send failed. HTTP: ' . $http_code . ' — ' . $msg, 'otp' );
+			return false;
+		}
+
+		return true;
 	}
 
-	private static function send_smsir( $mobile, $message, $api_key ) {
+	private static function send_smsir( $mobile, $message, $api_key, $sender = '' ) {
+		if ( ! $api_key ) {
+			VLT_Logger::error( 'SMS.ir: API key not configured.', 'otp' );
+			return false;
+		}
+
 		$response = wp_remote_post( 'https://api.sms.ir/v1/send/bulk', [
 			'headers' => [
 				'Content-Type' => 'application/json',
 				'x-api-key'    => $api_key,
 			],
 			'body'    => wp_json_encode( [
-				'lineNumber' => '',
+				'lineNumber' => $sender ?: '',
 				'messages'   => [ $message ],
 				'mobiles'    => [ $mobile ],
 			] ),
@@ -246,9 +266,19 @@ class VLT_OTP_Service {
 		] );
 
 		if ( is_wp_error( $response ) ) {
+			VLT_Logger::error( 'SMS.ir HTTP error: ' . $response->get_error_message(), 'otp' );
 			return false;
 		}
 
-		return 200 === (int) wp_remote_retrieve_response_code( $response );
+		$http_code = (int) wp_remote_retrieve_response_code( $response );
+		if ( 200 !== $http_code ) {
+			$body = wp_remote_retrieve_body( $response );
+			$data = json_decode( $body, true );
+			$msg  = isset( $data['message'] ) ? $data['message'] : $body;
+			VLT_Logger::error( 'SMS.ir send failed. HTTP: ' . $http_code . ' — ' . $msg, 'otp' );
+			return false;
+		}
+
+		return true;
 	}
 }

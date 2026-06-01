@@ -357,7 +357,7 @@ class VLT_REST_Controller {
 		if ( ! preg_match( '/^98\d{10}$/', $normalized_mobile ) ) {
 			return self::error( 'invalid_mobile', __( 'Invalid mobile number.', 'video-lead-tracker' ), 422 );
 		}
-		if ( ! preg_match( '/^\d{4,8}$/', $code ) ) {
+		if ( ! preg_match( '/^\d{6}$/', $code ) ) {
 			return self::error( 'invalid_code', 'Invalid code format.', 422 );
 		}
 

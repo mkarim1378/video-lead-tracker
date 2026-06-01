@@ -107,7 +107,12 @@ class VLT_Frontend {
 			? $video->submit_button_text
 			: __( 'Watch Now', 'video-lead-tracker' );
 
-		$otp_enabled = $video ? (bool) $video->enable_otp : false;
+		// Both the global master switch AND the per-video flag must be on.
+		// If only the per-video flag is set but the global switch is off, the REST
+		// endpoint rejects the request — so we must not show the OTP step at all.
+		$otp_enabled = $video
+			? ( (bool) $video->enable_otp && (bool) VLT_Settings::get( 'enable_otp' ) )
+			: false;
 
 		wp_localize_script(
 			'vlt-frontend',

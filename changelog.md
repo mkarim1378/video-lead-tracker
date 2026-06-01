@@ -5,6 +5,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.9] - 2026-06-01
+
+### Fixed
+- **OTP — SMS.ir provider**: `send_smsir()` now accepts the `$sender` parameter (line number) and passes it as `lineNumber` in the API payload. Previously hardcoded to empty string even when a sender was configured. Added error logging for HTTP errors and non-200 responses (same pattern as Kavenegar).
+- **OTP — OTP code regex**: `handle_otp_verify` in the REST controller accepted 4–8 digit codes (`/^\d{4,8}$/`); since codes are always 6 digits, tightened to `/^\d{6}$/` to reject malformed inputs early.
+- `VLT_VERSION` bumped 1.2.8 → 1.2.9.
+
+---
+
 ## [1.2.8] - 2026-06-01
 
 ### Added
