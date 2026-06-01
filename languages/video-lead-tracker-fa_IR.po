@@ -1036,3 +1036,151 @@ msgstr "بالاترین خروج"
 #: includes/Admin/class-vlt-admin.php (Phase 26 - KPI)
 msgid "Customize Widgets"
 msgstr "شخصی‌سازی ویجت‌ها"
+
+#: includes/Settings/class-vlt-settings.php (Phase 27)
+msgid "Content Type"
+msgstr "نوع محتوا"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+msgid "Custom Post Type"
+msgstr "نوع پست سفارشی"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+msgid "Enable custom post type on this site"
+msgstr "فعال‌سازی نوع پست سفارشی در این سایت"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+msgid "Disabling this hides the post type from WordPress without deleting existing posts."
+msgstr "غیرفعال کردن این گزینه نوع پست را از وردپرس پنهان می‌کند بدون اینکه پست‌های موجود حذف شوند."
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+msgid "Singular Name"
+msgstr "نام مفرد"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+msgid "e.g. Video Lesson"
+msgstr "مثال: درس ویدیویی"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+msgid "Plural Name"
+msgstr "نام جمع"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+msgid "e.g. Video Lessons"
+msgstr "مثال: درس‌های ویدیویی"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+msgid "URL Slug"
+msgstr "اسلاگ URL"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+msgid "Used in post URLs. Changing this after posts are published will break existing links."
+msgstr "در آدرس‌های پست استفاده می‌شود. تغییر آن پس از انتشار پست‌ها لینک‌های موجود را خراب می‌کند."
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+msgid "Menu Icon"
+msgstr "آیکون منو"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+msgid "A dashicons class name."
+msgstr "نام کلاس dashicons."
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+msgid "Browse icons ↗"
+msgstr "مشاهده آیکون‌ها ↗"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+msgid "Supports"
+msgstr "قابلیت‌ها"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+msgid "Body Content (Editor)"
+msgstr "محتوای متن (ویرایشگر)"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+msgid "Featured Image"
+msgstr "تصویر شاخص"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+msgid "Excerpt"
+msgstr "خلاصه"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+msgid "Comments"
+msgstr "دیدگاه‌ها"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+msgid "Title is always enabled."
+msgstr "عنوان همیشه فعال است."
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+msgid "Description"
+msgstr "توضیحات"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+msgid "Archive Page"
+msgstr "صفحه آرشیو"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+msgid "Enable archive page"
+msgstr "فعال‌سازی صفحه آرشیو"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+msgid "Archive URL slug (leave blank to use post slug)"
+msgstr "اسلاگ URL آرشیو (خالی بگذارید تا از اسلاگ پست استفاده شود)"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+msgid "Save Content Type Settings"
+msgstr "ذخیره تنظیمات نوع محتوا"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+msgid "The URL slug has changed. Existing post URLs will break unless you update your permalink settings. Continue saving?"
+msgstr "اسلاگ URL تغییر کرده است. لینک‌های پست‌های موجود خراب می‌شوند مگر اینکه تنظیمات پیوندها را بروز کنید. ذخیره ادامه یابد؟"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+msgid "Video Lesson"
+msgstr "درس ویدیویی"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+msgid "Video Lessons"
+msgstr "درس‌های ویدیویی"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+#, php-format
+msgid "Add New %s"
+msgstr "افزودن %s جدید"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+#, php-format
+msgid "Edit %s"
+msgstr "ویرایش %s"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+#, php-format
+msgid "New %s"
+msgstr "%s جدید"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+#, php-format
+msgid "View %s"
+msgstr "مشاهده %s"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+#, php-format
+msgid "Search %s"
+msgstr "جستجوی %s"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+#, php-format
+msgid "No %s found."
+msgstr "%s‌ای یافت نشد."
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+#, php-format
+msgid "No %s found in Trash."
+msgstr "%s‌ای در سطل آشغال یافت نشد."
+
+#: includes/CPT/class-vlt-cpt.php (Phase 27)
+#, php-format
+msgid "All %s"
+msgstr "همه %s"

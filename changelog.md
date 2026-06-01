@@ -5,6 +5,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.4] - 2026-06-01
+
+### Added
+- **Phase 27 — Custom Post Type Core**: new `VLT_CPT` class (`includes/CPT/class-vlt-cpt.php`) adds a configurable `vlt_video` post type managed from a new **Content Type** tab in plugin settings.
+  - Toggle to enable/disable the CPT without deleting posts.
+  - Configurable singular name, plural name, URL slug (with slug-change warning dialog), menu icon (Dashicons), body-content supports (Editor, Featured Image, Excerpt, Comments), post description, and optional archive page with custom slug.
+  - CPT is registered with `show_in_rest: true` (required for Elementor Theme Builder) and `show_in_nav_menus: true`.
+  - Rewrite rules are flushed automatically when the Content Type settings are saved.
+- `VLT_VERSION` bumped 1.2.3 → 1.2.4.
+
+---
+
 ## [1.2.3] - 2026-05-16
 
 ### Added

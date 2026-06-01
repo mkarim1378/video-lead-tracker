@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(msgfmt \"d:/Github/campaign-analytics/languages/video-lead-tracker-fa_IR.po\" -o \"d:/Github/campaign-analytics/languages/video-lead-tracker-fa_IR.mo\")"
+    ]
+  }
+}

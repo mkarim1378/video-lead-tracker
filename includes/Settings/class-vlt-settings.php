@@ -262,6 +262,9 @@ class VLT_Settings {
 				<button type="button" class="nav-tab" data-tab="vlt-tab-data-management">
 					<?php esc_html_e( 'Data Management', 'video-lead-tracker' ); ?>
 				</button>
+				<button type="button" class="nav-tab" data-tab="vlt-tab-content-type">
+					<?php esc_html_e( 'Content Type', 'video-lead-tracker' ); ?>
+				</button>
 			</nav>
 
 			<form method="post" action="options.php">
@@ -290,6 +293,11 @@ class VLT_Settings {
 			<!-- Data Management panel — outside the settings form, uses REST API -->
 			<div class="vlt-tab-panel" id="vlt-tab-data-management">
 				<?php self::render_data_management(); ?>
+			</div>
+
+			<!-- Content Type panel — outside the settings form, has its own <form> -->
+			<div class="vlt-tab-panel" id="vlt-tab-content-type">
+				<?php VLT_CPT::render_tab(); ?>
 			</div>
 
 		</div>

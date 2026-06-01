@@ -1190,6 +1190,186 @@ Admin has a complete reporting suite: funnel analytics, cross-video comparison, 
 
 ---
 
+# Phase 27 - Custom Post Type Core
+
+## Objective
+
+Register a fully configurable Custom Post Type (CPT) from within the plugin settings, compatible with Elementor Theme Builder.
+
+## Tasks
+
+1. Add a **"Content Type"** tab to the existing Settings page (no separate wizard — consistent with existing UI).
+2. Settings stored in `vlt_cpt_config` wp_option (array). Fields:
+   - `enabled` (bool) — master toggle; disabling unregisters the CPT but does not delete posts.
+   - `singular_label` — e.g. "Video Lesson"
+   - `plural_label` — e.g. "Video Lessons"
+   - `slug` — URL base, e.g. `video-lessons`
+   - `menu_icon` — dashicons string, e.g. `dashicons-video-alt3` (picker or text field)
+   - `description` — optional
+   - `supports` — checkboxes: `editor` (article body), `thumbnail` (featured image), `excerpt`, `comments` (title is always on)
+   - `has_archive` (bool) — enables the archive page
+   - `archive_slug` — archive URL base
+3. Create `VLT_CPT` class (`includes/CPT/class-vlt-cpt.php`); register in autoloader.
+4. `VLT_CPT::init()` hooks into `init` and calls `register_post_type()` with:
+   - `public: true`, `show_in_rest: true` (required for Elementor), `show_in_nav_menus: true`
+   - Labels and supports from stored config
+5. On settings save: call `flush_rewrite_rules()`.
+6. Add `VLT_CPT` to the `VLT_Plugin` boot sequence.
+
+## Rules
+
+- Disabling the CPT (`enabled: false`) only unregisters it from WordPress; existing posts are never deleted.
+- `show_in_rest: true` is mandatory and not configurable — Elementor requires it.
+- Slug changes must warn the admin that old URLs will break (JS alert on save if slug differs from stored value).
+
+## Deliverable
+
+Admin can define a CPT name/slug/icon from Settings and it appears in the WP menu; Elementor Theme Builder can target it.
+
+---
+
+# Phase 28 - Taxonomy Management
+
+## Objective
+
+Allow the CPT to have optional hierarchical categories and/or flat tags, each independently configurable, with safe data-handling when toggling off.
+
+## Tasks
+
+1. Add two sub-sections inside the "Content Type" settings tab: **Categories** and **Tags**.
+2. Each sub-section has:
+   - `enabled` toggle
+   - `singular_label`, `plural_label`, `slug`
+3. `VLT_CPT::init()` conditionally registers each taxonomy with `register_taxonomy()` if enabled.
+4. **Disabling a previously-enabled taxonomy — prompt flow:**
+   - On settings save, if a taxonomy is toggled OFF: JS intercepts the form submit.
+   - AJAX call to `GET /vlt/v1/admin/taxonomy-count?taxonomy=vlt_category` returns term count.
+   - If count > 0: show a modal with three choices:
+     - **Keep Data** (default): saves setting as disabled; terms stay in `wp_terms` / `wp_term_relationships`. If re-enabled later, data is fully restored.
+     - **Delete Data**: AJAX `POST /vlt/v1/admin/taxonomy-purge` deletes all terms, term-meta, and term-relationships for this taxonomy, then saves setting. Irreversible — requires a confirmation checkbox inside the modal.
+     - **Cancel**: closes modal, reverts the toggle, does not save.
+   - If count = 0: disable silently (no prompt needed).
+5. Both REST endpoints require `manage_options` capability.
+
+## Rules
+
+- "Keep Data" is always the safe/default option; "Delete Data" requires an explicit checkbox inside the modal.
+- Taxonomies are registered with `show_in_rest: true` for Elementor compatibility.
+- Labels and slugs must not be editable while the taxonomy is enabled without a slug-change warning.
+
+## Deliverable
+
+CPT posts can be assigned to categories and/or tags; toggling them off prompts with Keep/Delete/Cancel; data is preserved by default.
+
+---
+
+# Phase 29 - Video-Post Integration & Shortcode
+
+## Objective
+
+Link each CPT post (or any post) to a specific video; expose a shortcode that gates playback behind the lead form; add VideoObject schema for SEO.
+
+## Tasks
+
+1. **DB migration** (`VLT_DB_VERSION` 1.3 → 1.4):
+   - Add `video_url VARCHAR(2048) DEFAULT NULL` to `vlt_videos`.
+   - Add `poster_url VARCHAR(2048) DEFAULT NULL` to `vlt_videos`.
+2. **Video management admin** (`class-vlt-videos-admin.php`):
+   - Text field for `video_url` with a "Test ↗" link (opens URL in new tab).
+   - Text field for `poster_url` with an inline `<img>` preview (loads on blur).
+   - Add a **"Linked Post"** column to the Videos list table: shows the title (with edit link) of the CPT post whose `_vlt_video_key` matches this video. If none, show "—". This lets the admin see at a glance which videos are part of CPT posts and which are used standalone.
+3. **Post meta box** — registered for CPT and optionally for `post` / `page`:
+   - Dropdown: select a video from `vlt_videos` (stored as `_vlt_video_key` post meta).
+   - Inline "Preview poster" thumbnail if the selected video has `poster_url`.
+4. **Auto-create `vlt_videos` record on CPT post save** (via `save_post` hook):
+   - When a CPT post is saved and has a `video_url` set (via meta box), automatically find-or-create the corresponding `vlt_videos` row using `post_name` as `video_key`.
+   - Update `video_url`, `poster_url`, and `title` from the post data.
+   - Store the resolved `video_key` in `_vlt_video_key` post meta automatically.
+   - This removes the need to separately manage videos in the Videos Admin when using the CPT workflow; both paths (manual Videos Admin and CPT post) write to the same `vlt_videos` table.
+5. **Shortcode `[vlt_video]`** (implemented in `class-vlt-frontend.php`):
+   - `key` attribute (optional): explicit `video_key`. If omitted, reads `_vlt_video_key` from `get_the_ID()`.
+   - Renders: poster image visible to all → lead form overlay → on submit, form hides and video plays.
+   - Poster and video URL sourced from `vlt_videos.poster_url` and `vlt_videos.video_url`.
+   - All existing tracking (ranges, events, sessions) works identically.
+6. **VideoObject JSON-LD** injected into `wp_head` on single CPT posts and on any page containing the shortcode:
+   - Fields: `name` (video title), `description` (post excerpt), `thumbnailUrl` (poster_url), `uploadDate` (video created_at), `contentUrl` (video_url).
+
+## Note — Analytics Scope
+
+Watch analytics (heatmap, ranges, completion rate) are scoped to `video_id`, not to the WordPress post ID. This means if the same video is embedded on two different posts, their watch data will be combined in a single report. For the intended use case (one CPT post = one unique video), this is not an issue. It is worth keeping in mind if the same video is ever reused across multiple posts.
+
+## Rules
+
+- Shortcode with no `key` and no post meta silently renders nothing (no fatal error).
+- `video_url` and `poster_url` are plain text fields; no media library upload — videos are hosted externally (CDN).
+- JSON-LD is injected only once per page even if multiple shortcodes are present.
+- The `save_post` auto-create must be skipped for autosaves and revisions (`wp_is_post_autosave`, `wp_is_post_revision`).
+
+## Deliverable
+
+Each CPT post has a video assigned via meta box; `[vlt_video]` shortcode works in Elementor shortcode widget and classic editor; Google can parse VideoObject schema.
+
+---
+
+# Phase 30 - Elementor Integration
+
+## Objective
+
+Make the CPT + video player natively available inside Elementor with Dynamic Tags and a custom Widget.
+
+## Tasks
+
+1. **Compatibility check** on `plugins_loaded`: if Elementor is active, load the integration classes.
+2. **Dynamic Tags** (`includes/Elementor/class-vlt-dynamic-tags.php`) — registered via `elementor/dynamic_tags/register`:
+   - `VLT_Tag_VideoUrl`: returns `video_url` of the post's linked video.
+   - `VLT_Tag_PosterUrl`: returns `poster_url`.
+   - `VLT_Tag_VideoTitle`: returns `vlt_videos.title`.
+   - Group: "VLT Video".
+3. **Elementor Widget** (`includes/Elementor/class-vlt-widget.php`) — registered via `elementor/widgets/register`:
+   - Category: "VLT".
+   - Controls: `video_key` (text, supports dynamic tag), `form_title` (text override), `button_label` (text override), `show_poster` (switcher).
+   - Renders the same HTML as the shortcode; reuses frontend CSS/JS.
+4. **Template Builder guide**: document in Settings page (collapsible note) how to build a CPT body template in Elementor — add Shortcode widget with `[vlt_video]`.
+
+## Rules
+
+- Elementor integration is loaded conditionally; plugin must function fully without Elementor.
+- Widget and Dynamic Tags share no state with admin-side classes.
+
+## Deliverable
+
+Designer can build a CPT single-post template in Elementor, drop in the VLT widget or shortcode widget, and the correct video loads per post dynamically.
+
+---
+
+# Phase 31 - SEO & Open Graph
+
+## Objective
+
+Maximize organic reach with structured data and social sharing meta on CPT single posts.
+
+## Tasks
+
+1. **Open Graph video tags** injected in `wp_head` on single CPT posts:
+   - `og:type = video.other`, `og:video` (video_url), `og:video:type = video/mp4`, `og:image` (poster_url).
+   - Skipped if Yoast/RankMath is active (they handle OG; only inject missing tags).
+2. **Breadcrumb JSON-LD**: `BreadcrumbList` with Home → Archive → Post (uses CPT labels and slugs from config).
+3. **Sitemap**: CPT posts auto-appear in Yoast/RankMath sitemaps automatically via `public: true` and `has_archive: true` — no extra work needed.
+4. **Alt-text on poster**: `alt` attribute uses video title for accessibility and image SEO.
+
+> Archive page design is handled in Elementor Theme Builder using the native Posts/Archive widget — no plugin-side shortcode needed.
+
+## Rules
+
+- All schema output is escaped and uses `esc_url` / `esc_attr` / `wp_json_encode`.
+- OG tags are only added if not already present (check `did_action('wpseo_head')` etc.).
+
+## Deliverable
+
+CPT posts rank in Google with rich video snippets; social shares show poster + title; archive is handled by Elementor Theme Builder.
+
+---
+
 # Recommended MVP Scope
 
 To reduce complexity, build the MVP in this order:
