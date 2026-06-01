@@ -287,7 +287,9 @@ class VLT_Settings {
 					</div>
 				<?php endforeach; ?>
 
-				<?php submit_button( __( 'Save Settings', 'video-lead-tracker' ) ); ?>
+				<div id="vlt-main-submit-wrap">
+					<?php submit_button( __( 'Save Settings', 'video-lead-tracker' ) ); ?>
+				</div>
 			</form>
 
 			<!-- Data Management panel — outside the settings form, uses REST API -->

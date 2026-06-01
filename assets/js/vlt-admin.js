@@ -52,6 +52,14 @@
 			}
 		} );
 
+		// Hide the main settings form submit button when a tab that has its own
+		// form (or no form at all) is active, so users don't click the wrong button.
+		var noFormTabs  = [ 'vlt-tab-data-management', 'vlt-tab-content-type' ];
+		var submitWrap  = document.getElementById( 'vlt-main-submit-wrap' );
+		if ( submitWrap ) {
+			submitWrap.style.display = noFormTabs.indexOf( activeBtn.dataset.tab ) === -1 ? '' : 'none';
+		}
+
 		localStorage.setItem( storageKey, activeBtn.dataset.tab );
 	}
 

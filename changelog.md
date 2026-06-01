@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.3.1] - 2026-06-01
+
+### Fixed
+- **Settings page — wrong submit button visible on CPT tab**: The main settings form's "Save Settings" button was not inside a `.vlt-tab-panel`, so it stayed visible even when the "Content Type" or "Data Management" tabs were active. Clicking it submitted the wrong form, causing CPT settings to silently not be saved. Wrapped the submit button in `<div id="vlt-main-submit-wrap">` and updated the tab `activate()` JS to hide it whenever a tab with its own form (or no form) is shown.
+- `VLT_VERSION` bumped 1.3.0 → 1.3.1.
+
+---
+
 ## [1.3.0] - 2026-06-01
 
 ### Fixed
