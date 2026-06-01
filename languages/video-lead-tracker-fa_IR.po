@@ -1184,3 +1184,147 @@ msgstr "%s‌ای در سطل آشغال یافت نشد."
 #, php-format
 msgid "All %s"
 msgstr "همه %s"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28)
+msgid "Categories"
+msgstr "دسته‌بندی‌ها"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28)
+msgid "Enable Categories"
+msgstr "فعال‌سازی دسته‌بندی‌ها"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28)
+msgid "Enable hierarchical categories for this post type"
+msgstr "فعال‌سازی دسته‌بندی‌های سلسله‌مراتبی برای این نوع پست"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28)
+msgid "e.g. Category"
+msgstr "مثال: دسته‌بندی"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28)
+msgid "e.g. Categories"
+msgstr "مثال: دسته‌بندی‌ها"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28)
+msgid "Used in category archive URLs. Changing after terms exist will break existing links."
+msgstr "در آدرس آرشیو دسته‌بندی‌ها استفاده می‌شود. تغییر پس از وجود ترم‌ها لینک‌های موجود را خراب می‌کند."
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28)
+msgid "Tags"
+msgstr "برچسب‌ها"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28)
+msgid "Enable Tags"
+msgstr "فعال‌سازی برچسب‌ها"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28)
+msgid "Enable flat tags for this post type"
+msgstr "فعال‌سازی برچسب‌های مسطح برای این نوع پست"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28)
+msgid "e.g. Tag"
+msgstr "مثال: برچسب"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28)
+msgid "e.g. Tags"
+msgstr "مثال: برچسب‌ها"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28)
+msgid "Used in tag archive URLs. Changing after terms exist will break existing links."
+msgstr "در آدرس آرشیو برچسب‌ها استفاده می‌شود. تغییر پس از وجود ترم‌ها لینک‌های موجود را خراب می‌کند."
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28)
+msgid "Category"
+msgstr "دسته‌بندی"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28)
+msgid "Tag"
+msgstr "برچسب"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28)
+#, php-format
+msgid "Parent %s"
+msgstr "والد %s"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28)
+#, php-format
+msgid "Parent %s:"
+msgstr "والد %s:"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28)
+#, php-format
+msgid "Update %s"
+msgstr "بروزرسانی %s"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28)
+#, php-format
+msgid "New %s Name"
+msgstr "نام %s جدید"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28)
+#, php-format
+msgid "Popular %s"
+msgstr "%s محبوب"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28)
+#, php-format
+msgid "Separate %s with commas"
+msgstr "%s را با کاما جدا کنید"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28)
+#, php-format
+msgid "Add or remove %s"
+msgstr "افزودن یا حذف %s"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28)
+#, php-format
+msgid "Choose from the most used %s"
+msgstr "از پراستفاده‌ترین %s انتخاب کنید"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28 — modal)
+msgid "The URL slug has changed. Existing archive URLs may break. Continue saving?"
+msgstr "اسلاگ URL تغییر کرده است. آدرس آرشیوهای موجود ممکن است خراب شوند. ذخیره ادامه یابد؟"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28 — modal)
+msgid "Disabling this taxonomy will hide it from WordPress. Existing terms are not deleted."
+msgstr "غیرفعال کردن این طبقه‌بندی آن را از وردپرس پنهان می‌کند. ترم‌های موجود حذف نمی‌شوند."
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28 — modal)
+msgid "There are"
+msgstr "تعداد"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28 — modal)
+msgid "existing terms."
+msgstr "ترم موجود است."
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28 — modal)
+msgid "What would you like to do?"
+msgstr "چه کاری می‌خواهید انجام دهید؟"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28 — modal)
+msgid "I confirm that deleting all terms is irreversible."
+msgstr "تأیید می‌کنم که حذف تمام ترم‌ها غیرقابل بازگشت است."
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28 — modal)
+msgid "Keep Data"
+msgstr "نگه داشتن داده‌ها"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28 — modal)
+msgid "Delete Data"
+msgstr "حذف داده‌ها"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28 — modal)
+msgid "Cancel"
+msgstr "انصراف"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28 — modal)
+msgid "Confirm Delete"
+msgstr "تأیید حذف"
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28 — modal)
+msgid "Please check the confirmation box first."
+msgstr "لطفاً ابتدا چک‌باکس تأیید را تیک بزنید."
+
+#: includes/CPT/class-vlt-cpt.php (Phase 28 — modal)
+msgid "Failed to delete terms. Please try again."
+msgstr "حذف ترم‌ها ناموفق بود. دوباره تلاش کنید."

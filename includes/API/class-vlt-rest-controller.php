@@ -70,6 +70,18 @@ class VLT_REST_Controller {
 			'permission_callback' => function() { return current_user_can( 'manage_options' ); },
 		] );
 
+		register_rest_route( $ns, '/admin/taxonomy-count', [
+			'methods'             => 'GET',
+			'callback'            => [ self::class, 'handle_taxonomy_count' ],
+			'permission_callback' => function() { return current_user_can( 'manage_options' ); },
+		] );
+
+		register_rest_route( $ns, '/admin/taxonomy-purge', [
+			'methods'             => 'POST',
+			'callback'            => [ self::class, 'handle_taxonomy_purge' ],
+			'permission_callback' => function() { return current_user_can( 'manage_options' ); },
+		] );
+
 		register_rest_route( $ns, '/otp/send', [
 			'methods'             => 'POST',
 			'callback'            => [ self::class, 'handle_otp_send' ],
@@ -480,6 +492,40 @@ class VLT_REST_Controller {
 		VLT_Logger::info( "Logs purged by user {$user_id}", 'admin_reset' );
 		$wpdb->query( 'TRUNCATE TABLE ' . $wpdb->prefix . 'vlt_logs' ); // phpcs:ignore WordPress.DB.PreparedSQL
 		return self::success();
+	}
+
+	public static function handle_taxonomy_count( WP_REST_Request $request ) {
+		$taxonomy = sanitize_key( $request->get_param( 'taxonomy' ) );
+		$allowed  = [ VLT_CPT::TAX_CATEGORY, VLT_CPT::TAX_TAG ];
+
+		if ( ! in_array( $taxonomy, $allowed, true ) ) {
+			return self::error( 'invalid_taxonomy', 'Invalid taxonomy.', 400 );
+		}
+
+		$count = (int) get_terms( [ 'taxonomy' => $taxonomy, 'hide_empty' => false, 'fields' => 'count' ] );
+		return self::success( [ 'count' => $count ] );
+	}
+
+	public static function handle_taxonomy_purge( WP_REST_Request $request ) {
+		$body     = $request->get_json_params() ?: [];
+		$taxonomy = sanitize_key( $body['taxonomy'] ?? '' );
+		$allowed  = [ VLT_CPT::TAX_CATEGORY, VLT_CPT::TAX_TAG ];
+
+		if ( ! in_array( $taxonomy, $allowed, true ) ) {
+			return self::error( 'invalid_taxonomy', 'Invalid taxonomy.', 400 );
+		}
+
+		$term_ids = get_terms( [ 'taxonomy' => $taxonomy, 'hide_empty' => false, 'fields' => 'ids' ] );
+		if ( is_array( $term_ids ) ) {
+			foreach ( $term_ids as $term_id ) {
+				wp_delete_term( (int) $term_id, $taxonomy );
+			}
+		}
+
+		$user_id = get_current_user_id();
+		VLT_Logger::info( "Taxonomy purged: {$taxonomy} by user {$user_id}", 'admin_reset' );
+
+		return self::success( [ 'deleted' => true ] );
 	}
 
 	public static function handle_track_page( WP_REST_Request $request ) {

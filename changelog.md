@@ -5,6 +5,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.5] - 2026-06-01
+
+### Added
+- **Phase 28 — Taxonomy Management**: the Content Type settings tab now has two independently configurable taxonomy sub-sections — **Categories** (hierarchical) and **Tags** (flat).
+  - Each has: enable toggle, singular/plural label, URL slug (with slug-change warning dialog).
+  - Both registered with `show_in_rest: true` for Elementor Theme Builder compatibility and `show_admin_column: true`.
+  - **Disable-with-data prompt**: if a taxonomy is toggled off while terms exist, a modal appears with three choices — **Keep Data** (default: terms remain in the database, restored if re-enabled), **Delete Data** (purges all terms/relationships after an explicit confirmation checkbox), or **Cancel** (reverts the toggle without saving).
+  - Two new REST endpoints: `GET /vlt/v1/admin/taxonomy-count` and `POST /vlt/v1/admin/taxonomy-purge`, both `manage_options`-gated.
+- `VLT_VERSION` bumped 1.2.4 → 1.2.5.
+
+---
+
 ## [1.2.4] - 2026-06-01
 
 ### Added
