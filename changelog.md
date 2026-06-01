@@ -5,6 +5,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.8] - 2026-06-01
+
+### Added
+- **Phase 30 (complete) — Elementor Widget**: `VLT Video Gate` widget available in the **Video Lead Tracker** category inside Elementor.
+  - **Controls — Video tab**: Video Key (text, leave blank to auto-resolve from `_vlt_video_key` post meta), Show Poster Image (switcher, default on).
+  - **Controls — Form Overrides tab**: Form Title and Button Text (both optional; fall back to the video registry values).
+  - **Editor preview**: shows a static poster overlay with the video title and a "editor preview" badge — the JS tracking gate does not run inside the builder.
+  - **`content_template()`**: live Underscore.js template updates the key label while typing in the panel, no page reload needed.
+  - **Asset handling**: enqueueing is done inside `render()` via `VLT_Frontend::enqueue_assets()` so `wp_localize_script` runs with the correct `vltConfig` per post. `get_script_depends()` / `get_style_depends()` return `[]` intentionally.
+  - Compatible with Elementor 3.5+ and Elementor 4.x (`register_controls()`, `elementor/widgets/register`, `elementor/elements/categories_registered`).
+  - `VLT_Frontend::enqueue_assets()` and `render_html()` promoted from `private` to `public static` to allow widget reuse without code duplication.
+- `VLT_VERSION` bumped 1.2.7 → 1.2.8.
+
+---
+
 ## [1.2.7] - 2026-06-01
 
 ### Added

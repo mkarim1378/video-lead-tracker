@@ -93,7 +93,7 @@ class VLT_Frontend {
 	// Asset enqueue + localize
 	// -------------------------------------------------------------------------
 
-	private static function enqueue_assets( $video_key, $video_url, $video_duration, $video = null ) {
+	public static function enqueue_assets( $video_key, $video_url, $video_duration, $video = null ) {
 		if ( self::$enqueued ) {
 			return;
 		}
@@ -149,7 +149,7 @@ class VLT_Frontend {
 	// HTML render
 	// -------------------------------------------------------------------------
 
-	private static function render_html( $args ) {
+	public static function render_html( $args ) {
 		ob_start();
 		?>
 		<div class="vlt-wrapper" data-video-key="<?php echo esc_attr( $args['video_key'] ); ?>">

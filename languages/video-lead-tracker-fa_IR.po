@@ -1384,3 +1384,48 @@ msgstr "آدرس پوستر VLT"
 #: includes/Elementor/class-vlt-dynamic-tags.php (Phase 30)
 msgid "VLT Video Title"
 msgstr "عنوان ویدیو VLT"
+
+#: includes/Elementor/class-vlt-widget.php (Phase 30)
+msgid "VLT Video Gate"
+msgstr "دروازه ویدیو VLT"
+
+#: includes/Elementor/class-vlt-widget.php (Phase 30)
+msgid "Leave blank to use post meta"
+msgstr "برای استفاده از متای پست خالی بگذارید"
+
+#: includes/Elementor/class-vlt-widget.php (Phase 30)
+msgid "Slug from the Videos list. If blank, the video linked via the post meta box is used automatically."
+msgstr "اسلاگ از لیست ویدیوها. اگر خالی باشد، ویدیوی لینک‌شده از باکس متا پست به‌طور خودکار استفاده می‌شود."
+
+#: includes/Elementor/class-vlt-widget.php (Phase 30)
+msgid "Show Poster Image"
+msgstr "نمایش تصویر پوستر"
+
+#: includes/Elementor/class-vlt-widget.php (Phase 30)
+msgid "Form Overrides"
+msgstr "بازنویسی تنظیمات فرم"
+
+#: includes/Elementor/class-vlt-widget.php (Phase 30)
+msgid "Button Text"
+msgstr "متن دکمه"
+
+#: includes/Elementor/class-vlt-widget.php (Phase 30)
+msgid "(use video default)"
+msgstr "(از پیش‌فرض ویدیو)"
+
+#: includes/Elementor/class-vlt-widget.php (Phase 30)
+msgid "Set a Video Key in the widget panel, or link a video via the post meta box."
+msgstr "یک کلید ویدیو در پنل ویجت تنظیم کنید یا یک ویدیو از طریق باکس متا پست لینک کنید."
+
+#: includes/Elementor/class-vlt-widget.php (Phase 30)
+#, php-format
+msgid "No video found for key: %s"
+msgstr "ویدیویی با کلید %s یافت نشد."
+
+#: includes/Elementor/class-vlt-widget.php (Phase 30)
+msgid "VLT Video Gate — editor preview"
+msgstr "دروازه ویدیو VLT — پیش‌نمایش ویرایشگر"
+
+#: includes/Elementor/class-vlt-widget.php (Phase 30)
+msgid "from post meta"
+msgstr "از متای پست"

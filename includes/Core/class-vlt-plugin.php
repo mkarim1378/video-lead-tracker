@@ -41,7 +41,9 @@ class VLT_Plugin {
 		// so did_action() is already true here when Elementor is active.
 		if ( did_action( 'elementor/loaded' ) ) {
 			require_once VLT_PLUGIN_DIR . 'includes/Elementor/class-vlt-dynamic-tags.php';
+			require_once VLT_PLUGIN_DIR . 'includes/Elementor/class-vlt-widget.php';
 			VLT_Dynamic_Tags::init();
+			VLT_Widget::init();
 		}
 
 		// Event retention cron.
