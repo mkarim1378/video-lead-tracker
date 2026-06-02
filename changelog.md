@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.3.4] - 2026-06-02
+
+### Fixed
+- **Activator — CPT rewrite rules not included in activation flush**: `VLT_Activator::activate()` called `flush_rewrite_rules()` before `init` had fired, so `register_post_type()` hadn't run yet and the CPT's rewrite rules were absent from the freshly-built rules table. Fixed by calling `VLT_CPT::register_post_type()` and `VLT_CPT::register_taxonomies()` explicitly inside the activator before the flush.
+- `VLT_VERSION` bumped 1.3.3 → 1.3.4.
+
+---
+
 ## [1.3.3] - 2026-06-02
 
 ### Fixed
