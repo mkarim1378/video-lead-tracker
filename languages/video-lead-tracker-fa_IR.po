@@ -291,8 +291,8 @@ msgstr "لیدهای یکتا"
 
 #: includes/Admin/class-vlt-admin.php
 #, php-format
-msgid "Bucket size: %d second(s). Hover over a bar for details."
-msgstr "اندازه بازه: %d ثانیه. برای جزئیات، روی هر ستون نگه دارید."
+msgid "Bucket size: %d second(s). Hover over a point for details."
+msgstr "اندازه بازه: %d ثانیه. برای جزئیات، روی هر نقطه نگه دارید."
 
 #: includes/Admin/class-vlt-admin.php
 msgid "Export CSV"
@@ -1286,8 +1286,8 @@ msgid "The URL slug has changed. Existing archive URLs may break. Continue savin
 msgstr "اسلاگ URL تغییر کرده است. آدرس آرشیوهای موجود ممکن است خراب شوند. ذخیره ادامه یابد؟"
 
 #: includes/CPT/class-vlt-cpt.php (Phase 28 — modal)
-msgid "Disabling this taxonomy will hide it from WordPress. Existing terms are not deleted."
-msgstr "غیرفعال کردن این طبقه‌بندی آن را از وردپرس پنهان می‌کند. ترم‌های موجود حذف نمی‌شوند."
+msgid "Disabling this taxonomy will hide it from WordPress. Existing terms are kept in the database. Continue?"
+msgstr "غیرفعال کردن این طبقه‌بندی آن را از وردپرس پنهان می‌کند. ترم‌های موجود در پایگاه داده باقی می‌مانند. ادامه می‌دهید؟"
 
 #: includes/CPT/class-vlt-cpt.php (Phase 28 — modal)
 msgid "There are"
@@ -1348,6 +1348,38 @@ msgstr "آدرس پوستر"
 #: includes/Admin/class-vlt-videos-admin.php (Phase 29)
 msgid "Use [vlt_video] in the content to embed this video."
 msgstr "از [vlt_video] در محتوا برای جاسازی این ویدیو استفاده کنید."
+
+#: includes/Admin/class-vlt-videos-admin.php (Phase 29)
+msgid "Poster Image"
+msgstr "تصویر پوستر"
+
+#: includes/Admin/class-vlt-videos-admin.php (Phase 29)
+msgid "Select Image"
+msgstr "انتخاب تصویر"
+
+#: includes/Admin/class-vlt-videos-admin.php (Phase 29)
+msgid "Remove"
+msgstr "حذف"
+
+#: includes/Admin/class-vlt-videos-admin.php (Phase 29)
+msgid "Select Poster Image"
+msgstr "انتخاب تصویر پوستر"
+
+#: includes/Admin/class-vlt-videos-admin.php (Phase 29)
+msgid "Use This Image"
+msgstr "استفاده از این تصویر"
+
+#: includes/Admin/class-vlt-videos-admin.php (Phase 29)
+msgid "Copy"
+msgstr "کپی"
+
+#: includes/Admin/class-vlt-videos-admin.php (Phase 29)
+msgid "Copied!"
+msgstr "کپی شد!"
+
+#: includes/Admin/class-vlt-videos-admin.php (Phase 29)
+msgid "Paste this shortcode anywhere in the content to embed the video."
+msgstr "این شورت‌کد را هر جایی در محتوا قرار دهید تا ویدیو جاسازی شود."
 
 #: includes/Admin/class-vlt-videos-admin.php (Phase 29)
 msgid "Linked Video"

@@ -159,10 +159,15 @@ class VLT_Videos_Admin {
 			var selectBtn = document.getElementById( 'vlt-mb-poster-select' );
 			var removeBtn = document.getElementById( 'vlt-mb-poster-remove' );
 
-			if ( selectBtn && typeof wp !== 'undefined' && wp.media ) {
+			// wp.media is loaded in the footer — check it inside the click handler,
+			// not at script-parse time (when the footer has not yet been rendered).
+			if ( selectBtn ) {
 				var mediaFrame;
 				selectBtn.addEventListener( 'click', function ( e ) {
 					e.preventDefault();
+					if ( typeof wp === 'undefined' || ! wp.media ) {
+						return;
+					}
 					if ( mediaFrame ) {
 						mediaFrame.open();
 						return;

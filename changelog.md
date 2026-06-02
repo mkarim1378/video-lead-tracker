@@ -5,6 +5,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.3.6] - 2026-06-02
+
+### Fixed
+- **Poster media picker — Select Image did nothing**: The inline script checked `wp.media` at parse time (page body), but WordPress loads `wp.media` scripts in the footer. The outer `if (wp.media)` guard evaluated to `false` before the footer loaded, so the click handler was never attached. Fixed by moving the check inside the click handler — `wp.media` is always available by the time a user can click a button.
+- **Translation — 2 mismatched msgids**: `"Hover over a bar for details."` → `"Hover over a point for details."` (heatmap, updated when bar chart was replaced with line chart); `"Existing terms are not deleted."` → `"Existing terms are kept in the database. Continue?"` (CPT taxonomy disable confirmation).
+- **Translation — 8 missing strings**: Added Farsi translations for all new strings introduced in 1.3.5: Poster Image, Select Image, Remove, Select Poster Image, Use This Image, Copy, Copied!, and the shortcode embed hint. `.mo` recompiled.
+- `VLT_VERSION` bumped 1.3.5 → 1.3.6.
+
+---
+
 ## [1.3.5] - 2026-06-02
 
 ### Added
