@@ -17,26 +17,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 class VLT_Widget extends \Elementor\Widget_Base {
 
 	// -------------------------------------------------------------------------
-	// Boot
-	// -------------------------------------------------------------------------
-
-	public static function init() {
-		add_action( 'elementor/elements/categories_registered', [ self::class, 'register_category' ] );
-		add_action( 'elementor/widgets/register',               [ self::class, 'register_widget'   ] );
-	}
-
-	public static function register_category( $elements_manager ) {
-		$elements_manager->add_category( 'vlt', [
-			'title' => __( 'Video Lead Tracker', 'video-lead-tracker' ),
-			'icon'  => 'eicon-play',
-		] );
-	}
-
-	public static function register_widget( $widgets_manager ) {
-		$widgets_manager->register( new self() );
-	}
-
-	// -------------------------------------------------------------------------
 	// Widget identity
 	// -------------------------------------------------------------------------
 

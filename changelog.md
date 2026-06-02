@@ -5,6 +5,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.3.3] - 2026-06-02
+
+### Fixed
+- **Elementor fatal error — `static init()` conflicts with `Controls_Stack::init()`**: `VLT_Widget` declared `public static function init()` which overrides the non-static `init()` method inherited from `Controls_Stack` via `Widget_Base`. PHP 8+ raises a fatal error when a static method overrides a non-static one. Removed the entire Boot section (`init()`, `register_category()`, `register_widget()`) from `VLT_Widget`; registration is now handled entirely in the plugin boot closures inside `class-vlt-plugin.php`.
+- **CPT URLs prefixed with `/blog/`**: `register_post_type()` was called with `'with_front' => true`, causing WordPress to prepend the global "Category base" / permalink front (e.g. `/blog/`) to all CPT URLs. Changed to `'with_front' => false` so CPT permalinks use only the configured slug without any front prefix. **Go to Settings → Permalinks → Save** once after deploying to flush rewrite rules.
+- `VLT_VERSION` bumped 1.3.2 → 1.3.3.
+
+---
+
 ## [1.3.2] - 2026-06-02
 
 ### Fixed

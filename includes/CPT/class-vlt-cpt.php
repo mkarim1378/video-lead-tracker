@@ -168,7 +168,7 @@ class VLT_CPT {
 			'show_in_rest'      => true,   // required for Elementor Theme Builder
 			'show_in_nav_menus' => true,
 			'has_archive'       => $archive,
-			'rewrite'           => [ 'slug' => $slug, 'with_front' => true ],
+			'rewrite'           => [ 'slug' => $slug, 'with_front' => false ],
 			'menu_icon'         => $cfg['menu_icon'],
 			'supports'          => $supports,
 			'description'       => $cfg['description'],
