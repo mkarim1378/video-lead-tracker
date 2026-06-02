@@ -5,6 +5,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.3.5] - 2026-06-02
+
+### Added
+- **Sitemap debug logging**: `VLT_CPT` now hooks into `parse_request` and logs every sitemap URL that reaches WordPress (query vars, resolved post types, whether `vlt_video` is registered). Check **Video Lead Tracker → Logs → Debug** after visiting the sitemap URL to diagnose 404s.
+- **CPT config-save log**: when admin saves post-type settings, an `info`-level log entry records the enabled state, slug, and archive config alongside the rewrite-rules flush.
+
+### Changed
+- **Poster image field** on the CPT post edit screen is now a WordPress **media library picker** (Select Image / Remove buttons) instead of a plain URL text input. URL is stored identically; no database migration needed.
+- **Video Key** meta box row renamed to **Shortcode** and now displays the full ready-to-use shortcode `[vlt_video key="…"]` with a **Copy** button (clipboard API with `execCommand` fallback for older browsers).
+
+### Fixed
+- `VLT_VERSION` bumped 1.3.4 → 1.3.5.
+
+---
+
 ## [1.3.4] - 2026-06-02
 
 ### Fixed

@@ -10,8 +10,19 @@ class VLT_Videos_Admin {
 	// -------------------------------------------------------------------------
 
 	public static function init() {
-		add_action( 'add_meta_boxes', [ self::class, 'register_meta_boxes' ] );
-		add_action( 'save_post',      [ self::class, 'handle_meta_box_save' ], 10, 2 );
+		add_action( 'add_meta_boxes',        [ self::class, 'register_meta_boxes' ] );
+		add_action( 'save_post',             [ self::class, 'handle_meta_box_save' ], 10, 2 );
+		add_action( 'admin_enqueue_scripts', [ self::class, 'enqueue_media_on_cpt_screen' ] );
+	}
+
+	public static function enqueue_media_on_cpt_screen( $hook ) {
+		if ( ! in_array( $hook, [ 'post.php', 'post-new.php' ], true ) ) {
+			return;
+		}
+		$screen = get_current_screen();
+		if ( $screen && $screen->post_type === VLT_CPT::POST_TYPE ) {
+			wp_enqueue_media();
+		}
 	}
 
 	// -------------------------------------------------------------------------
@@ -57,6 +68,11 @@ class VLT_Videos_Admin {
 				$poster_url = $poster_url ?: ( $v->poster_url ?? '' );
 			}
 		}
+		$copy_label   = esc_attr__( 'Copy',    'video-lead-tracker' );
+		$copied_label = esc_attr__( 'Copied!', 'video-lead-tracker' );
+		$select_label = esc_attr__( 'Select Image',    'video-lead-tracker' );
+		$use_label    = esc_attr__( 'Use This Image',  'video-lead-tracker' );
+		$media_title  = esc_attr__( 'Select Poster Image', 'video-lead-tracker' );
 		?>
 		<table class="form-table" style="margin:0">
 			<tr>
@@ -79,36 +95,54 @@ class VLT_Videos_Admin {
 			</tr>
 			<tr>
 				<th style="padding:6px 4px 6px 0;font-weight:600">
-					<label for="vlt_mb_poster_url"><?php esc_html_e( 'Poster URL', 'video-lead-tracker' ); ?></label>
+					<?php esc_html_e( 'Poster Image', 'video-lead-tracker' ); ?>
 				</th>
 				<td style="padding:6px 0">
-					<input type="url" id="vlt_mb_poster_url" name="vlt_poster_url"
-					       value="<?php echo esc_attr( $poster_url ); ?>" class="widefat">
-					<div id="vlt-mb-poster-wrap" style="margin-top:8px<?php echo $poster_url ? '' : ';display:none'; ?>">
+					<input type="hidden" id="vlt_mb_poster_url" name="vlt_poster_url"
+					       value="<?php echo esc_attr( $poster_url ); ?>">
+					<div id="vlt-mb-poster-wrap" style="margin-bottom:8px<?php echo $poster_url ? '' : ';display:none'; ?>">
 						<img id="vlt-mb-poster-img"
 						     src="<?php echo esc_url( $poster_url ); ?>"
 						     alt=""
-						     style="max-width:160px;max-height:90px;border:1px solid #c3c4c7;border-radius:2px">
+						     style="max-width:160px;max-height:90px;border:1px solid #c3c4c7;border-radius:2px;display:block">
+					</div>
+					<div style="display:flex;gap:6px;align-items:center">
+						<button type="button" class="button" id="vlt-mb-poster-select"
+						        data-title="<?php echo $media_title; ?>"
+						        data-button="<?php echo $use_label; ?>">
+							<?php esc_html_e( 'Select Image', 'video-lead-tracker' ); ?>
+						</button>
+						<button type="button" class="button-link-delete" id="vlt-mb-poster-remove"
+						        style="<?php echo $poster_url ? '' : 'display:none'; ?>">
+							<?php esc_html_e( 'Remove', 'video-lead-tracker' ); ?>
+						</button>
 					</div>
 				</td>
 			</tr>
 			<?php if ( $video_key ) : ?>
 			<tr>
-				<th style="padding:6px 4px 6px 0;font-weight:600"><?php esc_html_e( 'Video Key', 'video-lead-tracker' ); ?></th>
+				<th style="padding:6px 4px 6px 0;font-weight:600"><?php esc_html_e( 'Shortcode', 'video-lead-tracker' ); ?></th>
 				<td style="padding:6px 0">
-					<code><?php echo esc_html( $video_key ); ?></code>
-					<p class="description" style="margin:2px 0 0"><?php esc_html_e( 'Use [vlt_video] in the content to embed this video.', 'video-lead-tracker' ); ?></p>
+					<div style="display:flex;align-items:center;gap:8px">
+						<code id="vlt-mb-shortcode">[vlt_video key="<?php echo esc_attr( $video_key ); ?>"]</code>
+						<button type="button" class="button button-small" id="vlt-mb-copy-sc"
+						        data-copy="<?php echo $copy_label; ?>"
+						        data-copied="<?php echo $copied_label; ?>">
+							<?php esc_html_e( 'Copy', 'video-lead-tracker' ); ?>
+						</button>
+					</div>
+					<p class="description" style="margin:4px 0 0">
+						<?php esc_html_e( 'Paste this shortcode anywhere in the content to embed the video.', 'video-lead-tracker' ); ?>
+					</p>
 				</td>
 			</tr>
 			<?php endif; ?>
 		</table>
 		<script>
 		( function () {
+			// ── Video URL test link ──────────────────────────────────────────────
 			var videoIn  = document.getElementById( 'vlt_mb_video_url' );
 			var testLink = document.getElementById( 'vlt-mb-test-link' );
-			var posterIn = document.getElementById( 'vlt_mb_poster_url' );
-			var posterWr = document.getElementById( 'vlt-mb-poster-wrap' );
-			var posterIm = document.getElementById( 'vlt-mb-poster-img' );
 
 			if ( videoIn && testLink ) {
 				videoIn.addEventListener( 'input', function () {
@@ -118,14 +152,72 @@ class VLT_Videos_Admin {
 				} );
 			}
 
-			if ( posterIn && posterWr && posterIm ) {
-				posterIn.addEventListener( 'blur', function () {
-					var u = posterIn.value.trim();
-					if ( u ) {
-						posterIm.src = u;
-						posterWr.style.display = '';
+			// ── Poster — WordPress media picker ──────────────────────────────────
+			var posterIn  = document.getElementById( 'vlt_mb_poster_url' );
+			var posterWr  = document.getElementById( 'vlt-mb-poster-wrap' );
+			var posterIm  = document.getElementById( 'vlt-mb-poster-img' );
+			var selectBtn = document.getElementById( 'vlt-mb-poster-select' );
+			var removeBtn = document.getElementById( 'vlt-mb-poster-remove' );
+
+			if ( selectBtn && typeof wp !== 'undefined' && wp.media ) {
+				var mediaFrame;
+				selectBtn.addEventListener( 'click', function ( e ) {
+					e.preventDefault();
+					if ( mediaFrame ) {
+						mediaFrame.open();
+						return;
+					}
+					mediaFrame = wp.media( {
+						title:    selectBtn.dataset.title  || 'Select Image',
+						button:   { text: selectBtn.dataset.button || 'Use This Image' },
+						multiple: false,
+						library:  { type: 'image' },
+					} );
+					mediaFrame.on( 'select', function () {
+						var att = mediaFrame.state().get( 'selection' ).first().toJSON();
+						var url = att.url || '';
+						posterIn.value         = url;
+						posterIm.src           = url;
+						posterWr.style.display = url ? '' : 'none';
+						if ( removeBtn ) removeBtn.style.display = url ? '' : 'none';
+					} );
+					mediaFrame.open();
+				} );
+			}
+
+			if ( removeBtn ) {
+				removeBtn.addEventListener( 'click', function () {
+					posterIn.value          = '';
+					posterIm.src            = '';
+					posterWr.style.display  = 'none';
+					removeBtn.style.display = 'none';
+				} );
+			}
+
+			// ── Shortcode copy button ────────────────────────────────────────────
+			var copyBtn = document.getElementById( 'vlt-mb-copy-sc' );
+			var scEl    = document.getElementById( 'vlt-mb-shortcode' );
+
+			if ( copyBtn && scEl ) {
+				copyBtn.addEventListener( 'click', function () {
+					var text     = scEl.textContent || scEl.innerText || '';
+					var doLabel  = function () {
+						copyBtn.textContent = copyBtn.dataset.copied || 'Copied!';
+						setTimeout( function () {
+							copyBtn.textContent = copyBtn.dataset.copy || 'Copy';
+						}, 2000 );
+					};
+					if ( navigator.clipboard && navigator.clipboard.writeText ) {
+						navigator.clipboard.writeText( text ).then( doLabel );
 					} else {
-						posterWr.style.display = 'none';
+						var ta = document.createElement( 'textarea' );
+						ta.value = text;
+						ta.style.cssText = 'position:fixed;opacity:0';
+						document.body.appendChild( ta );
+						ta.select();
+						try { document.execCommand( 'copy' ); } catch ( _e ) {}
+						document.body.removeChild( ta );
+						doLabel();
 					}
 				} );
 			}

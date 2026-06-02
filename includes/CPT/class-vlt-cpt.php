@@ -45,9 +45,10 @@ class VLT_CPT {
 	// -------------------------------------------------------------------------
 
 	public static function init() {
-		add_action( 'init',       [ self::class, 'register_post_type' ],  10 );
-		add_action( 'init',       [ self::class, 'register_taxonomies' ], 11 );
-		add_action( 'admin_init', [ self::class, 'register_setting' ] );
+		add_action( 'init',         [ self::class, 'register_post_type' ],  10 );
+		add_action( 'init',         [ self::class, 'register_taxonomies' ], 11 );
+		add_action( 'admin_init',   [ self::class, 'register_setting' ] );
+		add_action( 'parse_request',[ self::class, 'log_sitemap_request' ] );
 		add_action( 'update_option_' . self::OPTION_NAME, [ self::class, 'on_config_updated' ], 10, 0 );
 	}
 
@@ -65,6 +66,46 @@ class VLT_CPT {
 
 	public static function on_config_updated() {
 		flush_rewrite_rules();
+		$cfg = self::get_config();
+		VLT_Logger::info(
+			'CPT config saved – rewrite rules flushed',
+			'vlt-cpt',
+			[
+				'enabled'     => (bool) $cfg['enabled'],
+				'slug'        => $cfg['slug'],
+				'has_archive' => (bool) $cfg['has_archive'],
+				'archive_slug'=> $cfg['archive_slug'],
+			]
+		);
+	}
+
+	/**
+	 * Fires on every front-end request. When the URL contains "sitemap" we
+	 * log the resolved query-vars so we can see whether the rewrite rule
+	 * matched and whether vlt_video is visible as a public post type.
+	 *
+	 * Check Video Lead Tracker → Logs (filter: Debug) after visiting the sitemap URL.
+	 */
+	public static function log_sitemap_request( $wp ) {
+		$cfg = self::get_config();
+		if ( empty( $cfg['enabled'] ) ) {
+			return;
+		}
+		$request = isset( $wp->request ) ? (string) $wp->request : '';
+		if ( strpos( $request, 'sitemap' ) === false ) {
+			return;
+		}
+		$qv = array_filter( (array) ( $wp->query_vars ?? [] ) );
+		VLT_Logger::debug(
+			'Sitemap URL hit',
+			'vlt-cpt',
+			[
+				'request'              => $request,
+				'query_vars'           => $qv,
+				'vlt_video_registered' => post_type_exists( self::POST_TYPE ),
+				'public_types'         => array_keys( get_post_types( [ 'public' => true ] ) ),
+			]
+		);
 	}
 
 	// -------------------------------------------------------------------------
