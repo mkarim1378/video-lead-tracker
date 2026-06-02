@@ -5,6 +5,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.3.2] - 2026-06-02
+
+### Fixed
+- **CPT settings form — save button did nothing**: The submit handler used `e.preventDefault()` + an `async function handleSubmit()` that called `form.submit()` at the end. In certain browser/server environments the programmatic `form.submit()` call inside an async context was silently swallowed, leaving the form in a permanently blocked state. Replaced the entire approach with a synchronous `submit` event listener: `e.preventDefault()` is only called when the user cancels a confirmation dialog; otherwise the form submits normally. The async taxonomy-disable modal (with fetch + custom DOM modal + term deletion) is replaced by `window.confirm()`. Term deletion when disabling a taxonomy remains available via the Data Management tab.
+- **Plugin header `Version:` comment**: Now kept in sync with `VLT_VERSION` constant on every bump.
+- `VLT_VERSION` bumped 1.3.1 → 1.3.2.
+
+---
+
 ## [1.3.1] - 2026-06-01
 
 ### Fixed

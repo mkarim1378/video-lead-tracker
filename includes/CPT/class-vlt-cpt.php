@@ -599,157 +599,60 @@ class VLT_CPT {
 				if ( cb ) cb.addEventListener( 'change', function () { toggleTaxSubFields( prefix ); } );
 			} );
 
-			// ── Async form submit ────────────────────────────────────────────
+			// ── Form submit — fully synchronous ─────────────────────────────
 			if ( form ) {
 				form.addEventListener( 'submit', function ( e ) {
-					e.preventDefault();
-					handleSubmit();
-				} );
-			}
-
-			async function handleSubmit() {
-				// 1. Main CPT slug change
-				if ( slugIn ) {
-					var orig = slugIn.getAttribute( 'data-original' );
-					if ( orig && orig !== slugIn.value.trim() ) {
-						if ( ! window.confirm( '<?php echo esc_js( __( 'The URL slug has changed. Existing post URLs will break unless you update your permalink settings. Continue saving?', 'video-lead-tracker' ) ); ?>' ) ) {
-							return;
-						}
-					}
-				}
-
-				// 2. Taxonomy slug change (only when taxonomy is currently enabled)
-				var taxSlugChecks = [
-					{ prefix: 'cat', label: '<?php echo esc_js( __( 'Categories', 'video-lead-tracker' ) ); ?>' },
-					{ prefix: 'tag', label: '<?php echo esc_js( __( 'Tags', 'video-lead-tracker' ) ); ?>' },
-				];
-				for ( var si = 0; si < taxSlugChecks.length; si++ ) {
-					var ts   = taxSlugChecks[ si ];
-					var tsCb = document.getElementById( 'vlt-cpt-' + ts.prefix + '-enabled' );
-					var tsIn = document.getElementById( 'vlt-cpt-' + ts.prefix + '-slug' );
-					if ( tsCb && tsCb.checked && tsIn ) {
-						var tsOrig = tsIn.getAttribute( 'data-original' );
-						if ( tsOrig && tsOrig !== tsIn.value.trim() ) {
-							if ( ! window.confirm( ts.label + ': <?php echo esc_js( __( 'The URL slug has changed. Existing archive URLs may break. Continue saving?', 'video-lead-tracker' ) ); ?>' ) ) {
+					// 1. Main CPT slug change warning.
+					if ( slugIn ) {
+						var orig = slugIn.getAttribute( 'data-original' );
+						if ( orig && orig !== slugIn.value.trim() ) {
+							if ( ! window.confirm( '<?php echo esc_js( __( 'The URL slug has changed. Existing post URLs will break unless you update your permalink settings. Continue saving?', 'video-lead-tracker' ) ); ?>' ) ) {
+								e.preventDefault();
 								return;
 							}
 						}
 					}
-				}
 
-				// 3. Taxonomy disable checks (async — may show modal if terms exist)
-				var taxDisableChecks = [
-					{ taxonomy: '<?php echo esc_js( self::TAX_CATEGORY ); ?>', prefix: 'cat', label: '<?php echo esc_js( __( 'Categories', 'video-lead-tracker' ) ); ?>' },
-					{ taxonomy: '<?php echo esc_js( self::TAX_TAG ); ?>',      prefix: 'tag', label: '<?php echo esc_js( __( 'Tags', 'video-lead-tracker' ) ); ?>' },
-				];
-				for ( var di = 0; di < taxDisableChecks.length; di++ ) {
-					var dc = taxDisableChecks[ di ];
-					var cb = document.getElementById( 'vlt-cpt-' + dc.prefix + '-enabled' );
-					if ( ! cb ) continue;
-					if ( cb.getAttribute( 'data-original' ) === '1' && ! cb.checked ) {
-						var result = await checkTaxonomyOnDisable( dc.taxonomy, dc.label );
-						if ( result === 'cancel' ) {
-							cb.checked = true;
-							toggleTaxSubFields( dc.prefix );
-							return;
+					// 2. Taxonomy slug change warnings (only when taxonomy is enabled).
+					var taxSlugChecks = [
+						{ prefix: 'cat', label: '<?php echo esc_js( __( 'Categories', 'video-lead-tracker' ) ); ?>' },
+						{ prefix: 'tag', label: '<?php echo esc_js( __( 'Tags', 'video-lead-tracker' ) ); ?>' },
+					];
+					for ( var si = 0; si < taxSlugChecks.length; si++ ) {
+						var ts   = taxSlugChecks[ si ];
+						var tsCb = document.getElementById( 'vlt-cpt-' + ts.prefix + '-enabled' );
+						var tsIn = document.getElementById( 'vlt-cpt-' + ts.prefix + '-slug' );
+						if ( tsCb && tsCb.checked && tsIn ) {
+							var tsOrig = tsIn.getAttribute( 'data-original' );
+							if ( tsOrig && tsOrig !== tsIn.value.trim() ) {
+								if ( ! window.confirm( ts.label + ': <?php echo esc_js( __( 'The URL slug has changed. Existing archive URLs may break. Continue saving?', 'video-lead-tracker' ) ); ?>' ) ) {
+									e.preventDefault();
+									return;
+								}
+							}
 						}
 					}
-				}
 
-				form.submit();
-			}
-
-			// ── Taxonomy count check + modal ─────────────────────────────────
-			function checkTaxonomyOnDisable( taxonomy, labelName ) {
-				return new Promise( function ( resolve ) {
-					var restBase = ( window.vltAdminData && window.vltAdminData.restBase ) || '';
-					var nonce    = ( window.vltAdminData && window.vltAdminData.nonce )    || '';
-
-					fetch( restBase + 'admin/taxonomy-count?taxonomy=' + encodeURIComponent( taxonomy ), {
-						headers: { 'X-WP-Nonce': nonce },
-					} )
-					.then( function ( r ) { return r.json(); } )
-					.then( function ( data ) {
-						var count = ( data && data.count ) ? parseInt( data.count, 10 ) : 0;
-						if ( count === 0 ) { resolve( 'keep' ); return; }
-						showTaxModal( taxonomy, labelName, count, nonce, restBase, resolve );
-					} )
-					.catch( function () { resolve( 'keep' ); } );
-				} );
-			}
-
-			function showTaxModal( taxonomy, labelName, count, nonce, restBase, resolve ) {
-				var overlay = document.createElement( 'div' );
-				overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);z-index:100000;display:flex;align-items:center;justify-content:center;';
-
-				var box = document.createElement( 'div' );
-				box.style.cssText = 'background:#fff;border-radius:4px;padding:24px 28px;max-width:460px;width:92%;box-shadow:0 8px 32px rgba(0,0,0,.25);';
-
-				box.innerHTML =
-					'<h3 style="margin:0 0 10px;font-size:15px">' + labelName + '</h3>'
-					+ '<p style="margin:0 0 6px"><?php echo esc_js( __( 'Disabling this taxonomy will hide it from WordPress. Existing terms are not deleted.', 'video-lead-tracker' ) ); ?></p>'
-					+ '<p style="margin:0 0 16px;color:#646970">'
-					+ '<?php echo esc_js( __( 'There are', 'video-lead-tracker' ) ); ?> <strong>' + count + '</strong> <?php echo esc_js( __( 'existing terms.', 'video-lead-tracker' ) ); ?> '
-					+ '<?php echo esc_js( __( 'What would you like to do?', 'video-lead-tracker' ) ); ?>'
-					+ '</p>'
-					+ '<div id="vlt-tax-del-confirm" style="display:none;margin:0 0 12px;padding:10px;background:#fff6f7;border:1px solid #d63638;border-radius:3px;">'
-					+ '<label><input type="checkbox" id="vlt-tax-del-cb" style="margin-right:6px">'
-					+ '<?php echo esc_js( __( 'I confirm that deleting all terms is irreversible.', 'video-lead-tracker' ) ); ?>'
-					+ '</label>'
-					+ '</div>'
-					+ '<div style="display:flex;gap:8px;flex-wrap:wrap">'
-					+ '<button type="button" id="vlt-tax-btn-keep" class="button button-primary"><?php echo esc_js( __( 'Keep Data', 'video-lead-tracker' ) ); ?></button>'
-					+ '<button type="button" id="vlt-tax-btn-delete" class="button button-secondary"><?php echo esc_js( __( 'Delete Data', 'video-lead-tracker' ) ); ?></button>'
-					+ '<button type="button" id="vlt-tax-btn-cancel" class="button"><?php echo esc_js( __( 'Cancel', 'video-lead-tracker' ) ); ?></button>'
-					+ '</div>';
-
-				overlay.appendChild( box );
-				document.body.appendChild( overlay );
-
-				var delPhase = false;
-
-				box.querySelector( '#vlt-tax-btn-keep' ).addEventListener( 'click', function () {
-					overlay.remove(); resolve( 'keep' );
-				} );
-
-				box.querySelector( '#vlt-tax-btn-delete' ).addEventListener( 'click', function () {
-					var delBtn = this;
-					if ( ! delPhase ) {
-						delPhase = true;
-						box.querySelector( '#vlt-tax-del-confirm' ).style.display = '';
-						delBtn.textContent = '<?php echo esc_js( __( 'Confirm Delete', 'video-lead-tracker' ) ); ?>';
-						return;
-					}
-					if ( ! box.querySelector( '#vlt-tax-del-cb' ).checked ) {
-						alert( '<?php echo esc_js( __( 'Please check the confirmation box first.', 'video-lead-tracker' ) ); ?>' );
-						return;
-					}
-					delBtn.disabled    = true;
-					delBtn.textContent = '…';
-					fetch( restBase + 'admin/taxonomy-purge', {
-						method:  'POST',
-						headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': nonce },
-						body:    JSON.stringify( { taxonomy: taxonomy } ),
-					} )
-					.then( function ( r ) { return r.json(); } )
-					.then( function ( data ) {
-						if ( data && data.success ) {
-							overlay.remove(); resolve( 'deleted' );
-						} else {
-							delBtn.disabled    = false;
-							delBtn.textContent = '<?php echo esc_js( __( 'Confirm Delete', 'video-lead-tracker' ) ); ?>';
-							alert( '<?php echo esc_js( __( 'Failed to delete terms. Please try again.', 'video-lead-tracker' ) ); ?>' );
+					// 3. Taxonomy disable confirmation (synchronous).
+					//    Term deletion can be done from the Data Management tab.
+					var taxDisableChecks = [
+						{ prefix: 'cat', label: '<?php echo esc_js( __( 'Categories', 'video-lead-tracker' ) ); ?>' },
+						{ prefix: 'tag', label: '<?php echo esc_js( __( 'Tags', 'video-lead-tracker' ) ); ?>' },
+					];
+					for ( var di = 0; di < taxDisableChecks.length; di++ ) {
+						var dc = taxDisableChecks[ di ];
+						var cb = document.getElementById( 'vlt-cpt-' + dc.prefix + '-enabled' );
+						if ( ! cb ) continue;
+						if ( cb.getAttribute( 'data-original' ) === '1' && ! cb.checked ) {
+							if ( ! window.confirm( dc.label + ': <?php echo esc_js( __( 'Disabling this taxonomy will hide it from WordPress. Existing terms are kept in the database. Continue?', 'video-lead-tracker' ) ); ?>' ) ) {
+								cb.checked = true;
+								toggleTaxSubFields( dc.prefix );
+								e.preventDefault();
+								return;
+							}
 						}
-					} )
-					.catch( function () {
-						delBtn.disabled    = false;
-						delBtn.textContent = '<?php echo esc_js( __( 'Confirm Delete', 'video-lead-tracker' ) ); ?>';
-						alert( '<?php echo esc_js( __( 'Network error. Please try again.', 'video-lead-tracker' ) ); ?>' );
-					} );
-				} );
-
-				box.querySelector( '#vlt-tax-btn-cancel' ).addEventListener( 'click', function () {
-					overlay.remove(); resolve( 'cancel' );
+					}
+					// All checks passed — form submits normally.
 				} );
 			}
 
