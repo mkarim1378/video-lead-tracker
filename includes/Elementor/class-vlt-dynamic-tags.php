@@ -26,6 +26,7 @@ class VLT_Dynamic_Tags {
 			$manager->register( new VLT_Tag_VideoUrl() );
 			$manager->register( new VLT_Tag_PosterUrl() );
 			$manager->register( new VLT_Tag_VideoTitle() );
+			$manager->register( new VLT_Tag_Excerpt() );
 		}
 	}
 
@@ -114,6 +115,36 @@ class VLT_Tag_VideoTitle extends \Elementor\Core\DynamicTags\Tag {
 		$video = VLT_Dynamic_Tags::get_post_video();
 		if ( $video && $video->title ) {
 			echo esc_html( $video->title );
+		}
+	}
+}
+
+// -------------------------------------------------------------------------
+// Excerpt Tag
+// -------------------------------------------------------------------------
+
+class VLT_Tag_Excerpt extends \Elementor\Core\DynamicTags\Tag {
+
+	public function get_name() {
+		return 'vlt-excerpt';
+	}
+
+	public function get_title() {
+		return __( 'VLT Post Excerpt', 'video-lead-tracker' );
+	}
+
+	public function get_group() {
+		return VLT_Dynamic_Tags::GROUP_NAME;
+	}
+
+	public function get_categories() {
+		return [ \Elementor\Modules\DynamicTags\Module::TEXT_CATEGORY ];
+	}
+
+	protected function render() {
+		$excerpt = get_the_excerpt();
+		if ( $excerpt ) {
+			echo esc_html( $excerpt );
 		}
 	}
 }

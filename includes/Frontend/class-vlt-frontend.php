@@ -11,6 +11,8 @@ class VLT_Frontend {
 		add_shortcode( 'video_lead_tracker',  [ self::class, 'render_shortcode' ] );
 		add_shortcode( 'vlt_video_lead_gate', [ self::class, 'render_shortcode' ] ); // legacy alias
 		add_shortcode( 'vlt_video',           [ self::class, 'render_vlt_video_shortcode' ] );
+		add_shortcode( 'vlt_callout',         [ self::class, 'render_callout_shortcode' ] );
+		add_shortcode( 'vlt_note',            [ self::class, 'render_note_shortcode' ] );
 		add_action( 'wp_enqueue_scripts', [ self::class, 'register_assets' ] );
 		add_action( 'wp_head', [ self::class, 'inject_single_cpt_json_ld' ] );
 	}
@@ -313,6 +315,34 @@ class VLT_Frontend {
 		}
 
 		return $output;
+	}
+
+	// -------------------------------------------------------------------------
+	// Content shortcodes — styled text blocks
+	// -------------------------------------------------------------------------
+
+	public static function render_callout_shortcode( $atts, $content = '' ) {
+		$atts = shortcode_atts( [ 'icon' => '⚠️' ], $atts, 'vlt_callout' );
+		wp_enqueue_style( 'vlt-frontend' );
+
+		$icon    = esc_html( $atts['icon'] );
+		$inner   = do_shortcode( $content );
+		$allowed = wp_kses_allowed_html( 'post' );
+
+		return '<div class="vlt-callout"><span class="vlt-callout-icon">' . $icon . '</span>'
+			. '<div class="vlt-callout-body">' . wp_kses( $inner, $allowed ) . '</div></div>';
+	}
+
+	public static function render_note_shortcode( $atts, $content = '' ) {
+		$atts = shortcode_atts( [ 'icon' => '✅' ], $atts, 'vlt_note' );
+		wp_enqueue_style( 'vlt-frontend' );
+
+		$icon    = esc_html( $atts['icon'] );
+		$inner   = do_shortcode( $content );
+		$allowed = wp_kses_allowed_html( 'post' );
+
+		return '<div class="vlt-note"><span class="vlt-note-icon">' . $icon . '</span>'
+			. '<div class="vlt-note-body">' . wp_kses( $inner, $allowed ) . '</div></div>';
 	}
 
 	// -------------------------------------------------------------------------

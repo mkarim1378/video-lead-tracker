@@ -1461,3 +1461,7 @@ msgstr "دروازه ویدیو VLT — پیش‌نمایش ویرایشگر"
 #: includes/Elementor/class-vlt-widget.php (Phase 30)
 msgid "from post meta"
 msgstr "از متای پست"
+
+#: includes/Elementor/class-vlt-dynamic-tags.php
+msgid "VLT Post Excerpt"
+msgstr "چکیده پست VLT"

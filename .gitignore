@@ -25,3 +25,5 @@ vendor/
 *.zip
 /landing
 debug.log
+ideas.md
+*.html

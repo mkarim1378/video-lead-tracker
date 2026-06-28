@@ -5,6 +5,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.3.7] - 2026-06-28
+
+### Added
+- **Excerpt Elementor dynamic tag**: New `VLT Post Excerpt` dynamic tag in the VLT Video group lets Elementor Theme Builder templates display the post excerpt. Enable the Excerpt checkbox in Content Type settings to show the excerpt field on CPT edit screens.
+- **`[vlt_callout]` shortcode**: Styled warning/caution box (orange background, ⚠️ icon). Supports `icon` attribute to customize the icon. Usage: `[vlt_callout]Your warning text here[/vlt_callout]`.
+- **`[vlt_note]` shortcode**: Styled tip/note box (green background, ✅ icon). Ideal for golden tips. Supports `icon` attribute. Usage: `[vlt_note]Your tip text here[/vlt_note]`.
+- Farsi translations for all new strings.
+- `VLT_VERSION` bumped 1.3.6 → 1.3.7.
+
+---
+
 ## [1.3.6] - 2026-06-02
 
 ### Fixed
