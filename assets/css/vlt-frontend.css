@@ -264,11 +264,14 @@
 [dir="rtl"] .vlt-ap {
 	border-right: 1px solid #e6e2d8;
 	border-left: 4px solid #ed1c24;
-	flex-direction: row-reverse;
+}
+
+[dir="rtl"] .vlt-ap-play {
+	order: 2;
 }
 
 [dir="rtl"] .vlt-ap-foot {
-	flex-direction: row-reverse;
+	direction: rtl;
 }
 
 /* ===================================================================
@@ -360,6 +363,7 @@
 	gap: 2px;
 	height: 34px;
 	cursor: pointer;
+	direction: ltr;
 }
 
 .vlt-ap-wave span {

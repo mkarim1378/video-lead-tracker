@@ -110,7 +110,7 @@
 			}
 		} );
 
-		// Seek via waveform click (left edge = 0%, right edge = 100%)
+		// Seek via waveform click — always LTR (bars always go left→right visually)
 		wave.addEventListener( 'click', function ( e ) {
 			var r  = wave.getBoundingClientRect();
 			var x  = ( e.clientX - r.left ) / r.width;
