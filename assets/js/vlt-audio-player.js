@@ -110,10 +110,10 @@
 			}
 		} );
 
-		// Seek via waveform click
+		// Seek via waveform click (left edge = 0%, right edge = 100%)
 		wave.addEventListener( 'click', function ( e ) {
 			var r  = wave.getBoundingClientRect();
-			var x  = ( r.right - e.clientX ) / r.width; // RTL: right edge = 0
+			var x  = ( e.clientX - r.left ) / r.width;
 			cur = Math.min( Math.max( x, 0 ), 1 ) * dur;
 			if ( hasReal ) au.currentTime = cur;
 			paint();
