@@ -1,5 +1,4 @@
 /* Video Lead Tracker — Audio Player */
-/* global vltAudioConfig */
 
 ( function () {
 	'use strict';
@@ -43,6 +42,9 @@
 
 		var hasReal = au && au.getAttribute( 'src' ) && au.getAttribute( 'src' ) !== '';
 
+		// Detect if waveform is visually RTL (bars render right-to-left)
+		var isRtl = window.getComputedStyle( wave ).direction === 'rtl';
+
 		// Build waveform bars
 		for ( var i = 0; i < BARS; i++ ) {
 			var b = document.createElement( 'span' );
@@ -54,7 +56,9 @@
 		function paint() {
 			var k = Math.round( ( dur ? cur / dur : 0 ) * BARS );
 			for ( var j = 0; j < bars.length; j++ ) {
-				if ( j < k ) {
+				// In RTL the DOM order is reversed visually, so paint from the end
+				var idx = isRtl ? ( bars.length - 1 - j ) : j;
+				if ( idx < k ) {
 					bars[ j ].classList.add( 'vlt-ap-on' );
 				} else {
 					bars[ j ].classList.remove( 'vlt-ap-on' );
@@ -110,11 +114,19 @@
 			}
 		} );
 
-		// Seek via waveform click — always LTR (bars always go left→right visually)
+		// Seek via waveform click — direction-aware
 		wave.addEventListener( 'click', function ( e ) {
-			var r  = wave.getBoundingClientRect();
-			var x  = ( e.clientX - r.left ) / r.width;
-			cur = Math.min( Math.max( x, 0 ), 1 ) * dur;
+			var r = wave.getBoundingClientRect();
+			var pct;
+			if ( isRtl ) {
+				// RTL: right edge = 0%, left edge = 100%
+				pct = ( r.right - e.clientX ) / r.width;
+			} else {
+				// LTR: left edge = 0%, right edge = 100%
+				pct = ( e.clientX - r.left ) / r.width;
+			}
+			pct = Math.min( Math.max( pct, 0 ), 1 );
+			cur = pct * dur;
 			if ( hasReal ) au.currentTime = cur;
 			paint();
 		} );

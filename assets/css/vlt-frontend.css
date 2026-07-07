@@ -270,10 +270,6 @@
 	order: 2;
 }
 
-[dir="rtl"] .vlt-ap-foot {
-	direction: rtl;
-}
-
 /* ===================================================================
    Audio Player
    =================================================================== */
@@ -363,7 +359,6 @@
 	gap: 2px;
 	height: 34px;
 	cursor: pointer;
-	direction: ltr;
 }
 
 .vlt-ap-wave span {
