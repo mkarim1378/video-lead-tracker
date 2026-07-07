@@ -1465,3 +1465,39 @@ msgstr "از متای پست"
 #: includes/Elementor/class-vlt-dynamic-tags.php
 msgid "VLT Post Excerpt"
 msgstr "چکیده پست VLT"
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Audio version of this video"
+msgstr "نسخه صوتی این ویدیو"
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Listen while you work"
+msgstr "همین حین کار گوش بده"
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Play audio"
+msgstr "پخش صدا"
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Audio progress"
+msgstr "پیشرفت پخش صوت"
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Playback speed"
+msgstr "سرعت پخش"
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Download audio"
+msgstr "دانلود فایل صوتی"
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Download"
+msgstr "دانلود"
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Direct URL to the audio file (MP3). Use [vlt_audio_player] shortcode to embed."
+msgstr "آدرس مستقیم فایل صوتی (MP3). از شورت‌کد [vlt_audio_player] برای جایگذاری استفاده کنید."
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Direct URL to the audio file (MP3). Use [vlt_audio_player] shortcode to embed the audio player."
+msgstr "آدرس مستقیم فایل صوتی (MP3). از شورت‌کد [vlt_audio_player] برای جایگذاری پلیر صوتی استفاده کنید."

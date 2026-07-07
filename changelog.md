@@ -5,6 +5,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.4.1] - 2026-07-07
+
+### Fixed
+- **Audio player RTL layout**: play button now appears on the left side in RTL contexts. Accent border flipped from `border-right` to `border-left` via `[dir="rtl"]` override; flex direction reversed.
+- **Audio player translations**: added Farsi translations for all new audio player strings (label, tag, aria-labels, button text, descriptions). `.mo` recompiled.
+- `VLT_VERSION` bumped 1.4.0 → 1.4.1.
+
+---
+
 ## [1.4.0] - 2026-07-07
 
 ### Added

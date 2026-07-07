@@ -259,6 +259,18 @@
 	text-align: right;
 }
 
+/* ---- RTL audio player flip ---- */
+
+[dir="rtl"] .vlt-ap {
+	border-right: 1px solid #e6e2d8;
+	border-left: 4px solid #ed1c24;
+	flex-direction: row-reverse;
+}
+
+[dir="rtl"] .vlt-ap-foot {
+	flex-direction: row-reverse;
+}
+
 /* ===================================================================
    Audio Player
    =================================================================== */
