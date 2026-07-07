@@ -5,6 +5,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.4.0] - 2026-07-07
+
+### Added
+- **`[vlt_audio_player]` shortcode**: waveform-based audio player with play/pause, seek via click, playback speed toggle (1x/1.5x/2x), and optional download button. Attributes: `src` (direct audio URL), `key` (auto-resolves from CPT video registry), `label`, `tag`, `download`.
+- **Audio URL field** in CPT meta box and Videos admin form: stores audio file URL per video in the `vlt_videos` table.
+- `audio_url` column added to `vlt_videos` DB table (schema version 1.3 → 1.4).
+- `VLT_VERSION` bumped 1.3.7 → 1.4.0.
+
+---
+
 ## [1.3.7] - 2026-06-28
 
 ### Added

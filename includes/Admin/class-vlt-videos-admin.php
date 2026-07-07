@@ -59,13 +59,15 @@ class VLT_Videos_Admin {
 		$video_key  = get_post_meta( $post->ID, '_vlt_video_key', true );
 		$video_url  = get_post_meta( $post->ID, '_vlt_meta_video_url',  true );
 		$poster_url = get_post_meta( $post->ID, '_vlt_meta_poster_url', true );
+		$audio_url  = get_post_meta( $post->ID, '_vlt_meta_audio_url',  true );
 
 		// If already linked to a video in registry, use its values as fallback.
-		if ( $video_key && ( ! $video_url || ! $poster_url ) ) {
+		if ( $video_key && ( ! $video_url || ! $poster_url || ! $audio_url ) ) {
 			$v = VLT_DB::get_video_by_key( $video_key );
 			if ( $v ) {
 				$video_url  = $video_url  ?: ( $v->video_url  ?? '' );
 				$poster_url = $poster_url ?: ( $v->poster_url ?? '' );
+				$audio_url  = $audio_url  ?: ( $v->audio_url  ?? '' );
 			}
 		}
 		$copy_label   = esc_attr__( 'Copy',    'video-lead-tracker' );
@@ -119,6 +121,25 @@ class VLT_Videos_Admin {
 					</div>
 				</td>
 			</tr>
+			<tr>
+				<th style="padding:6px 4px 6px 0;font-weight:600">
+					<label for="vlt_mb_audio_url"><?php esc_html_e( 'Audio URL', 'video-lead-tracker' ); ?></label>
+				</th>
+				<td style="padding:6px 0">
+					<div style="display:flex;align-items:center;gap:8px">
+						<input type="url" id="vlt_mb_audio_url" name="vlt_audio_url"
+						       value="<?php echo esc_attr( $audio_url ); ?>" class="widefat"
+						       placeholder="https://example.com/audio.mp3">
+						<a id="vlt-mb-audio-test-link"
+						   href="<?php echo $audio_url ? esc_url( $audio_url ) : '#'; ?>"
+						   target="_blank" rel="noopener"
+						   style="white-space:nowrap;font-size:12px<?php echo $audio_url ? '' : ';visibility:hidden'; ?>">
+							<?php esc_html_e( 'Test ↗', 'video-lead-tracker' ); ?>
+						</a>
+					</div>
+					<p class="description" style="margin:4px 0 0"><?php esc_html_e( 'Direct URL to the audio file (MP3). Use [vlt_audio_player] shortcode to embed.', 'video-lead-tracker' ); ?></p>
+				</td>
+			</tr>
 			<?php if ( $video_key ) : ?>
 			<tr>
 				<th style="padding:6px 4px 6px 0;font-weight:600"><?php esc_html_e( 'Shortcode', 'video-lead-tracker' ); ?></th>
@@ -149,6 +170,18 @@ class VLT_Videos_Admin {
 					var u = videoIn.value.trim();
 					testLink.href = u || '#';
 					testLink.style.visibility = u ? '' : 'hidden';
+				} );
+			}
+
+			// ── Audio URL test link ─────────────────────────────────────────────
+			var audioIn     = document.getElementById( 'vlt_mb_audio_url' );
+			var audioTestLnk = document.getElementById( 'vlt-mb-audio-test-link' );
+
+			if ( audioIn && audioTestLnk ) {
+				audioIn.addEventListener( 'input', function () {
+					var u = audioIn.value.trim();
+					audioTestLnk.href = u || '#';
+					audioTestLnk.style.visibility = u ? '' : 'hidden';
 				} );
 			}
 
@@ -317,14 +350,16 @@ class VLT_Videos_Admin {
 		if ( VLT_CPT::POST_TYPE === $post->post_type ) {
 			$video_url  = esc_url_raw( $_POST['vlt_video_url']  ?? '' );
 			$poster_url = esc_url_raw( $_POST['vlt_poster_url'] ?? '' );
+			$audio_url  = esc_url_raw( $_POST['vlt_audio_url']  ?? '' );
 
 			update_post_meta( $post_id, '_vlt_meta_video_url',  $video_url );
 			update_post_meta( $post_id, '_vlt_meta_poster_url', $poster_url );
+			update_post_meta( $post_id, '_vlt_meta_audio_url',  $audio_url );
 
 			if ( $video_url ) {
 				$slug = $post->post_name ?: sanitize_title( $post->post_title );
 				if ( $slug ) {
-					self::upsert_video_from_cpt( $post_id, $slug, $post->post_title, $video_url, $poster_url );
+					self::upsert_video_from_cpt( $post_id, $slug, $post->post_title, $video_url, $poster_url, $audio_url );
 				}
 			}
 			return;
@@ -339,7 +374,7 @@ class VLT_Videos_Admin {
 		}
 	}
 
-	private static function upsert_video_from_cpt( $post_id, $slug, $title, $video_url, $poster_url ) {
+	private static function upsert_video_from_cpt( $post_id, $slug, $title, $video_url, $poster_url, $audio_url = '' ) {
 		$now      = current_time( 'mysql' );
 		$existing = VLT_DB::get_video_by_key( $slug );
 
@@ -348,6 +383,7 @@ class VLT_Videos_Admin {
 				'title'      => $title,
 				'video_url'  => $video_url,
 				'poster_url' => $poster_url,
+				'audio_url'  => $audio_url,
 				'is_active'  => 1,
 				'updated_at' => $now,
 			] );
@@ -357,6 +393,7 @@ class VLT_Videos_Admin {
 				'title'      => $title,
 				'video_url'  => $video_url,
 				'poster_url' => $poster_url,
+				'audio_url'  => $audio_url,
 				'is_active'  => 1,
 				'created_at' => $now,
 				'updated_at' => $now,
@@ -457,6 +494,7 @@ class VLT_Videos_Admin {
 			'title'              => sanitize_text_field( $_POST['title']              ?? '' ),
 			'video_url'          => esc_url_raw( $_POST['video_url']                  ?? '' ),
 			'poster_url'         => esc_url_raw( $_POST['poster_url']                 ?? '' ),
+			'audio_url'          => esc_url_raw( $_POST['audio_url']                  ?? '' ),
 			'duration_seconds'   => absint( $_POST['duration_seconds']                ?? 0 ),
 			'form_title'         => sanitize_text_field( $_POST['form_title']         ?? '' ),
 			'name_label'         => sanitize_text_field( $_POST['name_label']         ?? '' ),
@@ -534,7 +572,12 @@ class VLT_Videos_Admin {
 							<td><?php echo $v->duration_seconds ? esc_html( $v->duration_seconds ) . 's' : '—'; ?></td>
 							<td><?php echo $v->enable_otp ? '✓' : '—'; ?></td>
 							<td><?php echo $v->is_active ? '✓' : '—'; ?></td>
-							<td><code>[vlt_video key="<?php echo esc_attr( $v->video_key ); ?>"]</code></td>
+							<td>
+								<code>[vlt_video key="<?php echo esc_attr( $v->video_key ); ?>"]</code>
+								<?php if ( ! empty( $v->audio_url ) ) : ?>
+									<br><code style="font-size:11px">[vlt_audio_player key="<?php echo esc_attr( $v->video_key ); ?>"]</code>
+								<?php endif; ?>
+							</td>
 							<td>
 								<a href="<?php echo esc_url( add_query_arg( [ 'action' => 'edit', 'video_id' => $v->id ], $base_url ) ); ?>">
 									<?php esc_html_e( 'Edit', 'video-lead-tracker' ); ?>
@@ -581,6 +624,7 @@ class VLT_Videos_Admin {
 			'title'              => $is_edit ? $video->title               : '',
 			'video_url'          => $is_edit ? ( $video->video_url  ?? '' ) : '',
 			'poster_url'         => $is_edit ? ( $video->poster_url ?? '' ) : '',
+			'audio_url'          => $is_edit ? ( $video->audio_url  ?? '' ) : '',
 			'duration_seconds'   => $is_edit ? $video->duration_seconds    : '',
 			'form_title'         => $is_edit ? $video->form_title          : __( 'Watch the Free Training', 'video-lead-tracker' ),
 			'name_label'         => $is_edit ? $video->name_label          : __( 'Full Name', 'video-lead-tracker' ),
@@ -649,6 +693,16 @@ class VLT_Videos_Admin {
 								     style="max-width:240px;max-height:135px;border:1px solid #c3c4c7;border-radius:2px">
 							</div>
 							<p class="description"><?php esc_html_e( 'Thumbnail shown before the video plays.', 'video-lead-tracker' ); ?></p>
+						</td>
+					</tr>
+
+					<tr>
+						<th><label for="vlt_audio_url"><?php esc_html_e( 'Audio URL', 'video-lead-tracker' ); ?></label></th>
+						<td>
+							<input type="url" id="vlt_audio_url" name="audio_url"
+							       value="<?php echo esc_attr( $f['audio_url'] ); ?>" class="large-text"
+							       placeholder="https://example.com/audio.mp3" />
+							<p class="description"><?php esc_html_e( 'Direct URL to the audio file (MP3). Use [vlt_audio_player] shortcode to embed the audio player.', 'video-lead-tracker' ); ?></p>
 						</td>
 					</tr>
 

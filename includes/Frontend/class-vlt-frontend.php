@@ -11,6 +11,7 @@ class VLT_Frontend {
 		add_shortcode( 'video_lead_tracker',  [ self::class, 'render_shortcode' ] );
 		add_shortcode( 'vlt_video_lead_gate', [ self::class, 'render_shortcode' ] ); // legacy alias
 		add_shortcode( 'vlt_video',           [ self::class, 'render_vlt_video_shortcode' ] );
+		add_shortcode( 'vlt_audio_player',    [ self::class, 'render_audio_player_shortcode' ] );
 		add_shortcode( 'vlt_callout',         [ self::class, 'render_callout_shortcode' ] );
 		add_shortcode( 'vlt_note',            [ self::class, 'render_note_shortcode' ] );
 		add_action( 'wp_enqueue_scripts', [ self::class, 'register_assets' ] );
@@ -36,6 +37,13 @@ class VLT_Frontend {
 			'vlt-video-tracker',
 			VLT_PLUGIN_URL . 'assets/js/vlt-video-tracker.js',
 			[ 'vlt-frontend' ],
+			VLT_VERSION,
+			true
+		);
+		wp_register_script(
+			'vlt-audio-player',
+			VLT_PLUGIN_URL . 'assets/js/vlt-audio-player.js',
+			[],
 			VLT_VERSION,
 			true
 		);
@@ -315,6 +323,80 @@ class VLT_Frontend {
 		}
 
 		return $output;
+	}
+
+	// -------------------------------------------------------------------------
+	// [vlt_audio_player] shortcode — audio player with waveform UI
+	// -------------------------------------------------------------------------
+
+	public static function render_audio_player_shortcode( $atts ) {
+		$atts = shortcode_atts(
+			[
+				'src'      => '',
+				'key'      => '',
+				'label'    => '',
+				'tag'      => '',
+				'download' => '1',
+			],
+			$atts,
+			'vlt_audio_player'
+		);
+
+		// Resolve audio URL from attribute, or from CPT post meta.
+		$audio_url = esc_url( $atts['src'] );
+		if ( ! $audio_url ) {
+			$video_key = sanitize_key( $atts['key'] );
+			if ( ! $video_key ) {
+				$video_key = sanitize_key( (string) get_post_meta( get_the_ID(), '_vlt_video_key', true ) );
+			}
+			if ( $video_key ) {
+				$video = VLT_DB::get_video_by_key( $video_key );
+				if ( $video && ! empty( $video->audio_url ) ) {
+					$audio_url = esc_url( $video->audio_url );
+				}
+			}
+		}
+
+		if ( ! $audio_url ) {
+			return '';
+		}
+
+		wp_enqueue_style( 'vlt-frontend' );
+		wp_enqueue_script( 'vlt-audio-player' );
+
+		$label    = $atts['label']    ? esc_html( $atts['label'] )    : esc_html__( 'Audio version of this video', 'video-lead-tracker' );
+		$tag      = $atts['tag']      ? esc_html( $atts['tag'] )      : esc_html__( 'Listen while you work', 'video-lead-tracker' );
+		$show_dl  = $atts['download'] === '1';
+
+		ob_start();
+		?>
+		<div class="vlt-ap">
+			<audio preload="metadata" src="<?php echo $audio_url; // phpcs:ignore WordPress.Security.EscapeOutput ?>"></audio>
+			<button class="vlt-ap-play" type="button" aria-label="<?php esc_attr_e( 'Play audio', 'video-lead-tracker' ); ?>">
+				<svg class="vlt-ap-play-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+				<svg class="vlt-ap-pause-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+			</button>
+			<div class="vlt-ap-main">
+				<div class="vlt-ap-label">
+					<?php echo esc_html( $label ); ?>
+					<?php if ( $tag ) : ?>
+						<span class="vlt-ap-tag"><?php echo esc_html( $tag ); ?></span>
+					<?php endif; ?>
+				</div>
+				<div class="vlt-ap-wave" aria-label="<?php esc_attr_e( 'Audio progress', 'video-lead-tracker' ); ?>"></div>
+				<div class="vlt-ap-foot">
+					<span class="vlt-ap-time"><b class="vlt-ap-cur">00:00</b> / <span class="vlt-ap-dur">00:00</span></span>
+					<div class="vlt-ap-tools">
+						<button type="button" class="vlt-ap-speed" title="<?php esc_attr_e( 'Playback speed', 'video-lead-tracker' ); ?>">1x</button>
+						<?php if ( $show_dl ) : ?>
+							<button type="button" class="vlt-ap-dl" title="<?php esc_attr_e( 'Download audio', 'video-lead-tracker' ); ?>"><?php esc_html_e( 'Download', 'video-lead-tracker' ); ?></button>
+						<?php endif; ?>
+					</div>
+				</div>
+			</div>
+		</div>
+		<?php
+		return ob_get_clean();
 	}
 
 	// -------------------------------------------------------------------------

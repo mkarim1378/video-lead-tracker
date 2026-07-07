@@ -137,6 +137,7 @@ class VLT_DB {
   page_id bigint(20) UNSIGNED DEFAULT NULL,
   video_url text DEFAULT NULL,
   poster_url text DEFAULT NULL,
+  audio_url text DEFAULT NULL,
   duration_seconds int(10) UNSIGNED DEFAULT NULL,
   form_title varchar(255) DEFAULT NULL,
   name_label varchar(190) DEFAULT NULL,
