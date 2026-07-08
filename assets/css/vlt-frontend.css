@@ -210,7 +210,7 @@
 	padding: 16px 20px;
 	margin: 22px 0;
 	font-size: 15.5px;
-	color: #e2410f;
+	color: #a31518;
 	line-height: 1.95;
 	display: flex;
 	gap: 13px;
@@ -224,7 +224,7 @@
 
 .vlt-callout-body b,
 .vlt-callout-body strong {
-	color: #e2410f;
+	color: #a31518;
 }
 
 /* ---- Note shortcode ---- */
@@ -251,6 +251,215 @@
 .vlt-note-body b,
 .vlt-note-body strong {
 	color: #0f6b3a;
+}
+
+/* ---- Quick answer shortcode ---- */
+
+.vlt-quick {
+	margin-top: 26px;
+	background: #fff;
+	border: 1px solid #e6e2d8;
+	border-right: 4px solid #2d2c74;
+	border-radius: 14px;
+	padding: 22px 24px;
+}
+
+.vlt-quick-title {
+	font-size: 16px;
+	font-weight: 800;
+	color: #2d2c74;
+	display: flex;
+	align-items: center;
+	gap: 9px;
+	margin-bottom: 8px;
+}
+
+.vlt-quick-title svg {
+	flex: none;
+}
+
+.vlt-quick-body {
+	font-size: 16px;
+	color: #2B313C;
+	line-height: 2;
+}
+
+[dir="rtl"] .vlt-quick {
+	border-right: 1px solid #e6e2d8;
+	border-left: 4px solid #2d2c74;
+}
+
+/* ---- Mid CTA shortcode ---- */
+
+.vlt-midcta {
+	margin-top: 26px;
+	background: linear-gradient(135deg, #14171E, #20283A);
+	color: #fff;
+	border-radius: 16px;
+	padding: 22px 24px;
+	display: flex;
+	align-items: center;
+	gap: 18px;
+	flex-wrap: wrap;
+	position: relative;
+	overflow: hidden;
+}
+
+.vlt-midcta::after {
+	content: "";
+	position: absolute;
+	top: -40px;
+	left: -30px;
+	width: 160px;
+	height: 160px;
+	border-radius: 50%;
+	background: radial-gradient(circle, rgba(236,28,36,.3), transparent 70%);
+}
+
+.vlt-midcta-icon {
+	flex: none;
+	width: 52px;
+	height: 52px;
+	border-radius: 13px;
+	background: rgba(255,255,255,.12);
+	display: grid;
+	place-items: center;
+	position: relative;
+	z-index: 2;
+}
+
+.vlt-midcta-text {
+	flex: 1;
+	min-width: 200px;
+	position: relative;
+	z-index: 2;
+}
+
+.vlt-midcta-title {
+	font-size: 17px;
+	font-weight: 800;
+	display: block;
+	margin-bottom: 2px;
+}
+
+.vlt-midcta-desc {
+	font-size: 13.5px;
+	color: rgba(255,255,255,.72);
+}
+
+.vlt-midcta-btn {
+	flex: none;
+	position: relative;
+	z-index: 2;
+	background: #ed1c24;
+	color: #fff;
+	font-weight: 800;
+	font-size: 15px;
+	padding: 13px 24px;
+	border-radius: 11px;
+	text-decoration: none;
+	transition: .2s;
+	white-space: nowrap;
+}
+
+.vlt-midcta-btn:hover {
+	background: #c91a1e;
+	transform: translateY(-2px);
+}
+
+/* ---- Product CTA shortcode ---- */
+
+.vlt-cta {
+	margin-top: 48px;
+	background: linear-gradient(150deg, #2d2c74, #1d1c5e);
+	border-radius: 24px;
+	padding: 40px 34px;
+	color: #fff;
+	position: relative;
+	overflow: hidden;
+	text-align: center;
+}
+
+.vlt-cta::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background-image: linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
+	background-size: 42px 42px;
+	-webkit-mask-image: radial-gradient(circle at 80% 0, #000, transparent 70%);
+	mask-image: radial-gradient(circle at 80% 0, #000, transparent 70%);
+}
+
+.vlt-cta-inner {
+	position: relative;
+	z-index: 2;
+}
+
+.vlt-cta-badge {
+	display: inline-block;
+	background: #ed1c24;
+	color: #fff;
+	font-size: 12.5px;
+	font-weight: 800;
+	padding: 6px 14px;
+	border-radius: 50px;
+	margin-bottom: 16px;
+}
+
+.vlt-cta-title {
+	font-size: clamp(22px, 4vw, 30px);
+	font-weight: 900;
+	line-height: 1.45;
+	margin-bottom: 10px;
+}
+
+.vlt-cta-desc {
+	font-size: 16px;
+	color: rgba(255,255,255,.82);
+	max-width: 480px;
+	margin: 0 auto 18px;
+	line-height: 1.95;
+}
+
+.vlt-cta-points {
+	display: flex;
+	justify-content: center;
+	gap: 8px 18px;
+	flex-wrap: wrap;
+	margin-bottom: 26px;
+}
+
+.vlt-cta-point {
+	font-size: 13.5px;
+	color: rgba(255,255,255,.9);
+	display: flex;
+	align-items: center;
+	gap: 7px;
+}
+
+.vlt-cta-point svg {
+	color: #7fffb0;
+	flex: none;
+}
+
+.vlt-cta-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	background: #ed1c24;
+	color: #fff;
+	font-weight: 800;
+	font-size: 18px;
+	padding: 17px 36px;
+	border-radius: 14px;
+	text-decoration: none;
+	box-shadow: 0 14px 30px -8px rgba(236,28,36,.6);
+	transition: .2s;
+}
+
+.vlt-cta-btn:hover {
+	background: #c91a1e;
+	transform: translateY(-2px);
 }
 
 /* ---- RTL support ---- */

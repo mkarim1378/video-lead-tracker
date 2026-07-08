@@ -14,6 +14,9 @@ class VLT_Frontend {
 		add_shortcode( 'vlt_audio_player',    [ self::class, 'render_audio_player_shortcode' ] );
 		add_shortcode( 'vlt_callout',         [ self::class, 'render_callout_shortcode' ] );
 		add_shortcode( 'vlt_note',            [ self::class, 'render_note_shortcode' ] );
+		add_shortcode( 'vlt_quick',           [ self::class, 'render_quick_shortcode' ] );
+		add_shortcode( 'vlt_midcta',          [ self::class, 'render_midcta_shortcode' ] );
+		add_shortcode( 'vlt_cta',             [ self::class, 'render_cta_shortcode' ] );
 		add_action( 'wp_enqueue_scripts', [ self::class, 'register_assets' ] );
 		add_action( 'wp_head', [ self::class, 'inject_single_cpt_json_ld' ] );
 	}
@@ -425,6 +428,137 @@ class VLT_Frontend {
 
 		return '<div class="vlt-note"><span class="vlt-note-icon">' . $icon . '</span>'
 			. '<div class="vlt-note-body">' . wp_kses( $inner, $allowed ) . '</div></div>';
+	}
+
+	// -------------------------------------------------------------------------
+	// [vlt_quick] — Quick answer / featured snippet box
+	// -------------------------------------------------------------------------
+
+	public static function render_quick_shortcode( $atts, $content = '' ) {
+		$atts = shortcode_atts( [ 'icon' => '⚡' ], $atts, 'vlt_quick' );
+		wp_enqueue_style( 'vlt-frontend' );
+
+		$icon    = esc_html( $atts['icon'] );
+		$inner   = do_shortcode( $content );
+		$allowed = wp_kses_allowed_html( 'post' );
+
+		return '<div class="vlt-quick">'
+			. '<h2 class="vlt-quick-title">' . $icon . ' ' . esc_html__( 'Quick Answer', 'video-lead-tracker' ) . '</h2>'
+			. '<div class="vlt-quick-body">' . wp_kses( $inner, $allowed ) . '</div></div>';
+	}
+
+	// -------------------------------------------------------------------------
+	// [vlt_midcta] — Mid-page call-to-action
+	// -------------------------------------------------------------------------
+
+	public static function render_midcta_shortcode( $atts, $content = '' ) {
+		$atts = shortcode_atts(
+			[
+				'icon'        => '🚗',
+				'title'       => '',
+				'text'        => '',
+				'button_url'  => '#',
+				'button_text' => '',
+			],
+			$atts,
+			'vlt_midcta'
+		);
+		wp_enqueue_style( 'vlt-frontend' );
+
+		$icon = esc_html( $atts['icon'] );
+
+		// Support content as title fallback
+		$title = esc_html( $atts['title'] );
+		if ( ! $title && $content ) {
+			$title = wp_kses_post( do_shortcode( $content ) );
+		}
+
+		$text = esc_html( $atts['text'] );
+		$url  = esc_url( $atts['button_url'] );
+		$btn  = esc_html( $atts['button_text'] );
+
+		$html = '<div class="vlt-midcta">';
+		$html .= '<span class="vlt-midcta-icon">' . $icon . '</span>';
+		$html .= '<div class="vlt-midcta-text">';
+		if ( $title ) {
+			$html .= '<b class="vlt-midcta-title">' . $title . '</b>';
+		}
+		if ( $text ) {
+			$html .= '<span class="vlt-midcta-desc">' . $text . '</span>';
+		}
+		$html .= '</div>';
+		if ( $url && $btn ) {
+			$html .= '<a href="' . $url . '" class="vlt-midcta-btn">' . $btn . '</a>';
+		}
+		$html .= '</div>';
+
+		return $html;
+	}
+
+	// -------------------------------------------------------------------------
+	// [vlt_cta] — Full-width product CTA section
+	// -------------------------------------------------------------------------
+
+	public static function render_cta_shortcode( $atts, $content = '' ) {
+		$atts = shortcode_atts(
+			[
+				'badge'       => '',
+				'title'       => '',
+				'text'        => '',
+				'points'      => '',
+				'button_url'  => '#',
+				'button_text' => '',
+			],
+			$atts,
+			'vlt_cta'
+		);
+		wp_enqueue_style( 'vlt-frontend' );
+
+		$badge = esc_html( $atts['badge'] );
+		$title = esc_html( $atts['title'] );
+		$text  = esc_html( $atts['text'] );
+		$url   = esc_url( $atts['button_url'] );
+		$btn   = esc_html( $atts['button_text'] );
+
+		// Support content as title fallback
+		if ( ! $title && $content ) {
+			$title = wp_kses_post( do_shortcode( $content ) );
+		}
+
+		$html = '<div class="vlt-cta">';
+		$html .= '<div class="vlt-cta-inner">';
+
+		if ( $badge ) {
+			$html .= '<span class="vlt-cta-badge">' . $badge . '</span>';
+		}
+		if ( $title ) {
+			$html .= '<h2 class="vlt-cta-title">' . $title . '</h2>';
+		}
+		if ( $text ) {
+			$html .= '<p class="vlt-cta-desc">' . $text . '</p>';
+		}
+
+		// Checkmark points — pipe-separated
+		$points_raw = $atts['points'];
+		if ( $points_raw ) {
+			$points = array_map( 'trim', explode( '|', $points_raw ) );
+			$html .= '<div class="vlt-cta-points">';
+			$check_svg = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>';
+			foreach ( $points as $point ) {
+				if ( $point !== '' ) {
+					$html .= '<span class="vlt-cta-point">' . $check_svg . ' ' . esc_html( $point ) . '</span>';
+				}
+			}
+			$html .= '</div>';
+		}
+
+		if ( $url && $btn ) {
+			$html .= '<a href="' . $url . '" class="vlt-cta-btn">' . $btn . ' <span class="ar">←</span></a>';
+		}
+
+		$html .= '</div></div>';
+
+		return $html;
 	}
 
 	// -------------------------------------------------------------------------

@@ -1501,3 +1501,7 @@ msgstr "آدرس مستقیم فایل صوتی (MP3). از شورت‌کد [vlt
 #: includes/Frontend/class-vlt-frontend.php
 msgid "Direct URL to the audio file (MP3). Use [vlt_audio_player] shortcode to embed the audio player."
 msgstr "آدرس مستقیم فایل صوتی (MP3). از شورت‌کد [vlt_audio_player] برای جایگذاری پلیر صوتی استفاده کنید."
+
+#: includes/Frontend/class-vlt-frontend.php
+msgid "Quick Answer"
+msgstr "پاسخ سریع"
