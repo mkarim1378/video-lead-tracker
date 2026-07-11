@@ -5,6 +5,27 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.4.3] - 2026-07-07
+
+### Added
+- **Shortcodes documentation tab** in Settings page: lists all 8 available shortcodes (`video_lead_tracker`, `vlt_video`, `vlt_audio_player`, `vlt_quick`, `vlt_midcta`, `vlt_cta`, `vlt_callout`, `vlt_note`) with descriptions, attribute tables, and usage examples.
+- `VLT_VERSION` bumped 1.4.2 → 1.4.3.
+
+---
+
+## [1.4.2] - 2026-07-07
+
+### Added
+- **`[vlt_quick]` shortcode**: quick answer / featured snippet box with blue left border and lightning icon. Usage: `[vlt_quick]Your answer text[/vlt_quick]`.
+- **`[vlt_midcta]` shortcode**: mid-page CTA with dark gradient, icon, title, description, and button. Attributes: `icon`, `title`, `text`, `button_url`, `button_text`.
+- **`[vlt_cta]` shortcode**: full-width product CTA section with gradient background, badge, title, description, pipe-separated checkmark points, and button. Attributes: `badge`, `title`, `text`, `points` (pipe-separated), `button_url`, `button_text`.
+
+### Changed
+- **`[vlt_callout]` color updated**: text color changed from `#e2410f` (orange) to `#a31518` (red) to match new brand palette.
+- `VLT_VERSION` bumped 1.4.1 → 1.4.2.
+
+---
+
 ## [1.4.1] - 2026-07-07
 
 ### Fixed

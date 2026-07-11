@@ -265,6 +265,9 @@ class VLT_Settings {
 				<button type="button" class="nav-tab" data-tab="vlt-tab-content-type">
 					<?php esc_html_e( 'Content Type', 'video-lead-tracker' ); ?>
 				</button>
+				<button type="button" class="nav-tab" data-tab="vlt-tab-shortcodes">
+					<?php esc_html_e( 'Shortcodes', 'video-lead-tracker' ); ?>
+				</button>
 			</nav>
 
 			<form method="post" action="options.php">
@@ -300,6 +303,11 @@ class VLT_Settings {
 			<!-- Content Type panel — outside the settings form, has its own <form> -->
 			<div class="vlt-tab-panel" id="vlt-tab-content-type">
 				<?php VLT_CPT::render_tab(); ?>
+			</div>
+
+			<!-- Shortcodes documentation panel -->
+			<div class="vlt-tab-panel" id="vlt-tab-shortcodes">
+				<?php self::render_shortcodes_tab(); ?>
 			</div>
 
 		</div>
@@ -394,6 +402,149 @@ class VLT_Settings {
 		.vlt-btn-danger:hover { background:#a52834!important; }
 		.vlt-dm-preview { display:inline-block; margin-left:8px; font-size:12px; font-style:italic; }
 		</style>
+		<?php
+	}
+
+	// -------------------------------------------------------------------------
+	// Shortcodes documentation tab
+	// -------------------------------------------------------------------------
+
+	private static function render_shortcodes_tab() {
+		$shortcodes = [
+			[
+				'name'        => 'video_lead_tracker',
+				'alias'       => 'vlt_video_lead_gate',
+				'description' => __( 'Renders the gated video player. Shows a lead capture form before the video for unknown visitors, and the video directly for known leads.', 'video-lead-tracker' ),
+				'attributes'  => [
+					[ 'key' => 'video_key', 'required' => false, 'desc' => __( 'Video key from the Videos registry. Falls back to the first registered video.', 'video-lead-tracker' ) ],
+					[ 'key' => 'src',       'required' => false, 'desc' => __( 'Direct URL to the video file. Overrides the registry.', 'video-lead-tracker' ) ],
+					[ 'key' => 'poster',    'required' => false, 'desc' => __( 'Poster image URL. Overrides the registry.', 'video-lead-tracker' ) ],
+				],
+				'example'     => '[video_lead_tracker video_key="main-training-video"]',
+			],
+			[
+				'name'        => 'vlt_video',
+				'description' => __( 'Embeds the gated video player. Resolves video from the CPT post meta if no key is provided.', 'video-lead-tracker' ),
+				'attributes'  => [
+					[ 'key' => 'key', 'required' => false, 'desc' => __( 'Video key. If omitted, reads from the post\'s linked video meta.', 'video-lead-tracker' ) ],
+				],
+				'example'     => '[vlt_video key="main-training-video"]',
+			],
+			[
+				'name'        => 'vlt_audio_player',
+				'description' => __( 'Renders an audio player with waveform visualization, play/pause, seek, speed toggle, and optional download.', 'video-lead-tracker' ),
+				'attributes'  => [
+					[ 'key' => 'src',      'required' => false, 'desc' => __( 'Direct URL to the audio file (MP3).', 'video-lead-tracker' ) ],
+					[ 'key' => 'key',      'required' => false, 'desc' => __( 'Video key. Resolves audio_url from the video registry.', 'video-lead-tracker' ) ],
+					[ 'key' => 'label',    'required' => false, 'desc' => __( 'Label text above the waveform. Default: "Audio version of this video".', 'video-lead-tracker' ) ],
+					[ 'key' => 'tag',      'required' => false, 'desc' => __( 'Tag badge text. Default: "Listen while you work".', 'video-lead-tracker' ) ],
+					[ 'key' => 'download', 'required' => false, 'desc' => __( 'Show download button. "1" (default) or "0".', 'video-lead-tracker' ) ],
+				],
+				'example'     => '[vlt_audio_player key="main-training-video"]',
+			],
+			[
+				'name'        => 'vlt_quick',
+				'description' => __( 'Quick answer / featured snippet box with a blue left border and lightning icon.', 'video-lead-tracker' ),
+				'attributes'  => [
+					[ 'key' => 'icon', 'required' => false, 'desc' => __( 'Icon emoji. Default: ⚡.', 'video-lead-tracker' ) ],
+				],
+				'example'     => "[vlt_quick]\nپاسخ سریع اینجا قرار می‌گیرد.\n[/vlt_quick]",
+			],
+			[
+				'name'        => 'vlt_midcta',
+				'description' => __( 'Mid-page call-to-action block with dark gradient background, icon, text, and button.', 'video-lead-tracker' ),
+				'attributes'  => [
+					[ 'key' => 'icon',        'required' => false, 'desc' => __( 'Icon emoji. Default: 🚗.', 'video-lead-tracker' ) ],
+					[ 'key' => 'title',       'required' => false, 'desc' => __( 'Bold title text.', 'video-lead-tracker' ) ],
+					[ 'key' => 'text',        'required' => false, 'desc' => __( 'Description text (lighter color).', 'video-lead-tracker' ) ],
+					[ 'key' => 'button_url',  'required' => false, 'desc' => __( 'CTA button URL.', 'video-lead-tracker' ) ],
+					[ 'key' => 'button_text', 'required' => false, 'desc' => __( 'CTA button label.', 'video-lead-tracker' ) ],
+				],
+				'example'     => '[vlt_midcta icon="🚗" title="می‌خوای مسلط بشی؟" text="این ویدیو فقط نمونه‌ست" button_url="#product" button_text="مشاهده دوره ←"]',
+			],
+			[
+				'name'        => 'vlt_cta',
+				'description' => __( 'Full-width product CTA section with gradient background, badge, checkmark points, and button.', 'video-lead-tracker' ),
+				'attributes'  => [
+					[ 'key' => 'badge',       'required' => false, 'desc' => __( 'Small badge text above the title.', 'video-lead-tracker' ) ],
+					[ 'key' => 'title',       'required' => false, 'desc' => __( 'Main heading.', 'video-lead-tracker' ) ],
+					[ 'key' => 'text',        'required' => false, 'desc' => __( 'Description paragraph.', 'video-lead-tracker' ) ],
+					[ 'key' => 'points',      'required' => false, 'desc' => __( 'Checkmark bullet points, separated by pipe (|).', 'video-lead-tracker' ) ],
+					[ 'key' => 'button_url',  'required' => false, 'desc' => __( 'CTA button URL.', 'video-lead-tracker' ) ],
+					[ 'key' => 'button_text', 'required' => false, 'desc' => __( 'CTA button label.', 'video-lead-tracker' ) ],
+				],
+				'example'     => '[vlt_cta badge="🚗 ویژه خودروهای چینی" title="روی هر خودروی چینی‌ای مسلط شو" text="توضیحات دوره" points="پارامترخوانی|کالیبراسیون سنسورها|دمونتاژ کامل" button_url="#product" button_text="ثبت‌نام در دوره"]',
+			],
+			[
+				'name'        => 'vlt_callout',
+				'description' => __( 'Warning / caution box with red tint background.', 'video-lead-tracker' ),
+				'attributes'  => [
+					[ 'key' => 'icon', 'required' => false, 'desc' => __( 'Icon emoji. Default: ⚠️.', 'video-lead-tracker' ) ],
+				],
+				'example'     => "[vlt_callout]\nمتن هشدار اینجا قرار می‌گیرد.\n[/vlt_callout]",
+			],
+			[
+				'name'        => 'vlt_note',
+				'description' => __( 'Tip / note box with green background.', 'video-lead-tracker' ),
+				'attributes'  => [
+					[ 'key' => 'icon', 'required' => false, 'desc' => __( 'Icon emoji. Default: ✅.', 'video-lead-tracker' ) ],
+				],
+				'example'     => "[vlt_note]\nنکته طلایی اینجا قرار می‌گیرد.\n[/vlt_note]",
+			],
+		];
+		?>
+		<style>
+		.vlt-sc-list { margin-top:16px; }
+		.vlt-sc-card { background:#fff; border:1px solid #c3c4c7; border-radius:6px; padding:20px 24px; margin-bottom:16px; }
+		.vlt-sc-card h3 { margin:0 0 6px; font-size:15px; font-family:Consolas,Monaco,monospace; color:#2271b1; }
+		.vlt-sc-card h3 .vlt-sc-alias { font-size:12px; color:#999; font-weight:400; margin-inline-start:8px; }
+		.vlt-sc-card .vlt-sc-desc { margin:0 0 12px; font-size:13.5px; color:#50575e; line-height:1.7; }
+		.vlt-sc-card table { width:100%; border-collapse:collapse; margin:10px 0; font-size:13px; }
+		.vlt-sc-card th { text-align:left; padding:6px 10px; background:#f0f0f1; font-weight:600; border-bottom:1px solid #c3c4c7; }
+		.vlt-sc-card td { padding:6px 10px; border-bottom:1px solid #f0f0f1; vertical-align:top; }
+		.vlt-sc-card td code { background:#f0f0f1; padding:2px 6px; border-radius:3px; font-size:12px; }
+		.vlt-sc-card .vlt-sc-example { background:#1e1e1e; color:#d4d4d4; padding:12px 16px; border-radius:6px; font-family:Consolas,Monaco,monospace; font-size:12.5px; white-space:pre-wrap; direction:ltr; text-align:left; margin-top:12px; overflow-x:auto; }
+		</style>
+
+		<h2><?php esc_html_e( 'Available Shortcodes', 'video-lead-tracker' ); ?></h2>
+		<p class="description" style="margin-bottom:16px"><?php esc_html_e( 'Use these shortcodes in any post, page, or Elementor template to embed video gates, audio players, and styled content blocks.', 'video-lead-tracker' ); ?></p>
+
+		<div class="vlt-sc-list">
+		<?php foreach ( $shortcodes as $sc ) : ?>
+			<div class="vlt-sc-card">
+				<h3>
+					[<?php echo esc_html( $sc['name'] ); ?>]
+					<?php if ( ! empty( $sc['alias'] ) ) : ?>
+						<span class="vlt-sc-alias">(alias: [<?php echo esc_html( $sc['alias'] ); ?>])</span>
+					<?php endif; ?>
+				</h3>
+				<p class="vlt-sc-desc"><?php echo esc_html( $sc['description'] ); ?></p>
+
+				<?php if ( ! empty( $sc['attributes'] ) ) : ?>
+				<table>
+					<thead>
+						<tr>
+							<th><?php esc_html_e( 'Attribute', 'video-lead-tracker' ); ?></th>
+							<th><?php esc_html_e( 'Description', 'video-lead-tracker' ); ?></th>
+						</tr>
+					</thead>
+					<tbody>
+					<?php foreach ( $sc['attributes'] as $attr ) : ?>
+						<tr>
+							<td><code><?php echo esc_html( $attr['key'] ); ?></code></td>
+							<td><?php echo esc_html( $attr['desc'] ); ?></td>
+						</tr>
+					<?php endforeach; ?>
+					</tbody>
+				</table>
+				<?php endif; ?>
+
+				<?php if ( ! empty( $sc['example'] ) ) : ?>
+					<div class="vlt-sc-example"><?php echo esc_html( $sc['example'] ); ?></div>
+				<?php endif; ?>
+			</div>
+		<?php endforeach; ?>
+		</div>
 		<?php
 	}
 
