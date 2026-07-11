@@ -1505,3 +1505,135 @@ msgstr "آدرس مستقیم فایل صوتی (MP3). از شورت‌کد [vlt
 #: includes/Frontend/class-vlt-frontend.php
 msgid "Quick Answer"
 msgstr "پاسخ سریع"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Shortcodes"
+msgstr "شورت‌کدها"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Available Shortcodes"
+msgstr "شورت‌کدهای موجود"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Use these shortcodes in any post, page, or Elementor template to embed video gates, audio players, and styled content blocks."
+msgstr "از این شورت‌کدها در هر نوشته، برگه یا قالب المنتور استفاده کنید تا دروازه ویدیو، پلیر صوتی و بلوک‌های محتوای استایل‌دار جایگذاری کنید."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Attribute"
+msgstr "پارامتر"
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Renders the gated video player. Shows a lead capture form before the video for unknown visitors, and the video directly for known leads."
+msgstr "پلیر ویدیوی دروازه‌دار را نمایش می‌دهد. برای بازدیدکنندگان ناشناس فرم جمع‌آوری لید قبل از ویدیو نشان داده می‌شود و برای لیدهای شناخته‌شده ویدیو مستقیماً پخش می‌شود."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Video key from the Videos registry. Falls back to the first registered video."
+msgstr "کلید ویدیو از مرج ویدیوها. در صورت خالی بودن، از اولین ویدیوی ثبت‌شده استفاده می‌شود."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Direct URL to the video file. Overrides the registry."
+msgstr "آدرس مستقیم فایل ویدیو. مرج ویدیوها را نادیده می‌گیرد."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Poster image URL. Overrides the registry."
+msgstr "آدرس تصویر پوستر. مرج ویدیوها را نادیده می‌گیرد."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Embeds the gated video player. Resolves video from the CPT post meta if no key is provided."
+msgstr "پلیر ویدیوی دروازه‌دار را جایگذاری می‌کند. اگر کلیدی ارائه نشود، ویدیو را از متای پست CPT استخراج می‌کند."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Video key. If omitted, reads from the post's linked video meta."
+msgstr "کلید ویدیو. در صورت خالی بودن، از متای ویدیوی لینک‌شده پست خوانده می‌شود."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Renders an audio player with waveform visualization, play/pause, seek, speed toggle, and optional download."
+msgstr "پلیر صوتی با نمودار موج، پخش/توقف، جستجو، تغییر سرعت و دانلود اختیاری نمایش می‌دهد."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Direct URL to the audio file (MP3)."
+msgstr "آدرس مستقیم فایل صوتی (MP3)."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Video key. Resolves audio_url from the video registry."
+msgstr "کلید ویدیو. آدرس فایل صوتی را از مرج ویدیوها استخراج می‌کند."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Label text above the waveform. Default: \"Audio version of this video\"."
+msgstr "متن برچسب بالای نمودار موج. پیش‌فرض: «نسخه صوتی این ویدیو»."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Tag badge text. Default: \"Listen while you work\"."
+msgstr "متن نشان برچسب. پیش‌فرض: «همین حین کار گوش بده»."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Show download button. \"1\" (default) or \"0\"."
+msgstr "نمایش دکمه دانلود. «۱» (پیش‌فرض) یا «۰»."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Quick answer / featured snippet box with a blue left border and lightning icon."
+msgstr "باکس پاسخ سریع / اسنیپت ویژه با حاشیه آبی سمت چپ و آیکون رعد و برق."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Icon emoji. Default: ⚡."
+msgstr "ایموجی آیکون. پیش‌فرض: ⚡."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Mid-page call-to-action block with dark gradient background, icon, text, and button."
+msgstr "بلوک دعوت به اقدام وسط صفحه با پس‌زمینه گرادیان تیره، آیکون، متن و دکمه."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Icon emoji. Default: 🚗."
+msgstr "ایموجی آیکون. پیش‌فرض: 🚗."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Bold title text."
+msgstr "متن عنوان ضخیم."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Description text (lighter color)."
+msgstr "متن توضیحات (رنگ روشن‌تر)."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "CTA button URL."
+msgstr "آدرس دکمه CTA."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "CTA button label."
+msgstr "برچسب دکمه CTA."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Full-width product CTA section with gradient background, badge, checkmark points, and button."
+msgstr "بخش CTA محصول تمام‌عرض با پس‌زمینه گرادیان، نشان، نقاط تیک‌دار و دکمه."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Small badge text above the title."
+msgstr "متن نشان کوچک بالای عنوان."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Main heading."
+msgstr "عنوان اصلی."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Description paragraph."
+msgstr "پاراگراف توضیحات."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Checkmark bullet points, separated by pipe (|)."
+msgstr "نکات تیک‌دار، جدا شده با خط عمودی (|)."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Warning / caution box with red tint background."
+msgstr "باکس هشدار / احتیاط با پس‌زمینه قرمز روشن."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Icon emoji. Default: ⚠️."
+msgstr "ایموجی آیکون. پیش‌فرض: ⚠️."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Tip / note box with green background."
+msgstr "باکس نکته / یادداشت با پس‌زمینه سبز."
+
+#: includes/Settings/class-vlt-settings.php
+msgid "Icon emoji. Default: ✅."
+msgstr "ایموجی آیکون. پیش‌فرض: ✅."
