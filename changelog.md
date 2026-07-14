@@ -5,6 +5,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.4.3.2] - 2026-07-07
+
+### Added
+- **Rank Math integration**: new `rank_math/schema/VideoObject` filter ensures `uploadDate` and `thumbnailUrl` are always present in Rank Math's VideoObject schema output. Falls back to the post publish date and featured image respectively.
+- `VLT_VERSION` bumped 1.4.3.1 → 1.4.3.2.
+
+---
+
+## [1.4.3.1] - 2026-07-07
+
+### Fixed
+- Added Farsi translations for all shortcodes documentation tab strings (30 new entries). `.mo` recompiled.
+- `VLT_VERSION` bumped 1.4.3 → 1.4.3.1.
+
+---
+
 ## [1.4.3] - 2026-07-07
 
 ### Added

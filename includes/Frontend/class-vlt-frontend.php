@@ -19,6 +19,9 @@ class VLT_Frontend {
 		add_shortcode( 'vlt_cta',             [ self::class, 'render_cta_shortcode' ] );
 		add_action( 'wp_enqueue_scripts', [ self::class, 'register_assets' ] );
 		add_action( 'wp_head', [ self::class, 'inject_single_cpt_json_ld' ] );
+
+		// Rank Math schema: ensure uploadDate and thumbnailUrl are always present.
+		add_filter( 'rank_math/schema/VideoObject', [ self::class, 'filter_rank_math_video_schema' ] );
 	}
 
 	// Register (not enqueue) so scripts are available when shortcode calls enqueue.
@@ -609,5 +612,21 @@ class VLT_Frontend {
 		return '<script type="application/ld+json">'
 			. wp_json_encode( $data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE )
 			. "</script>\n";
+	}
+
+	// -------------------------------------------------------------------------
+	// Rank Math schema integration
+	// -------------------------------------------------------------------------
+
+	public static function filter_rank_math_video_schema( $schema ) {
+		if ( empty( $schema['uploadDate'] ) ) {
+			$schema['uploadDate'] = get_post_time( 'c', false );
+		}
+
+		if ( empty( $schema['thumbnailUrl'] ) ) {
+			$schema['thumbnailUrl'] = get_the_post_thumbnail_url( null, 'full' );
+		}
+
+		return $schema;
 	}
 }
