@@ -3,3 +3,9 @@
 .gitignore export-ignore
 BUG-AUDIT.md export-ignore
 ideas.md export-ignore
+01-requirements.md export-ignore
+02-implementation-plan.md export-ignore
+03-system-flows.md export-ignore
+04-tracking-and-reporting-rules.md export-ignore
+05-technical-tasks-checklist.md export-ignore
+sms-docs.md export-ignore
