@@ -111,7 +111,10 @@ class VLT_Widget extends \Elementor\Widget_Base {
 
 		// Resolve from post meta when no explicit key is set (same as [vlt_video]).
 		if ( ! $video_key ) {
-			$video_key = sanitize_key( (string) get_post_meta( get_the_ID(), '_vlt_video_key', true ) );
+			$post_id   = VLT_Frontend::get_context_post_id();
+			$video_key = $post_id
+				? sanitize_key( (string) get_post_meta( $post_id, '_vlt_video_key', true ) )
+				: '';
 		}
 
 		$is_editor = $this->is_editor_mode();

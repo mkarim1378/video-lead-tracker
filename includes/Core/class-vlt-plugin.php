@@ -40,7 +40,9 @@ class VLT_Plugin {
 		// We defer require_once of files that extend Elementor base classes until the
 		// specific Elementor hooks fire, because Widget_Base and Data_Tag are only
 		// guaranteed to be in memory at those points (not at plugins_loaded priority 10).
-		if ( did_action( 'elementor/loaded' ) ) {
+		// Use elementor/loaded (not a one-shot did_action check) so registration still
+		// runs when VLT loads before Elementor on plugins_loaded (CQ-01).
+		$register_elementor = function () {
 			add_action( 'elementor/dynamic_tags/register', function ( $manager ) {
 				require_once VLT_PLUGIN_DIR . 'includes/Elementor/class-vlt-dynamic-tags.php';
 				VLT_Dynamic_Tags::register_tags( $manager );
@@ -53,8 +55,16 @@ class VLT_Plugin {
 			} );
 			add_action( 'elementor/widgets/register', function ( $widgets_manager ) {
 				require_once VLT_PLUGIN_DIR . 'includes/Elementor/class-vlt-widget.php';
+				require_once VLT_PLUGIN_DIR . 'includes/Elementor/class-vlt-audio-widget.php';
 				$widgets_manager->register( new VLT_Widget() );
+				$widgets_manager->register( new VLT_Audio_Widget() );
 			} );
+		};
+
+		if ( did_action( 'elementor/loaded' ) ) {
+			$register_elementor();
+		} else {
+			add_action( 'elementor/loaded', $register_elementor );
 		}
 
 		// Event retention cron.

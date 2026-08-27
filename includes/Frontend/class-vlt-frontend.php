@@ -24,6 +24,46 @@ class VLT_Frontend {
 		add_filter( 'rank_math/schema/VideoObject', [ self::class, 'filter_rank_math_video_schema' ] );
 	}
 
+	/**
+	 * Resolve the post ID for front-end / Elementor Theme Builder context.
+	 * Prefer the loop post; in the Elementor editor fall back to the document
+	 * preview_id when get_the_ID() points at the template itself.
+	 *
+	 * @return int
+	 */
+	public static function get_context_post_id() {
+		$post_id = (int) get_the_ID();
+
+		if ( class_exists( '\Elementor\Plugin' ) && isset( \Elementor\Plugin::$instance->documents ) ) {
+			$document = \Elementor\Plugin::$instance->documents->get_current();
+			if ( $document && method_exists( $document, 'get_main_id' ) ) {
+				$doc_id    = (int) $document->get_main_id();
+				$in_editor = isset( \Elementor\Plugin::$instance->editor )
+					&& \Elementor\Plugin::$instance->editor->is_edit_mode();
+
+				if ( $in_editor && ( ! $post_id || $post_id === $doc_id ) ) {
+					$preview_id = 0;
+					if ( method_exists( $document, 'get_settings' ) ) {
+						$preview_id = (int) $document->get_settings( 'preview_id' );
+					}
+					if ( ! $preview_id && method_exists( $document, 'get_preview_id' ) ) {
+						$preview_id = (int) $document->get_preview_id();
+					}
+					if ( $preview_id ) {
+						return $preview_id;
+					}
+				}
+			}
+		}
+
+		if ( $post_id ) {
+			return $post_id;
+		}
+
+		global $post;
+		return ( isset( $post->ID ) ) ? (int) $post->ID : 0;
+	}
+
 	// Register (not enqueue) so scripts are available when shortcode calls enqueue.
 	public static function register_assets() {
 		wp_register_style(
@@ -290,7 +330,10 @@ class VLT_Frontend {
 
 		// Fall back to the video_key linked via post meta (set by meta box or CPT save).
 		if ( ! $video_key ) {
-			$video_key = sanitize_key( (string) get_post_meta( get_the_ID(), '_vlt_video_key', true ) );
+			$post_id   = self::get_context_post_id();
+			$video_key = $post_id
+				? sanitize_key( (string) get_post_meta( $post_id, '_vlt_video_key', true ) )
+				: '';
 		}
 
 		if ( ! $video_key ) {
@@ -353,7 +396,10 @@ class VLT_Frontend {
 		if ( ! $audio_url ) {
 			$video_key = sanitize_key( $atts['key'] );
 			if ( ! $video_key ) {
-				$video_key = sanitize_key( (string) get_post_meta( get_the_ID(), '_vlt_video_key', true ) );
+				$post_id   = self::get_context_post_id();
+				$video_key = $post_id
+					? sanitize_key( (string) get_post_meta( $post_id, '_vlt_video_key', true ) )
+					: '';
 			}
 			if ( $video_key ) {
 				$video = VLT_DB::get_video_by_key( $video_key );

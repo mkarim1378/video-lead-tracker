@@ -1,0 +1,5 @@
+# Keep non-shipping paths out of the installable plugin zip (git archive).
+.gitattributes export-ignore
+.gitignore export-ignore
+BUG-AUDIT.md export-ignore
+ideas.md export-ignore

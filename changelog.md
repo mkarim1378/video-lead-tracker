@@ -5,6 +5,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.4.4] - 2026-08-27
+
+### Added
+- **Elementor Dynamic Tags**: `VLT Audio URL`, `VLT Poster Image` (IMAGE category), `VLT Duration`, `VLT Video Key` in the VLT Video group for Theme Builder Single templates.
+- **Elementor Widget — VLT Audio Player**: embeds the waveform audio player; blank Video Key resolves from `_vlt_video_key` post meta (same as Gate / shortcode).
+- **`VLT_Frontend::get_context_post_id()`**: resolves the correct post in Elementor Theme Builder preview (falls back to document `preview_id` when editing a Single template).
+
+### Fixed
+- **CQ-01 — Elementor integration never loading**: registration now hooks `elementor/loaded` when Elementor has not fired yet, instead of a one-shot `did_action` check at `plugins_loaded`.
+- Gate widget and `[vlt_video]` / `[vlt_audio_player]` shortcodes use context post ID for meta resolve.
+
+### Changed
+- `VLT_VERSION` bumped 1.4.3.2 → 1.4.4.
+
+---
+
 ## [1.4.3.2] - 2026-07-07
 
 ### Added

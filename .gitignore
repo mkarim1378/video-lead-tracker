@@ -5,6 +5,7 @@ sms-docs.md
 03-system-flows.md
 04-tracking-and-reporting-rules.md
 05-technical-tasks-checklist.md
+BUG-AUDIT.md
 
 # OS
 .DS_Store
@@ -27,3 +28,6 @@ vendor/
 debug.log
 ideas.md
 *.html
+
+# Editor / agent config directories (generic — do not name tools)
+.*/
