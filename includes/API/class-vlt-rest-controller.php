@@ -52,6 +52,64 @@ class VLT_REST_Controller {
 			'permission_callback' => '__return_true',
 		] );
 
+		register_rest_route( $ns, '/admin/overview', [
+			'methods'             => 'GET',
+			'callback'            => [ self::class, 'handle_admin_overview' ],
+			'permission_callback' => function () { return current_user_can( 'manage_options' ); },
+			'args'                => [
+				'video' => [
+					'type'              => 'string',
+					'sanitize_callback' => 'sanitize_key',
+					'default'           => '',
+				],
+			],
+		] );
+
+		register_rest_route( $ns, '/admin/videos-analytics', [
+			'methods'             => 'GET',
+			'callback'            => [ self::class, 'handle_admin_videos_analytics' ],
+			'permission_callback' => function () { return current_user_can( 'manage_options' ); },
+		] );
+
+		register_rest_route( $ns, '/admin/videos-analytics/(?P<id>\d+)', [
+			'methods'             => 'GET',
+			'callback'            => [ self::class, 'handle_admin_video_analytics_detail' ],
+			'permission_callback' => function () { return current_user_can( 'manage_options' ); },
+			'args'                => [
+				'id' => [
+					'type'              => 'integer',
+					'sanitize_callback' => 'absint',
+					'required'          => true,
+				],
+			],
+		] );
+
+		register_rest_route( $ns, '/admin/funnel', [
+			'methods'             => 'GET',
+			'callback'            => [ self::class, 'handle_admin_funnel' ],
+			'permission_callback' => function () { return current_user_can( 'manage_options' ); },
+			'args'                => [
+				'video_id' => [
+					'type'              => 'integer',
+					'sanitize_callback' => 'absint',
+					'default'           => 0,
+				],
+			],
+		] );
+
+		register_rest_route( $ns, '/admin/heatmap', [
+			'methods'             => 'GET',
+			'callback'            => [ self::class, 'handle_admin_heatmap' ],
+			'permission_callback' => function () { return current_user_can( 'manage_options' ); },
+			'args'                => [
+				'video_id' => [
+					'type'              => 'integer',
+					'sanitize_callback' => 'absint',
+					'default'           => 0,
+				],
+			],
+		] );
+
 		register_rest_route( $ns, '/admin/reset', [
 			'methods'             => 'POST',
 			'callback'            => [ self::class, 'handle_admin_reset' ],
@@ -376,6 +434,37 @@ class VLT_REST_Controller {
 		}
 
 		return self::success( [ 'verified' => true ] );
+	}
+
+	/**
+	 * GET /admin/overview — KPI + recent leads + top videos.
+	 */
+	public static function handle_admin_overview( WP_REST_Request $request ) {
+		$video = sanitize_key( (string) $request->get_param( 'video' ) );
+		$data  = VLT_Admin::get_overview_data( $video );
+		return self::success( [ 'data' => $data ] );
+	}
+
+	public static function handle_admin_videos_analytics() {
+		return self::success( [ 'data' => [ 'videos' => VLT_Admin_Analytics::get_videos_analytics_list() ] ] );
+	}
+
+	public static function handle_admin_video_analytics_detail( WP_REST_Request $request ) {
+		$data = VLT_Admin_Analytics::get_video_analytics_detail( (int) $request['id'] );
+		if ( is_wp_error( $data ) ) {
+			return $data;
+		}
+		return self::success( [ 'data' => $data ] );
+	}
+
+	public static function handle_admin_funnel( WP_REST_Request $request ) {
+		$data = VLT_Admin_Analytics::get_funnel_data( (int) $request->get_param( 'video_id' ) );
+		return self::success( [ 'data' => $data ] );
+	}
+
+	public static function handle_admin_heatmap( WP_REST_Request $request ) {
+		$data = VLT_Admin_Analytics::get_heatmap_data( (int) $request->get_param( 'video_id' ) );
+		return self::success( [ 'data' => $data ] );
 	}
 
 	public static function handle_admin_reset( WP_REST_Request $request ) {

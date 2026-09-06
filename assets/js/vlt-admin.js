@@ -200,35 +200,16 @@
 		} );
 	} );
 
-	/* ---- Heatmap ---- */
+	/* ---- Heatmap (exposed for AJAX remount) ---- */
 
-	document.addEventListener( 'DOMContentLoaded', function () {
-		initHeatmap();
-	} );
-
-	function initHeatmap() {
-		var wrap = document.getElementById( 'vlt-hm-wrap' );
-		if ( ! wrap ) return;
-
-		var buckets    = JSON.parse( wrap.getAttribute( 'data-buckets' )     || '[]' );
-		var maxTotal   = parseInt(   wrap.getAttribute( 'data-max-total' ),   10 ) || 1;
-		var maxUnique  = parseInt(   wrap.getAttribute( 'data-max-unique' ),  10 ) || 1;
-		var maxDropOff = parseInt(   wrap.getAttribute( 'data-max-drop-off' ), 10 ) || 1;
-		var bucketSize = parseInt(   wrap.getAttribute( 'data-bucket-size' ), 10 ) || 1;
-		var metric     = 'total';
-
-		drawLine( buckets, metric, maxTotal, maxUnique, maxDropOff, bucketSize );
-
-		document.querySelectorAll( '.vlt-hm-metric' ).forEach( function ( btn ) {
-			btn.addEventListener( 'click', function () {
-				document.querySelectorAll( '.vlt-hm-metric' ).forEach( function ( b ) {
-					b.classList.remove( 'button-primary' );
-				} );
-				btn.classList.add( 'button-primary' );
-				metric = btn.getAttribute( 'data-metric' );
-				drawLine( buckets, metric, maxTotal, maxUnique, maxDropOff, bucketSize );
-			} );
-		} );
+	function formatTime( seconds ) {
+		seconds = parseInt( seconds, 10 ) || 0;
+		var h = Math.floor( seconds / 3600 );
+		var m = Math.floor( ( seconds % 3600 ) / 60 );
+		var s = seconds % 60;
+		var mm = m < 10 ? '0' + m : '' + m;
+		var ss = s < 10 ? '0' + s : '' + s;
+		return h > 0 ? h + ':' + mm + ':' + ss : m + ':' + ss;
 	}
 
 	function drawLine( buckets, metric, maxTotal, maxUnique, maxDropOff, bucketSize ) {
@@ -244,10 +225,9 @@
 		var maxVal     = isDropOff ? maxDropOff : ( metric === 'total' ? maxTotal : maxUnique );
 		if ( maxVal < 1 ) maxVal = 1;
 
-		var lineColor  = isDropOff ? '#c22f3a' : '#2d2c74';
+		var lineColor  = isDropOff ? '#c22f3a' : '#1a9aa8';
 		var n          = buckets.length;
 
-		// SVG viewport (fixed logical size, scales via viewBox).
 		var VW = 900, VH = 200;
 		var padL = 46, padR = 20, padT = 10, padB = 36;
 		var cW = VW - padL - padR;
@@ -259,7 +239,6 @@
 		svg.setAttribute( 'width', '100%' );
 		svg.style.display = 'block';
 
-		// Y grid lines + labels (5 levels).
 		for ( var gi = 0; gi <= 4; gi++ ) {
 			var gy     = padT + ( cH / 4 ) * gi;
 			var yLabel = Math.round( maxVal * ( 4 - gi ) / 4 );
@@ -267,18 +246,17 @@
 			var gLine = document.createElementNS( ns, 'line' );
 			gLine.setAttribute( 'x1', padL );     gLine.setAttribute( 'y1', gy );
 			gLine.setAttribute( 'x2', padL + cW ); gLine.setAttribute( 'y2', gy );
-			gLine.setAttribute( 'stroke', '#e8e8e8' ); gLine.setAttribute( 'stroke-width', '1' );
+			gLine.setAttribute( 'stroke', '#2a3a3f' ); gLine.setAttribute( 'stroke-width', '1' );
 			svg.appendChild( gLine );
 
 			var gTxt = document.createElementNS( ns, 'text' );
 			gTxt.setAttribute( 'x', padL - 6 ); gTxt.setAttribute( 'y', gy + 4 );
 			gTxt.setAttribute( 'text-anchor', 'end' );
-			gTxt.setAttribute( 'font-size', '11' ); gTxt.setAttribute( 'fill', '#8c8f94' );
+			gTxt.setAttribute( 'font-size', '11' ); gTxt.setAttribute( 'fill', '#8fa3a9' );
 			gTxt.textContent = yLabel;
 			svg.appendChild( gTxt );
 		}
 
-		// Map each bucket to an SVG point.
 		var pts = buckets.map( function ( b, i ) {
 			var val = isDropOff
 				? ( parseInt( b.drop_off, 10 ) || 0 )
@@ -288,7 +266,6 @@
 			return { x: x, y: y, val: val, second: b.second };
 		} );
 
-		// Filled area under the line.
 		var baseY     = padT + cH;
 		var areaCoord = pts[ 0 ].x + ',' + baseY + ' '
 			+ pts.map( function ( p ) { return p.x + ',' + p.y; } ).join( ' ' )
@@ -296,10 +273,9 @@
 		var area = document.createElementNS( ns, 'polygon' );
 		area.setAttribute( 'points', areaCoord );
 		area.setAttribute( 'fill', lineColor );
-		area.setAttribute( 'fill-opacity', '0.08' );
+		area.setAttribute( 'fill-opacity', '0.12' );
 		svg.appendChild( area );
 
-		// Polyline.
 		var poly = document.createElementNS( ns, 'polyline' );
 		poly.setAttribute( 'points', pts.map( function ( p ) { return p.x + ',' + p.y; } ).join( ' ' ) );
 		poly.setAttribute( 'fill', 'none' );
@@ -309,7 +285,6 @@
 		poly.setAttribute( 'stroke-linecap', 'round' );
 		svg.appendChild( poly );
 
-		// Top-3 exit seconds (drop-off mode only).
 		var top3 = [];
 		if ( isDropOff ) {
 			top3 = pts.slice()
@@ -318,7 +293,6 @@
 				.map( function ( p ) { return p.second; } );
 		}
 
-		// Dots + native tooltips (thin out on dense charts).
 		var dotEvery = Math.max( 1, Math.ceil( n / 60 ) );
 		pts.forEach( function ( p, i ) {
 			var isTop = isDropOff && top3.indexOf( p.second ) !== -1 && p.val > 0;
@@ -328,7 +302,7 @@
 			c.setAttribute( 'cx', p.x ); c.setAttribute( 'cy', p.y );
 			c.setAttribute( 'r',  isTop ? 5 : 3 );
 			c.setAttribute( 'fill',         isTop ? '#c22f3a' : lineColor );
-			c.setAttribute( 'stroke',        '#fff' );
+			c.setAttribute( 'stroke',        '#182225' );
 			c.setAttribute( 'stroke-width', '1.5' );
 			var t = document.createElementNS( ns, 'title' );
 			t.textContent = formatTime( p.second ) + '–' + formatTime( p.second + bucketSize ) + ': ' + p.val;
@@ -336,14 +310,12 @@
 			svg.appendChild( c );
 		} );
 
-		// X axis baseline.
 		var bl = document.createElementNS( ns, 'line' );
 		bl.setAttribute( 'x1', padL );      bl.setAttribute( 'y1', padT + cH );
 		bl.setAttribute( 'x2', padL + cW ); bl.setAttribute( 'y2', padT + cH );
-		bl.setAttribute( 'stroke', '#c3c4c7' ); bl.setAttribute( 'stroke-width', '1' );
+		bl.setAttribute( 'stroke', '#2a3a3f' ); bl.setAttribute( 'stroke-width', '1' );
 		svg.appendChild( bl );
 
-		// X axis labels (up to ~10 labels).
 		var labelEvery = Math.max( 1, Math.ceil( n / 10 ) );
 		pts.forEach( function ( p, i ) {
 			if ( i % labelEvery !== 0 && i !== n - 1 ) return;
@@ -351,13 +323,13 @@
 			var tk = document.createElementNS( ns, 'line' );
 			tk.setAttribute( 'x1', p.x ); tk.setAttribute( 'y1', padT + cH );
 			tk.setAttribute( 'x2', p.x ); tk.setAttribute( 'y2', padT + cH + 4 );
-			tk.setAttribute( 'stroke', '#c3c4c7' ); tk.setAttribute( 'stroke-width', '1' );
+			tk.setAttribute( 'stroke', '#2a3a3f' ); tk.setAttribute( 'stroke-width', '1' );
 			svg.appendChild( tk );
 
 			var xt = document.createElementNS( ns, 'text' );
 			xt.setAttribute( 'x', p.x ); xt.setAttribute( 'y', VH - padB + 16 );
 			xt.setAttribute( 'text-anchor', 'middle' );
-			xt.setAttribute( 'font-size', '10' ); xt.setAttribute( 'fill', '#8c8f94' );
+			xt.setAttribute( 'font-size', '10' ); xt.setAttribute( 'fill', '#8fa3a9' );
 			xt.textContent = formatTime( p.second );
 			svg.appendChild( xt );
 		} );
@@ -365,73 +337,239 @@
 		chart.appendChild( svg );
 	}
 
-	function formatTime( seconds ) {
-		seconds = parseInt( seconds, 10 ) || 0;
-		var h = Math.floor( seconds / 3600 );
-		var m = Math.floor( ( seconds % 3600 ) / 60 );
-		var s = seconds % 60;
-		var mm = m < 10 ? '0' + m : '' + m;
-		var ss = s < 10 ? '0' + s : '' + s;
-		return h > 0 ? h + ':' + mm + ':' + ss : m + ':' + ss;
+	function mountHeatmap() {
+		var wrap = document.getElementById( 'vlt-hm-wrap' );
+		if ( ! wrap ) return;
+
+		var buckets    = JSON.parse( wrap.getAttribute( 'data-buckets' )     || '[]' );
+		var maxTotal   = parseInt(   wrap.getAttribute( 'data-max-total' ),   10 ) || 1;
+		var maxUnique  = parseInt(   wrap.getAttribute( 'data-max-unique' ),  10 ) || 1;
+		var maxDropOff = parseInt(   wrap.getAttribute( 'data-max-drop-off' ), 10 ) || 1;
+		var bucketSize = parseInt(   wrap.getAttribute( 'data-bucket-size' ), 10 ) || 1;
+		var metric     = 'total';
+
+		drawLine( buckets, metric, maxTotal, maxUnique, maxDropOff, bucketSize );
+
+		document.querySelectorAll( '.vlt-hm-metric' ).forEach( function ( btn ) {
+			btn.addEventListener( 'click', function () {
+				document.querySelectorAll( '.vlt-hm-metric' ).forEach( function ( b ) {
+					b.classList.remove( 'vlt-btn--primary' );
+					b.classList.add( 'vlt-btn--ghost' );
+				} );
+				btn.classList.add( 'vlt-btn--primary' );
+				btn.classList.remove( 'vlt-btn--ghost' );
+				metric = btn.getAttribute( 'data-metric' );
+				drawLine( buckets, metric, maxTotal, maxUnique, maxDropOff, bucketSize );
+			} );
+		} );
 	}
 
-	/* ---- KPI widget show/hide ---- */
+	window.vltHeatmap = { mount: mountHeatmap };
+
+	/* ---- Overview AJAX + KPI customize (Phase 0) ---- */
 
 	document.addEventListener( 'DOMContentLoaded', function () {
-		var LS_KEY    = 'vlt_hidden_kpi';
-		var btn       = document.querySelector( '.vlt-kpi-customize-btn' );
-		var cards     = document.querySelectorAll( '.vlt-kpi-card[data-kpi-key]' );
+		initOverviewPage();
+		initKpiCustomize();
+	} );
 
-		if ( ! btn || ! cards.length ) return;
+	function i18n( key, fallback ) {
+		var map = ( window.vltAdminData && window.vltAdminData.i18n ) || {};
+		return map[ key ] || fallback || key;
+	}
 
-		var hidden = JSON.parse( localStorage.getItem( LS_KEY ) || '[]' );
+	function initOverviewPage() {
+		var root = document.getElementById( 'vlt-overview-root' );
+		if ( ! root || ! window.vltApi ) return;
 
-		function applyVisibility() {
-			cards.forEach( function ( card ) {
-				var key = card.getAttribute( 'data-kpi-key' );
-				card.style.display = hidden.indexOf( key ) !== -1 ? 'none' : '';
-			} );
+		var abort = null;
+
+		document.addEventListener( 'vlt:video-filter', function ( e ) {
+			var app = document.querySelector( '.vlt-app[data-page="vlt-overview"]' );
+			if ( ! app ) return;
+			var video = ( e.detail && e.detail.video ) || '';
+			refreshOverview( video );
+		} );
+
+		function refreshOverview( video ) {
+			if ( abort ) abort.abort();
+			abort = ( window.AbortController ) ? new AbortController() : null;
+			setOverviewLoading( true );
+
+			window.vltApi.get( 'admin/overview', { video: video }, abort ? { signal: abort.signal } : {} )
+				.then( function ( res ) {
+					if ( ! res || ! res.success || ! res.data ) throw new Error( 'bad response' );
+					renderOverview( res.data );
+				} )
+				.catch( function ( err ) {
+					if ( err && err.name === 'AbortError' ) return;
+					if ( window.vltUi ) window.vltUi.toast( i18n( 'loadError', 'Could not refresh overview data.' ), 'error' );
+					setOverviewLoading( false );
+				} );
 		}
 
-		applyVisibility();
+		function setOverviewLoading( on ) {
+			root.querySelectorAll( '.vlt-kpi-card' ).forEach( function ( c ) {
+				c.classList.toggle( 'is-loading', !! on );
+			} );
+			root.classList.toggle( 'is-loading', !! on );
+		}
+
+		function renderOverview( data ) {
+			root.setAttribute( 'data-video', data.video_key || '' );
+			renderKpis( data.kpis || [] );
+			renderLeads( data.recent_leads || [] );
+			renderVideos( data.top_videos || [] );
+			updateViewAllLinks( data.video_key || '' );
+			setOverviewLoading( false );
+			applyKpiVisibility();
+		}
+
+		function renderKpis( kpis ) {
+			var row = document.getElementById( 'vlt-overview-kpis' );
+			if ( ! row ) return;
+			row.innerHTML = kpis.map( function ( card ) {
+				return '<div class="vlt-kpi-card" data-kpi-key="' + escAttr( card.key ) + '">' +
+					'<span class="vlt-kpi-icon dashicons ' + escAttr( card.icon ) + ' vlt-kpi-icon--' + escAttr( card.key ) + '" aria-hidden="true"></span>' +
+					'<strong class="vlt-kpi-number">' + escHtml( card.value ) + '</strong>' +
+					'<span class="vlt-kpi-label">' + escHtml( card.label ) + '</span>' +
+					'</div>';
+			} ).join( '' );
+		}
+
+		function renderLeads( rows ) {
+			var tbody = root.querySelector( '#vlt-overview-leads tbody' );
+			if ( ! tbody ) return;
+			if ( ! rows.length ) {
+				tbody.innerHTML = '<tr><td colspan="5" class="vlt-empty">' + escHtml( i18n( 'noLeads', 'No leads yet.' ) ) + '</td></tr>';
+				return;
+			}
+			tbody.innerHTML = rows.map( function ( row ) {
+				var badge = row.verified
+					? '<span class="vlt-badge vlt-badge--success">' + escHtml( i18n( 'yes', 'Yes' ) ) + '</span>'
+					: '<span class="vlt-badge">' + escHtml( i18n( 'no', 'No' ) ) + '</span>';
+				return '<tr>' +
+					'<td>' + escHtml( row.name ) + '</td>' +
+					'<td><code class="vlt-mono">' + escHtml( row.mobile ) + '</code></td>' +
+					'<td>' + badge + '</td>' +
+					'<td>' + escHtml( row.avg_watch ) + '</td>' +
+					'<td class="vlt-muted">' + escHtml( row.first_seen ) + '</td>' +
+					'</tr>';
+			} ).join( '' );
+		}
+
+		function renderVideos( rows ) {
+			var tbody = root.querySelector( '#vlt-overview-videos tbody' );
+			if ( ! tbody ) return;
+			if ( ! rows.length ) {
+				tbody.innerHTML = '<tr><td colspan="5" class="vlt-empty">' + escHtml( i18n( 'noVideos', 'No videos yet.' ) ) + '</td></tr>';
+				return;
+			}
+			tbody.innerHTML = rows.map( function ( video ) {
+				var title = '<strong>' + escHtml( video.title ) + '</strong>';
+				if ( video.duration ) {
+					title += '<br><span class="vlt-muted">' + escHtml( video.duration ) + '</span>';
+				}
+				return '<tr>' +
+					'<td>' + title + '</td>' +
+					'<td>' + escHtml( video.viewers ) + '</td>' +
+					'<td>' + escHtml( video.completions ) + '</td>' +
+					'<td>' + escHtml( video.avg_completion ) + '</td>' +
+					'<td>' + escHtml( video.watch_hours ) + '</td>' +
+					'</tr>';
+			} ).join( '' );
+		}
+
+		function updateViewAllLinks( videoKey ) {
+			var leadsLink = root.querySelector( '#vlt-overview-leads .vlt-panel-foot a' );
+			if ( leadsLink ) {
+				var base = ( window.vltAdminData && window.vltAdminData.adminUrl ) || 'admin.php';
+				var url = base + '?page=vlt-leads';
+				if ( videoKey ) url += '&video=' + encodeURIComponent( videoKey );
+				leadsLink.setAttribute( 'href', url );
+			}
+		}
+	}
+
+	var KPI_LS_KEY = 'vlt_hidden_kpi';
+
+	function getHiddenKpis() {
+		try { return JSON.parse( localStorage.getItem( KPI_LS_KEY ) || '[]' ); }
+		catch ( e ) { return []; }
+	}
+
+	function applyKpiVisibility() {
+		var hidden = getHiddenKpis();
+		document.querySelectorAll( '.vlt-kpi-card[data-kpi-key]' ).forEach( function ( card ) {
+			var key = card.getAttribute( 'data-kpi-key' );
+			card.style.display = hidden.indexOf( key ) !== -1 ? 'none' : '';
+		} );
+	}
+
+	function initKpiCustomize() {
+		var btn = document.querySelector( '.vlt-kpi-customize-btn' );
+		if ( ! btn ) return;
+
+		applyKpiVisibility();
 
 		btn.addEventListener( 'click', function () {
 			var existing = document.getElementById( 'vlt-kpi-picker' );
 			if ( existing ) { existing.remove(); return; }
 
+			var cards = document.querySelectorAll( '#vlt-overview-kpis .vlt-kpi-card[data-kpi-key]' );
+			if ( ! cards.length ) return;
+
+			var hidden = getHiddenKpis();
 			var picker = document.createElement( 'div' );
 			picker.id = 'vlt-kpi-picker';
-			picker.style.cssText = 'background:#fff;border:1px solid #c3c4c7;border-radius:4px;padding:12px 16px;margin:8px 0;display:inline-block;';
+			picker.className = 'vlt-kpi-picker-popover';
+			picker.setAttribute( 'role', 'dialog' );
+			picker.setAttribute( 'aria-label', i18n( 'customize', 'Customize Widgets' ) );
 
 			cards.forEach( function ( card ) {
 				var key   = card.getAttribute( 'data-kpi-key' );
 				var label = card.querySelector( '.vlt-kpi-label' );
 				var text  = label ? label.textContent : key;
-
 				var row   = document.createElement( 'label' );
-				row.style.cssText = 'display:block;margin:4px 0;cursor:pointer;';
-
 				var cb    = document.createElement( 'input' );
-				cb.type   = 'checkbox';
+				cb.type = 'checkbox';
 				cb.checked = hidden.indexOf( key ) === -1;
-				cb.style.marginRight = '6px';
 				cb.addEventListener( 'change', function () {
+					var list = getHiddenKpis();
 					if ( cb.checked ) {
-						hidden = hidden.filter( function ( k ) { return k !== key; } );
-					} else {
-						if ( hidden.indexOf( key ) === -1 ) hidden.push( key );
+						list = list.filter( function ( k ) { return k !== key; } );
+					} else if ( list.indexOf( key ) === -1 ) {
+						list.push( key );
 					}
-					localStorage.setItem( LS_KEY, JSON.stringify( hidden ) );
-					applyVisibility();
+					localStorage.setItem( KPI_LS_KEY, JSON.stringify( list ) );
+					applyKpiVisibility();
 				} );
-
 				row.appendChild( cb );
-				row.appendChild( document.createTextNode( text ) );
+				row.appendChild( document.createTextNode( ' ' + text ) );
 				picker.appendChild( row );
 			} );
 
-			btn.insertAdjacentElement( 'afterend', picker );
+			btn.parentNode.appendChild( picker );
 		} );
-	} );
+
+		document.addEventListener( 'click', function ( e ) {
+			var picker = document.getElementById( 'vlt-kpi-picker' );
+			if ( ! picker ) return;
+			if ( e.target.closest( '#vlt-kpi-picker' ) || e.target.closest( '.vlt-kpi-customize-btn' ) ) return;
+			picker.remove();
+		} );
+	}
+
+	function escHtml( str ) {
+		return String( str == null ? '' : str )
+			.replace( /&/g, '&amp;' )
+			.replace( /</g, '&lt;' )
+			.replace( />/g, '&gt;' )
+			.replace( /"/g, '&quot;' );
+	}
+
+	function escAttr( str ) {
+		return escHtml( str ).replace( /'/g, '&#39;' );
+	}
 
 } )();
