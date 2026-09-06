@@ -243,10 +243,10 @@ class VLT_Settings {
 
 		$sections = self::sections();
 
+		$flash_toast = '';
 		if ( isset( $_GET['settings-updated'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
-			add_settings_error( 'vlt_messages', 'vlt_message', __( 'Settings saved.', 'video-lead-tracker' ), 'updated' );
+			$flash_toast = __( 'Settings saved.', 'video-lead-tracker' );
 		}
-		settings_errors( 'vlt_messages' );
 
 		VLT_Admin_UI::open( [
 			'page'     => 'vlt-settings',
@@ -254,7 +254,7 @@ class VLT_Settings {
 			'subtitle' => __( 'Configure tracking, OTP, and data tools.', 'video-lead-tracker' ),
 		] );
 		?>
-		<div class="vlt-settings">
+		<div class="vlt-settings"<?php echo $flash_toast ? ' data-vlt-toast-success="' . esc_attr( $flash_toast ) . '"' : ''; ?>>
 
 			<nav class="vlt-tab-nav vlt-settings-tabs" data-storage-key="vlt_settings_tab" role="tablist">
 				<?php foreach ( $sections as $tab_id => $section ) : ?>

@@ -3,7 +3,7 @@
 # This file is distributed under the same license as the Video Lead Tracker package.
 msgid ""
 msgstr ""
-"Project-Id-Version: Video Lead Tracker 1.4.5\n"
+"Project-Id-Version: Video Lead Tracker 1.4.6\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-05-12 00:00+0000\n"
 "PO-Revision-Date: 2026-09-06 00:00+0000\n"

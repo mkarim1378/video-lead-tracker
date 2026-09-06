@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Video Lead Tracker
  * Description: Gates an HTML5 video behind a lead form, tracks watch ranges, and provides analytics inside WordPress admin.
- * Version:     1.4.5
+ * Version:     1.4.6
  * Author:      محمد کریم قصبه
  * Author-URI:  https://m-karim.ir
  * Text Domain: video-lead-tracker
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'VLT_VERSION',     '1.4.5' );
+define( 'VLT_VERSION',     '1.4.6' );
 define( 'VLT_PLUGIN_FILE', __FILE__ );
 define( 'VLT_PLUGIN_DIR',  plugin_dir_path( __FILE__ ) );
 define( 'VLT_PLUGIN_URL',  plugin_dir_url( __FILE__ ) );
@@ -31,6 +31,7 @@ spl_autoload_register( function ( $class ) {
 		'VLT_Settings'        => 'Settings/class-vlt-settings.php',
 		'VLT_Admin'           => 'Admin/class-vlt-admin.php',
 		'VLT_Admin_UI'        => 'Admin/UI/class-vlt-admin-ui.php',
+		'VLT_Admin_Assets'    => 'Admin/UI/class-vlt-admin-assets.php',
 		'VLT_Admin_Analytics' => 'Admin/class-vlt-admin-analytics.php',
 		'VLT_Admin_Ops'       => 'Admin/class-vlt-admin-ops.php',
 		'VLT_Videos_Admin'    => 'Admin/class-vlt-videos-admin.php',

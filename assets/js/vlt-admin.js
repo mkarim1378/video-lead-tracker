@@ -467,10 +467,23 @@
 		}
 
 		function setOverviewLoading( on ) {
-			root.querySelectorAll( '.vlt-kpi-card' ).forEach( function ( c ) {
-				c.classList.toggle( 'is-loading', !! on );
-			} );
-			root.classList.toggle( 'is-loading', !! on );
+			if ( ! on ) {
+				root.classList.remove( 'is-loading' );
+				return;
+			}
+			root.classList.add( 'is-loading' );
+			var kpiRow = document.getElementById( 'vlt-overview-kpis' );
+			if ( kpiRow && window.vltUi && window.vltUi.kpiSkeletonHtml ) {
+				kpiRow.innerHTML = window.vltUi.kpiSkeletonHtml( kpiRow.querySelectorAll( '.vlt-kpi-card' ).length || 4 );
+			}
+			var leadsBody = root.querySelector( '#vlt-overview-leads tbody' );
+			if ( leadsBody && window.vltUi && window.vltUi.tableSkeletonHtml ) {
+				leadsBody.innerHTML = window.vltUi.tableSkeletonHtml( 5, 4 );
+			}
+			var videosBody = root.querySelector( '#vlt-overview-videos tbody' );
+			if ( videosBody && window.vltUi && window.vltUi.tableSkeletonHtml ) {
+				videosBody.innerHTML = window.vltUi.tableSkeletonHtml( 5, 4 );
+			}
 		}
 
 		function renderOverview( data ) {

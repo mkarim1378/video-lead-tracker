@@ -29,7 +29,20 @@
 
 	function setLoading( el, on ) {
 		if ( ! el ) return;
-		el.classList.toggle( 'is-loading', !! on );
+		if ( on ) {
+			el.classList.add( 'is-loading' );
+			el.setAttribute( 'aria-busy', 'true' );
+			if ( window.vltUi && window.vltUi.kpiSkeletonHtml && window.vltUi.tableSkeletonHtml ) {
+				el.innerHTML =
+					'<div class="vlt-kpi-row">' + window.vltUi.kpiSkeletonHtml( 4 ) + '</div>' +
+					'<div class="vlt-panel"><div class="vlt-panel-body vlt-table-scroll"><table class="vlt-data-table"><tbody>' +
+					window.vltUi.tableSkeletonHtml( 4, 4 ) +
+					'</tbody></table></div></div>';
+			}
+		} else {
+			el.classList.remove( 'is-loading' );
+			el.removeAttribute( 'aria-busy' );
+		}
 	}
 
 	/* ---- Funnel ---- */
@@ -404,6 +417,10 @@
 			if ( abort ) abort.abort();
 			abort = window.AbortController ? new AbortController() : null;
 			root.classList.add( 'is-loading' );
+			var tbody = document.getElementById( 'vlt-leads-tbody' );
+			if ( tbody && window.vltUi && window.vltUi.tableSkeletonHtml ) {
+				tbody.innerHTML = window.vltUi.tableSkeletonHtml( 8, 6 );
+			}
 			syncUrl();
 			window.vltApi.get( 'admin/leads', {
 				s: state.s || undefined,
@@ -491,6 +508,10 @@
 			if ( abort ) abort.abort();
 			abort = window.AbortController ? new AbortController() : null;
 			root.classList.add( 'is-loading' );
+			var tbody = document.getElementById( 'vlt-logs-tbody' );
+			if ( tbody && window.vltUi && window.vltUi.tableSkeletonHtml ) {
+				tbody.innerHTML = window.vltUi.tableSkeletonHtml( 5, 6 );
+			}
 			if ( window.vltUi ) window.vltUi.syncQueryParam( 'vlt_level', level || null );
 			window.vltApi.get( 'admin/logs', { level: level || undefined }, abort ? { signal: abort.signal } : {} )
 				.then( function ( res ) {

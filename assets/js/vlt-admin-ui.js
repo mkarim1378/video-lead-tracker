@@ -128,6 +128,46 @@
 		syncQueryParam( 'video', videoKey );
 	}
 
+	function kpiSkeletonHtml( count ) {
+		count = count || 4;
+		var html = '';
+		for ( var i = 0; i < count; i++ ) {
+			html += '<div class="vlt-kpi-card vlt-kpi-card--skeleton" aria-hidden="true">' +
+				'<span class="vlt-skeleton vlt-skeleton--icon"></span>' +
+				'<span class="vlt-skeleton vlt-skeleton--number"></span>' +
+				'<span class="vlt-skeleton vlt-skeleton--label"></span>' +
+				'</div>';
+		}
+		return html;
+	}
+
+	function tableSkeletonHtml( cols, rows ) {
+		cols = cols || 5;
+		rows = rows || 5;
+		var html = '';
+		for ( var r = 0; r < rows; r++ ) {
+			html += '<tr class="vlt-skeleton-tr" aria-hidden="true">';
+			for ( var c = 0; c < cols; c++ ) {
+				html += '<td><span class="vlt-skeleton vlt-skeleton--cell"></span></td>';
+			}
+			html += '</tr>';
+		}
+		return html;
+	}
+
+	function initFlashToasts() {
+		document.querySelectorAll( '[data-vlt-toast-success]' ).forEach( function ( el ) {
+			var msg = el.getAttribute( 'data-vlt-toast-success' );
+			if ( msg ) showToast( msg, 'success' );
+			el.removeAttribute( 'data-vlt-toast-success' );
+		} );
+		document.querySelectorAll( '[data-vlt-toast-error]' ).forEach( function ( el ) {
+			var msg = el.getAttribute( 'data-vlt-toast-error' );
+			if ( msg ) showToast( msg, 'error' );
+			el.removeAttribute( 'data-vlt-toast-error' );
+		} );
+	}
+
 	function initVideoFilter() {
 		document.querySelectorAll( '[data-vlt-video-filter]' ).forEach( function ( select ) {
 			select.addEventListener( 'change', function () {
@@ -207,6 +247,7 @@
 		initVideoFilter();
 		initVideoIdFilter();
 		initModal();
+		initFlashToasts();
 	} );
 
 	window.vltUi = {
@@ -215,5 +256,7 @@
 		closeModal: closeModal,
 		syncVideoQuery: syncVideoQuery,
 		syncQueryParam: syncQueryParam,
+		kpiSkeletonHtml: kpiSkeletonHtml,
+		tableSkeletonHtml: tableSkeletonHtml,
 	};
 } )( window, document );

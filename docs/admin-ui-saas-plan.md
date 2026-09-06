@@ -2,7 +2,7 @@
 
 **جهت تأییدشده:** داشبورد سفارشی برنددار (مستقل از ظاهر پیش‌فرض WP Admin) + گرافیک و AJAX برای تعامل‌های پرتکرار، با اولویت UX.
 
-**نسخه فعلی افزونه:** 1.4.5  
+**نسخه فعلی افزونه:** 1.4.6  
 **محدوده اصلی:** ۸ صفحه منوی ادمین  
 **محدوده فرعی:** هم‌راستاسازی سبک meta boxهای CPT/پست (بدون بازنویسی کامل آن‌ها)
 
@@ -103,34 +103,34 @@ includes/Admin/
   class-vlt-admin.php              # منو + orchestration (لاغرتر)
   class-vlt-videos-admin.php
   UI/
-    class-vlt-admin-ui.php         # shell, enqueue, body class, helpers
+    class-vlt-admin-ui.php         # shell, body class, helpers
     class-vlt-admin-assets.php     # enqueue CSS/JS chunks
   Views/
-    shell.php
+    shell-open.php
+    shell-close.php
     partials/
       page-header.php
       kpi-card.php
-      data-table.php
+      kpi-row.php
       empty-state.php
       video-filter.php
+      video-id-filter.php
       toast-host.php
       confirm-modal.php
       skeleton.php
     pages/
       overview.php
       leads-list.php
-      leads-detail.php
       ...
 assets/css/
-  vlt-admin.css                    # tokens + base (یا split)
-  vlt-admin-components.css         # اختیاری اگر فایل بزرگ شد
+  vlt-admin.css
 assets/js/
-  vlt-admin.js                     # bootstrap
-  vlt-admin-api.js                 # fetch wrapper + nonce
-  vlt-admin-ui.js                  # toast, modal, tabs, skeleton
-  vlt-admin-pages.js               # page controllers (filter/table/heatmap)
+  vlt-admin.js
+  vlt-admin-api.js
+  vlt-admin-ui.js
+  vlt-admin-pages.js
 includes/API/
-  class-vlt-rest-controller.php    # endpoints ادمین جدید
+  class-vlt-rest-controller.php
 ```
 
 Autoload map در `video-lead-tracker.php` برای کلاس‌های `UI/*` به‌روز می‌شود.

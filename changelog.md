@@ -5,6 +5,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.4.6] - 2026-09-06
+
+### Added
+- **Settings save toast**: successful save shows an in-app toast instead of a WP admin notice.
+- **Loading skeletons**: KPI and table skeleton placeholders during Overview / Leads / Logs / analytics AJAX refresh.
+- **`VLT_Admin_Assets`**: enqueue/localize moved out of `VLT_Admin`; shared style helper for meta box screens.
+- View partials: `page-header`, `toast-host`, `confirm-modal`, `skeleton`, `kpi-card`.
+
+### Changed
+- `VLT_VERSION` bumped 1.4.5 → 1.4.6.
+
+---
+
 ## [1.4.5] - 2026-09-06
 
 ### Added

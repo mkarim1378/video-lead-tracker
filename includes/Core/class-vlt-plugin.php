@@ -32,6 +32,7 @@ class VLT_Plugin {
 		VLT_CPT::init();
 		VLT_Videos_Admin::init();
 		VLT_Admin_UI::init();
+		VLT_Admin_Assets::init();
 		VLT_Admin::init();
 		VLT_Exporter::init();
 		VLT_REST_Controller::init();

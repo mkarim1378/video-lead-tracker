@@ -25,12 +25,7 @@ class VLT_Videos_Admin {
 		}
 		$needs_style = in_array( $screen->post_type, [ VLT_CPT::POST_TYPE, 'post', 'page' ], true );
 		if ( $needs_style ) {
-			wp_enqueue_style(
-				'vlt-admin',
-				VLT_PLUGIN_URL . 'assets/css/vlt-admin.css',
-				[],
-				VLT_VERSION
-			);
+			VLT_Admin_Assets::enqueue_style();
 		}
 		if ( $screen->post_type === VLT_CPT::POST_TYPE ) {
 			wp_enqueue_media();
