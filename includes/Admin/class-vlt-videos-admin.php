@@ -517,86 +517,47 @@ class VLT_Videos_Admin {
 		if ( $error ) {
 			delete_transient( 'vlt_video_error_' . get_current_user_id() );
 		}
+
+		$notice = '';
+		if ( ! empty( $_GET['added'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+			$notice = 'added';
+		} elseif ( ! empty( $_GET['updated'] ) ) { // phpcs:ignore
+			$notice = 'updated';
+		} elseif ( ! empty( $_GET['deleted'] ) ) { // phpcs:ignore
+			$notice = 'deleted';
+		}
+
+		ob_start();
 		?>
-		<div class="wrap">
-			<h1 class="wp-heading-inline"><?php esc_html_e( 'Videos', 'video-lead-tracker' ); ?></h1>
-			<a href="<?php echo esc_url( add_query_arg( 'action', 'add', $base_url ) ); ?>" class="page-title-action">
-				<?php esc_html_e( 'Add New', 'video-lead-tracker' ); ?>
-			</a>
-
-			<?php if ( ! empty( $_GET['added'] ) ) : ?>
-				<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Video added.', 'video-lead-tracker' ); ?></p></div>
-			<?php elseif ( ! empty( $_GET['updated'] ) ) : ?>
-				<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Video updated.', 'video-lead-tracker' ); ?></p></div>
-			<?php elseif ( ! empty( $_GET['deleted'] ) ) : ?>
-				<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Video deleted.', 'video-lead-tracker' ); ?></p></div>
-			<?php endif; ?>
-			<?php if ( $error ) : ?>
-				<div class="notice notice-error is-dismissible"><p><?php echo esc_html( $error ); ?></p></div>
-			<?php endif; ?>
-
-			<?php if ( empty( $videos ) ) : ?>
-				<p><?php esc_html_e( 'No videos registered yet.', 'video-lead-tracker' ); ?>
-				   <a href="<?php echo esc_url( add_query_arg( 'action', 'add', $base_url ) ); ?>"><?php esc_html_e( 'Add your first video.', 'video-lead-tracker' ); ?></a>
-				</p>
-			<?php else : ?>
-				<table class="wp-list-table widefat fixed striped">
-					<thead>
-						<tr>
-							<th><?php esc_html_e( 'Key',          'video-lead-tracker' ); ?></th>
-							<th><?php esc_html_e( 'Title',        'video-lead-tracker' ); ?></th>
-							<th><?php esc_html_e( 'Linked Post',  'video-lead-tracker' ); ?></th>
-							<th><?php esc_html_e( 'Duration',     'video-lead-tracker' ); ?></th>
-							<th><?php esc_html_e( 'OTP',          'video-lead-tracker' ); ?></th>
-							<th><?php esc_html_e( 'Active',       'video-lead-tracker' ); ?></th>
-							<th><?php esc_html_e( 'Shortcode',    'video-lead-tracker' ); ?></th>
-							<th><?php esc_html_e( 'Actions',      'video-lead-tracker' ); ?></th>
-						</tr>
-					</thead>
-					<tbody>
-					<?php foreach ( $videos as $v ) :
-						$linked_post = self::get_linked_post( $v->video_key );
-					?>
-						<tr>
-							<td><code><?php echo esc_html( $v->video_key ); ?></code></td>
-							<td><?php echo esc_html( $v->title ?: '—' ); ?></td>
-							<td>
-								<?php if ( $linked_post ) : ?>
-									<a href="<?php echo esc_url( get_edit_post_link( $linked_post->ID ) ); ?>">
-										<?php echo esc_html( $linked_post->post_title ?: '(' . __( 'no title', 'video-lead-tracker' ) . ')' ); ?>
-									</a>
-								<?php else : ?>
-									—
-								<?php endif; ?>
-							</td>
-							<td><?php echo $v->duration_seconds ? esc_html( $v->duration_seconds ) . 's' : '—'; ?></td>
-							<td><?php echo $v->enable_otp ? '✓' : '—'; ?></td>
-							<td><?php echo $v->is_active ? '✓' : '—'; ?></td>
-							<td>
-								<code>[vlt_video key="<?php echo esc_attr( $v->video_key ); ?>"]</code>
-								<?php if ( ! empty( $v->audio_url ) ) : ?>
-									<br><code style="font-size:11px">[vlt_audio_player key="<?php echo esc_attr( $v->video_key ); ?>"]</code>
-								<?php endif; ?>
-							</td>
-							<td>
-								<a href="<?php echo esc_url( add_query_arg( [ 'action' => 'edit', 'video_id' => $v->id ], $base_url ) ); ?>">
-									<?php esc_html_e( 'Edit', 'video-lead-tracker' ); ?>
-								</a>
-								&nbsp;|&nbsp;
-								<form method="post" style="display:inline;" onsubmit="return confirm('<?php esc_attr_e( 'Delete this video? Analytics data will be preserved.', 'video-lead-tracker' ); ?>');">
-									<?php wp_nonce_field( 'vlt_video_save' ); ?>
-									<input type="hidden" name="vlt_video_action" value="delete">
-									<input type="hidden" name="video_id" value="<?php echo (int) $v->id; ?>">
-									<button type="submit" class="button-link" style="color:#a00;"><?php esc_html_e( 'Delete', 'video-lead-tracker' ); ?></button>
-								</form>
-							</td>
-						</tr>
-					<?php endforeach; ?>
-					</tbody>
-				</table>
-			<?php endif; ?>
-		</div>
+		<a class="vlt-btn vlt-btn--primary" href="<?php echo esc_url( add_query_arg( 'action', 'add', $base_url ) ); ?>">
+			<?php esc_html_e( 'Add New', 'video-lead-tracker' ); ?>
+		</a>
 		<?php
+		$actions = ob_get_clean();
+
+		VLT_Admin_UI::open( [
+			'page'         => 'vlt-videos',
+			'title'        => __( 'Videos', 'video-lead-tracker' ),
+			'subtitle'     => __( 'Manage gated videos, shortcodes, and lead forms.', 'video-lead-tracker' ),
+			'actions_html' => $actions,
+		] );
+		VLT_Admin_UI::render( 'pages/videos-list', [
+			'videos'   => $videos,
+			'base_url' => $base_url,
+			'error'    => $error,
+			'notice'   => $notice,
+		] );
+		VLT_Admin_UI::close();
+	}
+
+	/**
+	 * Public accessor for Views.
+	 *
+	 * @param string $video_key
+	 * @return WP_Post|null
+	 */
+	public static function get_linked_post_public( $video_key ) {
+		return self::get_linked_post( $video_key );
 	}
 
 	private static function get_linked_post( $video_key ) {
@@ -634,171 +595,24 @@ class VLT_Videos_Admin {
 			'enable_otp'         => $is_edit ? (bool) $video->enable_otp  : false,
 			'is_active'          => $is_edit ? (bool) $video->is_active    : true,
 		];
+
+		ob_start();
 		?>
-		<div class="wrap">
-			<h1><?php echo $is_edit ? esc_html__( 'Edit Video', 'video-lead-tracker' ) : esc_html__( 'Add Video', 'video-lead-tracker' ); ?></h1>
-			<a href="<?php echo esc_url( $base_url ); ?>">&larr; <?php esc_html_e( 'Back to Videos', 'video-lead-tracker' ); ?></a>
-
-			<form method="post" style="margin-top:20px;">
-				<?php wp_nonce_field( 'vlt_video_save' ); ?>
-				<input type="hidden" name="vlt_video_action" value="save">
-				<?php if ( $is_edit ) : ?>
-					<input type="hidden" name="video_id" value="<?php echo (int) $video->id; ?>">
-				<?php endif; ?>
-
-				<table class="form-table" role="presentation">
-
-					<tr>
-						<th><label for="vlt_video_key"><?php esc_html_e( 'Video Key', 'video-lead-tracker' ); ?> <span style="color:red">*</span></label></th>
-						<td>
-							<input type="text" id="vlt_video_key" name="video_key" value="<?php echo esc_attr( $f['video_key'] ); ?>"
-							       class="regular-text" <?php echo $is_edit ? 'readonly' : ''; ?> required />
-							<p class="description"><?php esc_html_e( 'Unique slug used in the shortcode key attribute. Cannot be changed after creation.', 'video-lead-tracker' ); ?></p>
-						</td>
-					</tr>
-
-					<tr>
-						<th><label for="vlt_title"><?php esc_html_e( 'Title', 'video-lead-tracker' ); ?></label></th>
-						<td>
-							<input type="text" id="vlt_title" name="title" value="<?php echo esc_attr( $f['title'] ); ?>" class="regular-text" />
-							<p class="description"><?php esc_html_e( 'Display name shown in admin reports.', 'video-lead-tracker' ); ?></p>
-						</td>
-					</tr>
-
-					<tr>
-						<th><label for="vlt_video_url"><?php esc_html_e( 'Video URL', 'video-lead-tracker' ); ?></label></th>
-						<td>
-							<div style="display:flex;align-items:center;gap:8px">
-								<input type="url" id="vlt_video_url" name="video_url"
-								       value="<?php echo esc_attr( $f['video_url'] ); ?>" class="large-text" />
-								<a id="vlt-form-test-link"
-								   href="<?php echo $f['video_url'] ? esc_url( $f['video_url'] ) : '#'; ?>"
-								   target="_blank" rel="noopener"
-								   style="white-space:nowrap<?php echo $f['video_url'] ? '' : ';visibility:hidden'; ?>">
-									<?php esc_html_e( 'Test ↗', 'video-lead-tracker' ); ?>
-								</a>
-							</div>
-						</td>
-					</tr>
-
-					<tr>
-						<th><label for="vlt_poster_url"><?php esc_html_e( 'Poster Image URL', 'video-lead-tracker' ); ?></label></th>
-						<td>
-							<input type="url" id="vlt_poster_url" name="poster_url"
-							       value="<?php echo esc_attr( $f['poster_url'] ); ?>" class="large-text" />
-							<div id="vlt-form-poster-wrap" style="margin-top:8px<?php echo $f['poster_url'] ? '' : ';display:none'; ?>">
-								<img id="vlt-form-poster-img"
-								     src="<?php echo esc_url( $f['poster_url'] ); ?>"
-								     alt=""
-								     style="max-width:240px;max-height:135px;border:1px solid #c3c4c7;border-radius:2px">
-							</div>
-							<p class="description"><?php esc_html_e( 'Thumbnail shown before the video plays.', 'video-lead-tracker' ); ?></p>
-						</td>
-					</tr>
-
-					<tr>
-						<th><label for="vlt_audio_url"><?php esc_html_e( 'Audio URL', 'video-lead-tracker' ); ?></label></th>
-						<td>
-							<input type="url" id="vlt_audio_url" name="audio_url"
-							       value="<?php echo esc_attr( $f['audio_url'] ); ?>" class="large-text"
-							       placeholder="https://example.com/audio.mp3" />
-							<p class="description"><?php esc_html_e( 'Direct URL to the audio file (MP3). Use [vlt_audio_player] shortcode to embed the audio player.', 'video-lead-tracker' ); ?></p>
-						</td>
-					</tr>
-
-					<tr>
-						<th><label for="vlt_duration"><?php esc_html_e( 'Duration (seconds)', 'video-lead-tracker' ); ?></label></th>
-						<td>
-							<input type="number" id="vlt_duration" name="duration_seconds" value="<?php echo esc_attr( (string) $f['duration_seconds'] ); ?>" min="0" class="small-text" />
-							<p class="description"><?php esc_html_e( 'Used to calculate watch percentage. Set 0 to auto-detect.', 'video-lead-tracker' ); ?></p>
-						</td>
-					</tr>
-
-					<tr><th colspan="2"><h2 style="margin:0;padding:16px 0 4px;"><?php esc_html_e( 'Lead Form', 'video-lead-tracker' ); ?></h2></th></tr>
-
-					<tr>
-						<th><label for="vlt_form_title"><?php esc_html_e( 'Form Title', 'video-lead-tracker' ); ?></label></th>
-						<td><input type="text" id="vlt_form_title" name="form_title" value="<?php echo esc_attr( $f['form_title'] ); ?>" class="regular-text" /></td>
-					</tr>
-
-					<tr>
-						<th><label for="vlt_name_label"><?php esc_html_e( 'Name Field Label', 'video-lead-tracker' ); ?></label></th>
-						<td><input type="text" id="vlt_name_label" name="name_label" value="<?php echo esc_attr( $f['name_label'] ); ?>" class="regular-text" /></td>
-					</tr>
-
-					<tr>
-						<th><label for="vlt_mobile_label"><?php esc_html_e( 'Mobile Field Label', 'video-lead-tracker' ); ?></label></th>
-						<td><input type="text" id="vlt_mobile_label" name="mobile_label" value="<?php echo esc_attr( $f['mobile_label'] ); ?>" class="regular-text" /></td>
-					</tr>
-
-					<tr>
-						<th><label for="vlt_submit_btn"><?php esc_html_e( 'Submit Button Text', 'video-lead-tracker' ); ?></label></th>
-						<td><input type="text" id="vlt_submit_btn" name="submit_button_text" value="<?php echo esc_attr( $f['submit_button_text'] ); ?>" class="regular-text" /></td>
-					</tr>
-
-					<tr>
-						<th><label for="vlt_success_message"><?php esc_html_e( 'Success Message', 'video-lead-tracker' ); ?></label></th>
-						<td><textarea id="vlt_success_message" name="success_message" rows="2" class="large-text"><?php echo esc_textarea( $f['success_message'] ); ?></textarea></td>
-					</tr>
-
-					<tr><th colspan="2"><h2 style="margin:0;padding:16px 0 4px;"><?php esc_html_e( 'Options', 'video-lead-tracker' ); ?></h2></th></tr>
-
-					<tr>
-						<th><?php esc_html_e( 'OTP Verification', 'video-lead-tracker' ); ?></th>
-						<td>
-							<label>
-								<input type="checkbox" name="enable_otp" value="1" <?php checked( $f['enable_otp'] ); ?> />
-								<?php esc_html_e( 'Require SMS OTP before showing this video', 'video-lead-tracker' ); ?>
-							</label>
-							<p class="description"><?php esc_html_e( 'OTP provider settings are configured in Settings → OTP.', 'video-lead-tracker' ); ?></p>
-						</td>
-					</tr>
-
-					<tr>
-						<th><?php esc_html_e( 'Active', 'video-lead-tracker' ); ?></th>
-						<td>
-							<label>
-								<input type="checkbox" name="is_active" value="1" <?php checked( $f['is_active'] ); ?> />
-								<?php esc_html_e( 'Video is active and visible via shortcode', 'video-lead-tracker' ); ?>
-							</label>
-						</td>
-					</tr>
-
-				</table>
-
-				<?php submit_button( $is_edit ? __( 'Update Video', 'video-lead-tracker' ) : __( 'Add Video', 'video-lead-tracker' ) ); ?>
-			</form>
-		</div>
-
-		<script>
-		( function () {
-			var videoIn  = document.getElementById( 'vlt_video_url' );
-			var testLink = document.getElementById( 'vlt-form-test-link' );
-			var posterIn = document.getElementById( 'vlt_poster_url' );
-			var posterWr = document.getElementById( 'vlt-form-poster-wrap' );
-			var posterIm = document.getElementById( 'vlt-form-poster-img' );
-
-			if ( videoIn && testLink ) {
-				videoIn.addEventListener( 'input', function () {
-					var u = videoIn.value.trim();
-					testLink.href = u || '#';
-					testLink.style.visibility = u ? '' : 'hidden';
-				} );
-			}
-
-			if ( posterIn && posterWr && posterIm ) {
-				posterIn.addEventListener( 'blur', function () {
-					var u = posterIn.value.trim();
-					if ( u ) {
-						posterIm.src = u;
-						posterWr.style.display = '';
-					} else {
-						posterWr.style.display = 'none';
-					}
-				} );
-			}
-		}() );
-		</script>
+		<a class="vlt-btn vlt-btn--ghost" href="<?php echo esc_url( $base_url ); ?>"><?php esc_html_e( '← Back to Videos', 'video-lead-tracker' ); ?></a>
 		<?php
+		$actions = ob_get_clean();
+
+		VLT_Admin_UI::open( [
+			'page'         => 'vlt-videos',
+			'title'        => $is_edit ? __( 'Edit Video', 'video-lead-tracker' ) : __( 'Add Video', 'video-lead-tracker' ),
+			'subtitle'     => __( 'Media, lead form copy, and playback options.', 'video-lead-tracker' ),
+			'actions_html' => $actions,
+		] );
+		VLT_Admin_UI::render( 'pages/videos-form', [
+			'is_edit' => $is_edit,
+			'f'       => $f,
+			'video'   => $video,
+		] );
+		VLT_Admin_UI::close();
 	}
 }

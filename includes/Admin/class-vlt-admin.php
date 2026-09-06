@@ -90,6 +90,11 @@ class VLT_Admin {
 				'sessions'       => __( 'Sessions', 'video-lead-tracker' ),
 				'completed'      => __( 'Completed', 'video-lead-tracker' ),
 				'firstPlay'      => __( 'First Play', 'video-lead-tracker' ),
+				'noLeadsFound'   => __( 'No leads found.', 'video-lead-tracker' ),
+				'showingRange'   => __( 'Showing %1$d to %2$d of %3$d', 'video-lead-tracker' ),
+				'logsCount'      => __( 'Showing last %1$d of %2$d entries', 'video-lead-tracker' ),
+				'noLogs'         => __( 'No log entries.', 'video-lead-tracker' ),
+				'copied'         => __( 'Copied to clipboard.', 'video-lead-tracker' ),
 			],
 		] );
 	}
@@ -351,223 +356,10 @@ class VLT_Admin {
 	// -------------------------------------------------------------------------
 
 	public static function render_leads() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return;
-		}
-		$lead_id = isset( $_GET['lead_id'] ) ? absint( $_GET['lead_id'] ) : 0;
-		if ( $lead_id ) {
-			self::render_lead_detail( $lead_id );
-		} else {
-			self::render_lead_list();
-		}
+		VLT_Admin_Ops::render_leads();
 	}
 
-	private static function render_lead_list() {
-		global $wpdb;
-		$p = $wpdb->prefix;
-
-		// ---- Sanitized input ----
-		$search  = sanitize_text_field( $_GET['s']       ?? '' );
-		$orderby = sanitize_key(        $_GET['orderby'] ?? 'first_seen_at' );
-		$order   = strtoupper( sanitize_key( $_GET['order'] ?? 'DESC' ) );
-		$paged   = max( 1, (int) ( $_GET['paged'] ?? 1 ) );
-
-		$per_page = 20;
-		$offset   = ( $paged - 1 ) * $per_page;
-
-		$allowed_cols = [ 'id', 'primary_name', 'first_seen_at', 'last_seen_at', 'is_verified', 'avg_watch', 'videos_count', 'sessions_count' ];
-		if ( ! in_array( $orderby, $allowed_cols, true ) ) {
-			$orderby = 'first_seen_at';
-		}
-		if ( ! in_array( $order, [ 'ASC', 'DESC' ], true ) ) {
-			$order = 'DESC';
-		}
-
-		// ---- Video filter ----
-		$filter_video_key = sanitize_key( $_GET['video'] ?? '' );
-		$filter_vid_id    = 0;
-		if ( $filter_video_key ) {
-			foreach ( VLT_DB::get_all_videos() as $v ) {
-				if ( $v->video_key === $filter_video_key ) {
-					$filter_vid_id = (int) $v->id;
-					break;
-				}
-			}
-		}
-
-		if ( $filter_vid_id ) {
-			$join_sql    = "JOIN {$p}vlt_video_user_summary s ON s.lead_id = l.id AND s.video_id = %d";
-			$join_params = [ $filter_vid_id ];
-		} else {
-			$join_sql    = "LEFT JOIN {$p}vlt_video_user_summary s ON s.lead_id = l.id";
-			$join_params = [];
-		}
-
-		// ---- WHERE clause ----
-		$where        = '';
-		$where_params = [];
-		if ( $search !== '' ) {
-			$like         = '%' . $wpdb->esc_like( $search ) . '%';
-			$where        = 'WHERE ( l.primary_name LIKE %s OR l.normalized_mobile LIKE %s )';
-			$where_params = [ $like, $like ];
-		}
-
-		// ---- Total count ----
-		$all_params = array_merge( $join_params, $where_params );
-		$count_sql  = "SELECT COUNT( DISTINCT l.id ) FROM {$p}vlt_leads l $join_sql $where";
-		$total      = (int) ( $all_params
-			? $wpdb->get_var( $wpdb->prepare( $count_sql, $all_params ) )
-			: $wpdb->get_var( $count_sql )
-		);
-
-		// ---- Main query ----
-		$sql = "SELECT l.id, l.primary_name, l.normalized_mobile, l.is_verified,
-		               l.first_seen_at, l.last_seen_at,
-		               COUNT( DISTINCT s.video_id )               AS videos_count,
-		               COALESCE( AVG(s.unique_watch_percent), 0 ) AS avg_watch,
-		               ( SELECT COUNT(*) FROM {$p}vlt_sessions WHERE lead_id = l.id ) AS sessions_count
-		        FROM {$p}vlt_leads l
-		        $join_sql
-		        $where
-		        GROUP BY l.id
-		        ORDER BY $orderby $order
-		        LIMIT %d OFFSET %d";
-
-		$leads = $wpdb->get_results(
-			$wpdb->prepare( $sql, array_merge( $join_params, $where_params, [ $per_page, $offset ] ) )
-		);
-
-		$total_pages = max( 1, (int) ceil( $total / $per_page ) );
-		$paged       = min( $paged, $total_pages );
-		$offset      = ( $paged - 1 ) * $per_page;
-		$base_url    = add_query_arg(
-			array_filter( [ 'video' => $filter_video_key ?: null ] ),
-			admin_url( 'admin.php?page=vlt-leads' )
-		);
-		$sort_base   = add_query_arg( array_filter( [
-			's'       => $search ?: null,
-			'orderby' => ( $orderby !== 'first_seen_at' ) ? $orderby : null,
-			'order'   => ( $order  !== 'DESC'           ) ? $order   : null,
-		] ), $base_url );
-
-		$showing_from = min( $offset + 1, max( $total, 1 ) );
-		$showing_to   = min( $offset + $per_page, $total );
-		?>
-		<div class="wrap">
-			<h1 class="wp-heading-inline"><?php esc_html_e( 'Leads', 'video-lead-tracker' ); ?></h1>
-			<a href="<?php echo esc_url( VLT_Exporter::export_url( 'leads' ) ); ?>" class="page-title-action">
-				<?php esc_html_e( 'Export CSV', 'video-lead-tracker' ); ?>
-			</a>
-			<hr class="wp-header-end">
-
-			<?php self::video_filter_select( 'vlt-leads' ); ?>
-
-			<form method="get" class="vlt-search-form">
-				<input type="hidden" name="page" value="vlt-leads">
-				<?php if ( $filter_video_key ) : ?>
-					<input type="hidden" name="video" value="<?php echo esc_attr( $filter_video_key ); ?>">
-				<?php endif; ?>
-				<input type="search" name="s" value="<?php echo esc_attr( $search ); ?>"
-				       placeholder="<?php esc_attr_e( 'Search leads…', 'video-lead-tracker' ); ?>"
-				       class="vlt-search-input">
-				<button type="submit" class="button"><?php esc_html_e( 'Search', 'video-lead-tracker' ); ?></button>
-				<?php if ( $search ) : ?>
-					<a href="<?php echo esc_url( $base_url ); ?>" class="button button-link"><?php esc_html_e( 'Clear', 'video-lead-tracker' ); ?></a>
-				<?php endif; ?>
-			</form>
-
-			<div class="tablenav top">
-				<div class="tablenav-pages">
-					<span class="displaying-num">
-						<?php
-						printf(
-							/* translators: 1: first result number 2: last result number 3: total results */
-							esc_html__( 'Showing %1$d to %2$d of %3$d', 'video-lead-tracker' ),
-							$showing_from, $showing_to, $total
-						);
-						?>
-					</span>
-					<?php if ( $total_pages > 1 ) : ?>
-						<?php echo paginate_links( [ // phpcs:ignore
-							'base'      => add_query_arg( 'paged', '%#%', $sort_base ),
-							'format'    => '',
-							'current'   => $paged,
-							'total'     => $total_pages,
-							'prev_text' => '&laquo;',
-							'next_text' => '&raquo;',
-						] ); ?>
-					<?php endif; ?>
-				</div>
-			</div>
-
-			<table class="widefat striped vlt-table">
-				<thead>
-					<tr>
-						<th class="vlt-col-num"><?php echo self::sort_link( '#', 'id', $orderby, $order, $sort_base ); // phpcs:ignore ?></th>
-						<th><?php echo self::sort_link( __( 'Name', 'video-lead-tracker' ), 'primary_name', $orderby, $order, $sort_base ); // phpcs:ignore ?></th>
-						<th><?php esc_html_e( 'Mobile', 'video-lead-tracker' ); ?></th>
-						<th><?php echo self::sort_link( __( 'Verified', 'video-lead-tracker' ), 'is_verified', $orderby, $order, $sort_base ); // phpcs:ignore ?></th>
-						<th><?php echo self::sort_link( __( 'Videos Watched', 'video-lead-tracker' ), 'videos_count', $orderby, $order, $sort_base ); // phpcs:ignore ?></th>
-						<th><?php echo self::sort_link( __( 'Avg Watch', 'video-lead-tracker' ), 'avg_watch', $orderby, $order, $sort_base ); // phpcs:ignore ?></th>
-						<th><?php echo self::sort_link( __( 'Sessions', 'video-lead-tracker' ), 'sessions_count', $orderby, $order, $sort_base ); // phpcs:ignore ?></th>
-						<th><?php echo self::sort_link( __( 'First Seen', 'video-lead-tracker' ), 'first_seen_at', $orderby, $order, $sort_base ); // phpcs:ignore ?></th>
-					</tr>
-				</thead>
-				<tbody>
-				<?php if ( $leads ) : ?>
-					<?php foreach ( $leads as $i => $row ) :
-						$detail_url = add_query_arg( [ 'page' => 'vlt-leads', 'lead_id' => $row->id ], admin_url( 'admin.php' ) );
-					?>
-					<tr>
-						<td class="vlt-muted vlt-col-num"><?php echo esc_html( $row->id ); ?></td>
-						<td><a href="<?php echo esc_url( $detail_url ); ?>"><?php echo esc_html( $row->primary_name ?: '—' ); ?></a></td>
-						<td><code class="vlt-mono"><?php echo esc_html( $row->normalized_mobile ); ?></code></td>
-						<td>
-							<?php if ( $row->is_verified ) : ?>
-								<span class="vlt-badge vlt-badge--green"><?php esc_html_e( 'Yes', 'video-lead-tracker' ); ?></span>
-							<?php else : ?>
-								<span class="vlt-badge"><?php esc_html_e( 'No', 'video-lead-tracker' ); ?></span>
-							<?php endif; ?>
-						</td>
-						<td><?php echo esc_html( number_format_i18n( (int) $row->videos_count ) ); ?></td>
-						<td>
-							<div class="vlt-progress">
-								<div class="vlt-progress-track">
-									<div class="vlt-progress-bar" style="width:<?php echo esc_attr( min( 100, (int) round( $row->avg_watch ) ) ); ?>%"></div>
-								</div>
-								<span><?php echo esc_html( round( (float) $row->avg_watch, 1 ) . '%' ); ?></span>
-							</div>
-						</td>
-						<td><?php echo esc_html( number_format_i18n( (int) $row->sessions_count ) ); ?></td>
-						<td class="vlt-muted"><?php echo esc_html( wp_date( 'Y-m-d', strtotime( $row->first_seen_at ) ) ); ?></td>
-					</tr>
-					<?php endforeach; ?>
-				<?php else : ?>
-					<tr><td colspan="8" class="vlt-empty"><?php esc_html_e( 'No leads found.', 'video-lead-tracker' ); ?></td></tr>
-				<?php endif; ?>
-				</tbody>
-			</table>
-
-			<?php if ( $total_pages > 1 ) : ?>
-			<div class="tablenav bottom">
-				<div class="tablenav-pages">
-					<?php echo paginate_links( [ // phpcs:ignore
-						'base'      => add_query_arg( 'paged', '%#%', $sort_base ),
-						'format'    => '',
-						'current'   => $paged,
-						'total'     => $total_pages,
-						'prev_text' => '&laquo;',
-						'next_text' => '&raquo;',
-					] ); ?>
-				</div>
-			</div>
-			<?php endif; ?>
-
-		</div>
-		<?php
-	}
-
-	private static function render_lead_detail( $lead_id ) {
+	public static function render_lead_detail( $lead_id ) {
 		global $wpdb;
 		$p = $wpdb->prefix;
 
@@ -577,7 +369,16 @@ class VLT_Admin {
 		) );
 
 		if ( ! $lead ) {
-			echo '<div class="wrap"><p>' . esc_html__( 'Lead not found.', 'video-lead-tracker' ) . '</p></div>';
+			VLT_Admin_UI::open( [
+				'page'  => 'vlt-leads',
+				'title' => __( 'Leads', 'video-lead-tracker' ),
+			] );
+			VLT_Admin_UI::render( 'partials/empty-state', [
+				'icon'    => 'warning',
+				'title'   => __( 'Lead not found', 'video-lead-tracker' ),
+				'message' => __( 'This lead may have been deleted.', 'video-lead-tracker' ),
+			] );
+			VLT_Admin_UI::close();
 			return;
 		}
 
@@ -603,14 +404,22 @@ class VLT_Admin {
 
 		$date_fmt = get_option( 'date_format' ) . ' H:i';
 		$back_url = admin_url( 'admin.php?page=vlt-leads' );
-		?>
-		<div class="wrap vlt-lead-detail">
+		$title    = $lead->primary_name ?: __( '(no name)', 'video-lead-tracker' );
 
-			<h1 class="wp-heading-inline">
-				<a href="<?php echo esc_url( $back_url ); ?>" class="vlt-back-link">&larr; <?php esc_html_e( 'Leads', 'video-lead-tracker' ); ?></a>
-				<?php echo esc_html( $lead->primary_name ?: __( '(no name)', 'video-lead-tracker' ) ); ?>
-			</h1>
-			<hr class="wp-header-end">
+		ob_start();
+		?>
+		<a class="vlt-btn vlt-btn--ghost" href="<?php echo esc_url( $back_url ); ?>"><?php esc_html_e( '← All leads', 'video-lead-tracker' ); ?></a>
+		<?php
+		$actions = ob_get_clean();
+
+		VLT_Admin_UI::open( [
+			'page'         => 'vlt-leads',
+			'title'        => $title,
+			'subtitle'     => __( 'Lead profile and watch history.', 'video-lead-tracker' ),
+			'actions_html' => $actions,
+		] );
+		?>
+		<div class="vlt-lead-detail">
 
 			<div class="vlt-lead-header">
 				<div class="vlt-lead-meta">
@@ -621,7 +430,7 @@ class VLT_Admin {
 					<div class="vlt-meta-item">
 						<span class="vlt-meta-label"><?php esc_html_e( 'Verified', 'video-lead-tracker' ); ?></span>
 						<?php if ( $lead->is_verified ) : ?>
-							<span class="vlt-badge vlt-badge--green"><?php esc_html_e( 'Yes', 'video-lead-tracker' ); ?></span>
+							<span class="vlt-badge vlt-badge--success"><?php esc_html_e( 'Yes', 'video-lead-tracker' ); ?></span>
 						<?php else : ?>
 							<span class="vlt-badge"><?php esc_html_e( 'No', 'video-lead-tracker' ); ?></span>
 						<?php endif; ?>
@@ -638,7 +447,7 @@ class VLT_Admin {
 			</div>
 
 			<h2 class="vlt-section-title"><?php esc_html_e( 'Video Watch History', 'video-lead-tracker' ); ?></h2>
-			<table class="widefat striped vlt-table">
+			<table class="vlt-data-table">
 				<thead>
 					<tr>
 						<th><?php esc_html_e( 'Video',        'video-lead-tracker' ); ?></th>
@@ -663,7 +472,7 @@ class VLT_Admin {
 						<td>
 							<div class="vlt-progress">
 								<div class="vlt-progress-track">
-									<div class="vlt-progress-bar" style="width:<?php echo esc_attr( min( 100, (int) round( $v->unique_watch_percent ) ) ); ?>%"></div>
+									<div class="vlt-progress-bar" style="--vlt-bar:<?php echo esc_attr( (string) min( 100, (int) round( $v->unique_watch_percent ) ) ); ?>%"></div>
 								</div>
 								<span><?php echo esc_html( round( (float) $v->unique_watch_percent, 1 ) . '%' ); ?></span>
 							</div>
@@ -672,7 +481,7 @@ class VLT_Admin {
 						<td><?php echo esc_html( number_format_i18n( (int) $v->sessions_count ) ); ?></td>
 						<td>
 							<?php if ( $v->reached_end ) : ?>
-								<span class="vlt-badge vlt-badge--green"><?php esc_html_e( 'Yes', 'video-lead-tracker' ); ?></span>
+								<span class="vlt-badge vlt-badge--success"><?php esc_html_e( 'Yes', 'video-lead-tracker' ); ?></span>
 							<?php else : ?>
 								<span class="vlt-badge"><?php esc_html_e( 'No', 'video-lead-tracker' ); ?></span>
 							<?php endif; ?>
@@ -688,7 +497,7 @@ class VLT_Admin {
 			</table>
 
 			<h2 class="vlt-section-title"><?php esc_html_e( 'Recent Sessions', 'video-lead-tracker' ); ?></h2>
-			<table class="widefat striped vlt-table">
+			<table class="vlt-data-table">
 				<thead>
 					<tr>
 						<th>UUID</th>
@@ -734,8 +543,9 @@ class VLT_Admin {
 				</tbody>
 			</table>
 
-		</div><!-- .wrap.vlt-lead-detail -->
+		</div><!-- .vlt-lead-detail -->
 		<?php
+		VLT_Admin_UI::close();
 	}
 
 
@@ -757,109 +567,7 @@ class VLT_Admin {
 
 
 	public static function render_logs() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return;
-		}
-
-		global $wpdb;
-		$p = $wpdb->prefix;
-
-		$level   = isset( $_GET['vlt_level'] ) ? sanitize_key( $_GET['vlt_level'] ) : '';
-		$allowed = [ '', 'error', 'warning', 'info', 'debug' ];
-		if ( ! in_array( $level, $allowed, true ) ) {
-			$level = '';
-		}
-
-		$where = $level ? $wpdb->prepare( 'WHERE level = %s', $level ) : '';
-
-		$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$p}vlt_logs $where" );
-		$rows  = $wpdb->get_results(
-			"SELECT id, level, context, message, metadata, created_at
-			 FROM {$p}vlt_logs $where
-			 ORDER BY id DESC
-			 LIMIT 200"
-		);
-
-		$level_colors = [
-			'error'   => '#c22f3a',
-			'warning' => '#d97f00',
-			'info'    => '#2271b1',
-			'debug'   => '#646970',
-		];
-
-		$filter_url = admin_url( 'admin.php?page=vlt-logs' );
-		?>
-		<div class="wrap">
-			<h1 class="wp-heading-inline"><?php esc_html_e( 'Logs', 'video-lead-tracker' ); ?></h1>
-			<button type="button" class="page-title-action vlt-purge-logs-btn">
-				<?php esc_html_e( 'Purge All Logs', 'video-lead-tracker' ); ?>
-			</button>
-			<hr class="wp-header-end">
-
-			<div style="margin:12px 0;display:flex;gap:6px;align-items:center">
-				<span style="font-size:13px"><?php esc_html_e( 'Filter:', 'video-lead-tracker' ); ?></span>
-				<a href="<?php echo esc_url( $filter_url ); ?>"
-				   class="button<?php echo $level === '' ? ' button-primary' : ''; ?>">
-					<?php esc_html_e( 'All', 'video-lead-tracker' ); ?>
-				</a>
-				<?php foreach ( [ 'error', 'warning', 'info', 'debug' ] as $lvl ) : ?>
-					<a href="<?php echo esc_url( add_query_arg( 'vlt_level', $lvl, $filter_url ) ); ?>"
-					   class="button<?php echo $level === $lvl ? ' button-primary' : ''; ?>">
-						<?php echo esc_html( ucfirst( $lvl ) ); ?>
-					</a>
-				<?php endforeach; ?>
-				<span class="vlt-muted" style="margin-left:8px">
-					<?php printf(
-						/* translators: %d = number of log entries shown */
-						esc_html__( 'Showing last %d of %d entries', 'video-lead-tracker' ),
-						min( 200, $total ),
-						$total
-					); ?>
-				</span>
-			</div>
-
-			<table class="widefat striped vlt-table">
-				<thead>
-					<tr>
-						<th style="width:50px">ID</th>
-						<th style="width:80px"><?php esc_html_e( 'Level',   'video-lead-tracker' ); ?></th>
-						<th style="width:130px"><?php esc_html_e( 'Context', 'video-lead-tracker' ); ?></th>
-						<th><?php esc_html_e( 'Message', 'video-lead-tracker' ); ?></th>
-						<th style="width:150px"><?php esc_html_e( 'Time',    'video-lead-tracker' ); ?></th>
-					</tr>
-				</thead>
-				<tbody>
-				<?php if ( $rows ) : ?>
-					<?php foreach ( $rows as $row ) :
-						$color = $level_colors[ $row->level ] ?? '#646970';
-					?>
-					<tr>
-						<td class="vlt-muted"><?php echo esc_html( $row->id ); ?></td>
-						<td>
-							<span class="vlt-badge" style="background:<?php echo esc_attr( $color ); ?>;color:#fff">
-								<?php echo esc_html( strtoupper( $row->level ) ); ?>
-							</span>
-						</td>
-						<td class="vlt-muted"><?php echo esc_html( $row->context ?: '—' ); ?></td>
-						<td>
-							<?php echo esc_html( $row->message ); ?>
-							<?php if ( $row->metadata ) : ?>
-								<details style="margin-top:4px">
-									<summary class="vlt-muted" style="cursor:pointer;font-size:11px"><?php esc_html_e( 'metadata', 'video-lead-tracker' ); ?></summary>
-									<pre style="font-size:11px;white-space:pre-wrap;margin:4px 0 0"><?php echo esc_html( $row->metadata ); ?></pre>
-								</details>
-							<?php endif; ?>
-						</td>
-						<td class="vlt-muted"><?php echo esc_html( wp_date( 'Y-m-d H:i:s', strtotime( $row->created_at ) ) ); ?></td>
-					</tr>
-					<?php endforeach; ?>
-				<?php else : ?>
-					<tr><td colspan="5" class="vlt-empty"><?php esc_html_e( 'No log entries.', 'video-lead-tracker' ); ?></td></tr>
-				<?php endif; ?>
-				</tbody>
-			</table>
-		</div>
-		<?php
+		VLT_Admin_Ops::render_logs();
 	}
 
 	// -------------------------------------------------------------------------

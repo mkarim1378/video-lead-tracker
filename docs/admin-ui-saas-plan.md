@@ -265,12 +265,14 @@ Autoload map در `video-lead-tracker.php` برای کلاس‌های `UI/*` ب�
 - نوارهای پیشرفت/توزیع/قیف با `--vlt-bar` (بدون رنگ inline)
 - `vlt-admin-pages.js` + heatmap remount API
 
-### فاز 2 — Data ops
-1. REST leads + logs
-2. Leads list AJAX + URL sync
-3. Logs AJAX + badge classes
-4. Videos list/form redesign + copy shortcode + confirm modal
-5. Settings shell + modal برای reset/purge
+## فاز 2 — Data ops — وضعیت: انجام‌شده
+
+پیاده‌سازی شد:
+- REST `admin/leads` + `admin/logs`
+- Leads list AJAX (جستجو debounce، sort، pagination، video filter) + detail در shell
+- Logs AJAX با badge سطح + purge modal
+- Videos: کارت‌های SaaS، کپی shortcode، delete modal، فرم سه‌ستونه
+- Settings داخل shell + تب‌های سفارشی + reset/purge با modal/toast
 
 ### فاز 3 — Polish
 1. Sticky table headers، حالت موبایل ادمین

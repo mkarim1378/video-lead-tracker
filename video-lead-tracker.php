@@ -32,6 +32,7 @@ spl_autoload_register( function ( $class ) {
 		'VLT_Admin'           => 'Admin/class-vlt-admin.php',
 		'VLT_Admin_UI'        => 'Admin/UI/class-vlt-admin-ui.php',
 		'VLT_Admin_Analytics' => 'Admin/class-vlt-admin-analytics.php',
+		'VLT_Admin_Ops'       => 'Admin/class-vlt-admin-ops.php',
 		'VLT_Videos_Admin'    => 'Admin/class-vlt-videos-admin.php',
 		'VLT_REST_Controller' => 'API/class-vlt-rest-controller.php',
 		'VLT_Frontend'        => 'Frontend/class-vlt-frontend.php',

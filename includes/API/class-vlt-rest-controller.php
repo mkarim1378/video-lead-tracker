@@ -110,6 +110,25 @@ class VLT_REST_Controller {
 			],
 		] );
 
+		register_rest_route( $ns, '/admin/leads', [
+			'methods'             => 'GET',
+			'callback'            => [ self::class, 'handle_admin_leads' ],
+			'permission_callback' => function () { return current_user_can( 'manage_options' ); },
+		] );
+
+		register_rest_route( $ns, '/admin/logs', [
+			'methods'             => 'GET',
+			'callback'            => [ self::class, 'handle_admin_logs' ],
+			'permission_callback' => function () { return current_user_can( 'manage_options' ); },
+			'args'                => [
+				'level' => [
+					'type'              => 'string',
+					'sanitize_callback' => 'sanitize_key',
+					'default'           => '',
+				],
+			],
+		] );
+
 		register_rest_route( $ns, '/admin/reset', [
 			'methods'             => 'POST',
 			'callback'            => [ self::class, 'handle_admin_reset' ],
@@ -464,6 +483,22 @@ class VLT_REST_Controller {
 
 	public static function handle_admin_heatmap( WP_REST_Request $request ) {
 		$data = VLT_Admin_Analytics::get_heatmap_data( (int) $request->get_param( 'video_id' ) );
+		return self::success( [ 'data' => $data ] );
+	}
+
+	public static function handle_admin_leads( WP_REST_Request $request ) {
+		$data = VLT_Admin_Ops::get_leads_list( [
+			's'       => (string) $request->get_param( 's' ),
+			'orderby' => (string) $request->get_param( 'orderby' ),
+			'order'   => (string) $request->get_param( 'order' ),
+			'paged'   => (int) $request->get_param( 'paged' ),
+			'video'   => (string) $request->get_param( 'video' ),
+		] );
+		return self::success( [ 'data' => $data ] );
+	}
+
+	public static function handle_admin_logs( WP_REST_Request $request ) {
+		$data = VLT_Admin_Ops::get_logs( (string) $request->get_param( 'level' ) );
 		return self::success( [ 'data' => $data ] );
 	}
 

@@ -44,17 +44,17 @@
 			var panel = document.getElementById( btn.dataset.tab );
 
 			if ( btn === activeBtn ) {
-				btn.classList.add( 'nav-tab-active' );
+				btn.classList.add( 'nav-tab-active', 'is-active' );
 				if ( panel ) panel.style.display = '';
 			} else {
-				btn.classList.remove( 'nav-tab-active' );
+				btn.classList.remove( 'nav-tab-active', 'is-active' );
 				if ( panel ) panel.style.display = 'none';
 			}
 		} );
 
 		// Hide the main settings form submit button when a tab that has its own
 		// form (or no form at all) is active, so users don't click the wrong button.
-		var noFormTabs  = [ 'vlt-tab-data-management', 'vlt-tab-content-type' ];
+		var noFormTabs  = [ 'vlt-tab-data-management', 'vlt-tab-content-type', 'vlt-tab-shortcodes' ];
 		var submitWrap  = document.getElementById( 'vlt-main-submit-wrap' );
 		if ( submitWrap ) {
 			submitWrap.style.display = noFormTabs.indexOf( activeBtn.dataset.tab ) === -1 ? '' : 'none';
@@ -71,58 +71,67 @@
 			var scope       = btn.getAttribute( 'data-scope' );
 			var confirmText = btn.getAttribute( 'data-confirm-text' ) || '';
 			var body        = { scope: scope };
+			var toast       = window.vltUi && window.vltUi.toast ? window.vltUi.toast : function ( m ) { alert( m ); };
 
 			if ( scope === 'full' ) {
 				var typed = panel ? panel.querySelector( '.vlt-reset-typed-confirm' ) : null;
 				if ( ! typed || typed.value.trim() !== confirmText ) {
-					// translators: %s = required confirmation word
-					alert( 'Type ' + confirmText + ' to confirm.' );
+					toast( 'Type ' + confirmText + ' to confirm.', 'error' );
 					return;
 				}
 			} else {
 				var cb = panel ? panel.querySelector( '.vlt-reset-confirm-cb' ) : null;
 				if ( ! cb || ! cb.checked ) {
-					alert( 'Check the confirmation box first.' );
+					toast( 'Check the confirmation box first.', 'error' );
 					return;
 				}
 				var idInput = panel ? panel.querySelector( '.vlt-reset-id-input' ) : null;
 				if ( idInput ) {
 					var idVal = idInput.value;
-					if ( ! idVal ) { alert( 'Select or enter a value first.' ); return; }
+					if ( ! idVal ) { toast( 'Select or enter a value first.', 'error' ); return; }
 					body[ idInput.name ] = parseInt( idVal, 10 ) || idVal;
 				}
 			}
 
-			var origText = btn.textContent;
-			btn.disabled    = true;
-			btn.textContent = '…';
+			var run = function () {
+				var origText = btn.textContent;
+				btn.disabled    = true;
+				btn.textContent = '…';
+				var api = window.vltApi;
+				var req = api
+					? api.post( 'admin/reset', body )
+					: fetch( ( window.vltAdminData.restBase || '' ) + 'admin/reset', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': window.vltAdminData.nonce || '' },
+						body: JSON.stringify( body ),
+					} ).then( function ( r ) { return r.json(); } );
 
-			var restBase = ( window.vltAdminData && window.vltAdminData.restBase ) || '';
-			var nonce    = ( window.vltAdminData && window.vltAdminData.nonce )    || '';
-
-			fetch( restBase + 'admin/reset', {
-				method:  'POST',
-				headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': nonce },
-				body:    JSON.stringify( body ),
-			} )
-			.then( function ( r ) { return r.json(); } )
-			.then( function ( data ) {
-				if ( data.success ) {
-					btn.textContent      = '✓ Done';
-					btn.style.background = '#1a9e6a';
-					btn.style.color      = '#fff';
-					btn.style.border     = 'none';
-				} else {
+				req.then( function ( data ) {
+					if ( data.success ) {
+						btn.textContent = '✓ Done';
+						btn.classList.add( 'vlt-btn--primary' );
+						toast( 'Reset complete.', 'success' );
+					} else {
+						btn.disabled    = false;
+						btn.textContent = origText;
+						toast( ( data.message || ( data.data && data.data.message ) ) || 'Reset failed.', 'error' );
+					}
+				} ).catch( function () {
 					btn.disabled    = false;
 					btn.textContent = origText;
-					alert( ( data.message || data.data && data.data.message ) || 'Reset failed.' );
-				}
-			} )
-			.catch( function () {
-				btn.disabled    = false;
-				btn.textContent = origText;
-				alert( 'Network error. Please try again.' );
-			} );
+					toast( 'Network error. Please try again.', 'error' );
+				} );
+			};
+
+			if ( window.vltUi && window.vltUi.confirm ) {
+				window.vltUi.confirm( {
+					title: 'Confirm reset',
+					body: 'This action cannot be undone.',
+					danger: true,
+				} ).then( function ( ok ) { if ( ok ) run(); } );
+			} else {
+				run();
+			}
 		} );
 	} );
 
@@ -130,38 +139,43 @@
 
 	document.querySelectorAll( '.vlt-purge-logs-btn' ).forEach( function ( btn ) {
 		btn.addEventListener( 'click', function () {
-			if ( ! window.confirm( 'Delete all log entries? This cannot be undone.' ) ) {
-				return;
-			}
+			var proceed = function () {
+				var origText = btn.textContent;
+				btn.disabled    = true;
+				btn.textContent = '…';
+				var api = window.vltApi;
+				var req = api
+					? api.post( 'admin/purge-logs', {} )
+					: fetch( ( window.vltAdminData.restBase || '' ) + 'admin/purge-logs', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': window.vltAdminData.nonce || '' },
+						body: '{}',
+					} ).then( function ( r ) { return r.json(); } );
 
-			var origText = btn.textContent;
-			btn.disabled    = true;
-			btn.textContent = '…';
-
-			var restBase = ( window.vltAdminData && window.vltAdminData.restBase ) || '';
-			var nonce    = ( window.vltAdminData && window.vltAdminData.nonce )    || '';
-
-			fetch( restBase + 'admin/purge-logs', {
-				method:  'POST',
-				headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': nonce },
-				body:    '{}',
-			} )
-			.then( function ( r ) { return r.json(); } )
-			.then( function ( data ) {
-				if ( data.success ) {
-					// Reload to show empty log table.
-					window.location.reload();
-				} else {
+				req.then( function ( data ) {
+					if ( data.success ) {
+						window.location.reload();
+					} else {
+						btn.disabled    = false;
+						btn.textContent = origText;
+						if ( window.vltUi ) window.vltUi.toast( 'Purge failed.', 'error' );
+					}
+				} ).catch( function () {
 					btn.disabled    = false;
 					btn.textContent = origText;
-					alert( 'Purge failed.' );
-				}
-			} )
-			.catch( function () {
-				btn.disabled    = false;
-				btn.textContent = origText;
-				alert( 'Network error. Please try again.' );
-			} );
+					if ( window.vltUi ) window.vltUi.toast( 'Network error. Please try again.', 'error' );
+				} );
+			};
+
+			if ( window.vltUi && window.vltUi.confirm ) {
+				window.vltUi.confirm( {
+					title: 'Purge all logs?',
+					body: 'Delete all log entries? This cannot be undone.',
+					danger: true,
+				} ).then( function ( ok ) { if ( ok ) proceed(); } );
+			} else if ( window.confirm( 'Delete all log entries? This cannot be undone.' ) ) {
+				proceed();
+			}
 		} );
 	} );
 

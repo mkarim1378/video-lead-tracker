@@ -247,71 +247,82 @@ class VLT_Settings {
 			add_settings_error( 'vlt_messages', 'vlt_message', __( 'Settings saved.', 'video-lead-tracker' ), 'updated' );
 		}
 		settings_errors( 'vlt_messages' );
-		?>
-		<div class="wrap">
-			<h1><?php esc_html_e( 'Video Lead Tracker — Settings', 'video-lead-tracker' ); ?></h1>
 
-			<nav class="nav-tab-wrapper vlt-tab-nav" data-storage-key="vlt_settings_tab">
+		VLT_Admin_UI::open( [
+			'page'     => 'vlt-settings',
+			'title'    => __( 'Settings', 'video-lead-tracker' ),
+			'subtitle' => __( 'Configure tracking, OTP, and data tools.', 'video-lead-tracker' ),
+		] );
+		?>
+		<div class="vlt-settings">
+
+			<nav class="vlt-tab-nav vlt-settings-tabs" data-storage-key="vlt_settings_tab" role="tablist">
 				<?php foreach ( $sections as $tab_id => $section ) : ?>
 					<button type="button"
-					        class="nav-tab"
+					        class="vlt-tab-btn"
 					        data-tab="vlt-tab-<?php echo esc_attr( $tab_id ); ?>">
 						<?php echo esc_html( $section['title'] ); ?>
 					</button>
 				<?php endforeach; ?>
-				<button type="button" class="nav-tab" data-tab="vlt-tab-data-management">
+				<button type="button" class="vlt-tab-btn" data-tab="vlt-tab-data-management">
 					<?php esc_html_e( 'Data Management', 'video-lead-tracker' ); ?>
 				</button>
-				<button type="button" class="nav-tab" data-tab="vlt-tab-content-type">
+				<button type="button" class="vlt-tab-btn" data-tab="vlt-tab-content-type">
 					<?php esc_html_e( 'Content Type', 'video-lead-tracker' ); ?>
 				</button>
-				<button type="button" class="nav-tab" data-tab="vlt-tab-shortcodes">
+				<button type="button" class="vlt-tab-btn" data-tab="vlt-tab-shortcodes">
 					<?php esc_html_e( 'Shortcodes', 'video-lead-tracker' ); ?>
 				</button>
 			</nav>
 
-			<form method="post" action="options.php">
+			<form method="post" action="options.php" class="vlt-settings-form">
 				<?php settings_fields( self::OPTION_GROUP ); ?>
 
 				<?php foreach ( $sections as $tab_id => $section ) : ?>
-					<div class="vlt-tab-panel" id="vlt-tab-<?php echo esc_attr( $tab_id ); ?>">
-						<table class="form-table" role="presentation">
-							<?php foreach ( $section['fields'] as $field ) : ?>
-								<tr>
-									<th scope="row">
-										<label for="vlt_<?php echo esc_attr( $field['key'] ); ?>">
-											<?php echo esc_html( $field['label'] ); ?>
-										</label>
-									</th>
-									<td><?php self::render_field( $field ); ?></td>
-								</tr>
-							<?php endforeach; ?>
-						</table>
+					<div class="vlt-tab-panel vlt-panel" id="vlt-tab-<?php echo esc_attr( $tab_id ); ?>">
+						<div class="vlt-panel-body">
+							<table class="form-table" role="presentation">
+								<?php foreach ( $section['fields'] as $field ) : ?>
+									<tr>
+										<th scope="row">
+											<label for="vlt_<?php echo esc_attr( $field['key'] ); ?>">
+												<?php echo esc_html( $field['label'] ); ?>
+											</label>
+										</th>
+										<td><?php self::render_field( $field ); ?></td>
+									</tr>
+								<?php endforeach; ?>
+							</table>
+						</div>
 					</div>
 				<?php endforeach; ?>
 
-				<div id="vlt-main-submit-wrap">
-					<?php submit_button( __( 'Save Settings', 'video-lead-tracker' ) ); ?>
+				<div id="vlt-main-submit-wrap" class="vlt-form-actions">
+					<button type="submit" class="vlt-btn vlt-btn--primary"><?php esc_html_e( 'Save Settings', 'video-lead-tracker' ); ?></button>
 				</div>
 			</form>
 
-			<!-- Data Management panel — outside the settings form, uses REST API -->
-			<div class="vlt-tab-panel" id="vlt-tab-data-management">
-				<?php self::render_data_management(); ?>
+			<div class="vlt-tab-panel vlt-panel" id="vlt-tab-data-management">
+				<div class="vlt-panel-body">
+					<?php self::render_data_management(); ?>
+				</div>
 			</div>
 
-			<!-- Content Type panel — outside the settings form, has its own <form> -->
-			<div class="vlt-tab-panel" id="vlt-tab-content-type">
-				<?php VLT_CPT::render_tab(); ?>
+			<div class="vlt-tab-panel vlt-panel" id="vlt-tab-content-type">
+				<div class="vlt-panel-body">
+					<?php VLT_CPT::render_tab(); ?>
+				</div>
 			</div>
 
-			<!-- Shortcodes documentation panel -->
-			<div class="vlt-tab-panel" id="vlt-tab-shortcodes">
-				<?php self::render_shortcodes_tab(); ?>
+			<div class="vlt-tab-panel vlt-panel" id="vlt-tab-shortcodes">
+				<div class="vlt-panel-body">
+					<?php self::render_shortcodes_tab(); ?>
+				</div>
 			</div>
 
 		</div>
 		<?php
+		VLT_Admin_UI::close();
 	}
 
 	private static function render_data_management() {

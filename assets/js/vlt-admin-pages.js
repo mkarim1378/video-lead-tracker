@@ -283,9 +283,290 @@
 		}
 	}
 
+	/* ---- Leads list AJAX ---- */
+
+	function initLeadsPage() {
+		var root = document.getElementById( 'vlt-leads-root' );
+		if ( ! root || ! window.vltApi ) return;
+		var abort = null;
+		var state = {
+			s: '',
+			orderby: root.getAttribute( 'data-orderby' ) || 'first_seen_at',
+			order: root.getAttribute( 'data-order' ) || 'DESC',
+			paged: parseInt( root.getAttribute( 'data-paged' ), 10 ) || 1,
+			video: root.getAttribute( 'data-video' ) || '',
+		};
+		var searchInput = document.getElementById( 'vlt-leads-search-input' );
+		if ( searchInput ) state.s = searchInput.value || '';
+
+		var debounceTimer = null;
+		var form = document.getElementById( 'vlt-leads-search' );
+		if ( form ) {
+			form.addEventListener( 'submit', function ( e ) {
+				e.preventDefault();
+				state.s = searchInput ? searchInput.value.trim() : '';
+				state.paged = 1;
+				refresh();
+			} );
+		}
+		if ( searchInput ) {
+			searchInput.addEventListener( 'input', function () {
+				clearTimeout( debounceTimer );
+				debounceTimer = setTimeout( function () {
+					state.s = searchInput.value.trim();
+					state.paged = 1;
+					refresh();
+				}, 300 );
+			} );
+		}
+		var clearBtn = document.getElementById( 'vlt-leads-search-clear' );
+		if ( clearBtn ) {
+			clearBtn.addEventListener( 'click', function () {
+				if ( searchInput ) searchInput.value = '';
+				state.s = '';
+				state.paged = 1;
+				refresh();
+			} );
+		}
+
+		document.querySelectorAll( '#vlt-leads-table th[data-sort]' ).forEach( function ( th ) {
+			th.style.cursor = 'pointer';
+			th.addEventListener( 'click', function () {
+				var col = th.getAttribute( 'data-sort' );
+				if ( state.orderby === col ) {
+					state.order = state.order === 'ASC' ? 'DESC' : 'ASC';
+				} else {
+					state.orderby = col;
+					state.order = 'ASC';
+				}
+				state.paged = 1;
+				refresh();
+			} );
+		} );
+
+		document.addEventListener( 'click', function ( e ) {
+			var btn = e.target.closest( '#vlt-leads-pagination [data-page]' );
+			if ( ! btn || btn.disabled ) return;
+			var dir = btn.getAttribute( 'data-page' );
+			var pag = document.getElementById( 'vlt-leads-pagination' );
+			var total = pag ? parseInt( pag.getAttribute( 'data-total-pages' ), 10 ) : 1;
+			if ( dir === 'prev' ) state.paged = Math.max( 1, state.paged - 1 );
+			if ( dir === 'next' ) state.paged = Math.min( total, state.paged + 1 );
+			refresh();
+		} );
+
+		document.addEventListener( 'vlt:video-filter', function ( e ) {
+			var app = document.querySelector( '.vlt-app[data-page="vlt-leads"]' );
+			if ( ! app ) return;
+			state.video = ( e.detail && e.detail.video ) || '';
+			state.paged = 1;
+			refresh();
+		} );
+
+		function syncUrl() {
+			try {
+				var url = new URL( window.location.href );
+				[ 's', 'orderby', 'order', 'paged', 'video' ].forEach( function ( k ) {
+					var v = state[ k ];
+					if ( ! v || ( k === 'orderby' && v === 'first_seen_at' ) || ( k === 'order' && v === 'DESC' ) || ( k === 'paged' && Number( v ) === 1 ) ) {
+						url.searchParams.delete( k );
+					} else {
+						url.searchParams.set( k, v );
+					}
+				} );
+				window.history.replaceState( {}, '', url.toString() );
+			} catch ( err ) { /* ignore */ }
+		}
+
+		function refresh() {
+			if ( abort ) abort.abort();
+			abort = window.AbortController ? new AbortController() : null;
+			root.classList.add( 'is-loading' );
+			syncUrl();
+			window.vltApi.get( 'admin/leads', {
+				s: state.s || undefined,
+				orderby: state.orderby,
+				order: state.order,
+				paged: state.paged,
+				video: state.video || undefined,
+			}, abort ? { signal: abort.signal } : {} )
+				.then( function ( res ) {
+					if ( ! res || ! res.success || ! res.data ) throw new Error( 'bad' );
+					render( res.data );
+				} )
+				.catch( function ( err ) {
+					if ( err && err.name === 'AbortError' ) return;
+					if ( window.vltUi ) window.vltUi.toast( i18n( 'loadError', 'Could not refresh data.' ), 'error' );
+					root.classList.remove( 'is-loading' );
+				} );
+		}
+
+		function render( data ) {
+			state.paged = data.paged;
+			state.orderby = data.orderby;
+			state.order = data.order;
+			root.setAttribute( 'data-video', data.video || '' );
+			var count = document.getElementById( 'vlt-leads-count' );
+			if ( count ) {
+				count.textContent = i18n( 'showingRange', 'Showing %1$d to %2$d of %3$d' )
+					.replace( '%1$d', data.from ).replace( '%2$d', data.to ).replace( '%3$d', data.total );
+			}
+			var tbody = document.getElementById( 'vlt-leads-tbody' );
+			if ( ! tbody ) return;
+			if ( ! data.rows.length ) {
+				tbody.innerHTML = '<tr><td colspan="8" class="vlt-empty">' + escHtml( i18n( 'noLeadsFound', 'No leads found.' ) ) + '</td></tr>';
+			} else {
+				tbody.innerHTML = data.rows.map( function ( row ) {
+					var badge = row.verified
+						? '<span class="vlt-badge vlt-badge--success">' + escHtml( i18n( 'yes', 'Yes' ) ) + '</span>'
+						: '<span class="vlt-badge">' + escHtml( i18n( 'no', 'No' ) ) + '</span>';
+					return '<tr>' +
+						'<td class="vlt-muted">' + escHtml( row.id ) + '</td>' +
+						'<td><a class="vlt-link" href="' + escAttr( row.url ) + '">' + escHtml( row.name ) + '</a></td>' +
+						'<td><code class="vlt-mono">' + escHtml( row.mobile ) + '</code></td>' +
+						'<td>' + badge + '</td>' +
+						'<td>' + escHtml( row.videos_count ) + '</td>' +
+						'<td><div class="vlt-progress"><div class="vlt-progress-track"><div class="vlt-progress-bar" style="--vlt-bar:' + escAttr( row.avg_watch_int ) + '%"></div></div><span>' + escHtml( row.avg_watch ) + '</span></div></td>' +
+						'<td>' + escHtml( row.sessions ) + '</td>' +
+						'<td class="vlt-muted">' + escHtml( row.first_seen ) + '</td></tr>';
+				} ).join( '' );
+			}
+			var pag = document.getElementById( 'vlt-leads-pagination' );
+			if ( pag ) {
+				pag.setAttribute( 'data-total-pages', data.total_pages );
+				pag.setAttribute( 'data-paged', data.paged );
+				var label = pag.querySelector( '.vlt-muted' );
+				if ( label ) label.textContent = data.paged + ' / ' + data.total_pages;
+				var prev = pag.querySelector( '[data-page="prev"]' );
+				var next = pag.querySelector( '[data-page="next"]' );
+				if ( prev ) prev.disabled = data.paged <= 1;
+				if ( next ) next.disabled = data.paged >= data.total_pages;
+				pag.style.display = data.total_pages > 1 ? '' : 'none';
+			}
+			root.classList.remove( 'is-loading' );
+		}
+	}
+
+	/* ---- Logs AJAX ---- */
+
+	function initLogsPage() {
+		var root = document.getElementById( 'vlt-logs-root' );
+		if ( ! root || ! window.vltApi ) return;
+		var abort = null;
+
+		document.querySelectorAll( '.vlt-log-level' ).forEach( function ( btn ) {
+			btn.addEventListener( 'click', function () {
+				refresh( btn.getAttribute( 'data-level' ) || '' );
+			} );
+		} );
+
+		function refresh( level ) {
+			if ( abort ) abort.abort();
+			abort = window.AbortController ? new AbortController() : null;
+			root.classList.add( 'is-loading' );
+			if ( window.vltUi ) window.vltUi.syncQueryParam( 'vlt_level', level || null );
+			window.vltApi.get( 'admin/logs', { level: level || undefined }, abort ? { signal: abort.signal } : {} )
+				.then( function ( res ) {
+					if ( ! res || ! res.success || ! res.data ) throw new Error( 'bad' );
+					render( res.data );
+				} )
+				.catch( function ( err ) {
+					if ( err && err.name === 'AbortError' ) return;
+					if ( window.vltUi ) window.vltUi.toast( i18n( 'loadError', 'Could not refresh data.' ), 'error' );
+					root.classList.remove( 'is-loading' );
+				} );
+		}
+
+		function render( data ) {
+			root.setAttribute( 'data-level', data.level || '' );
+			document.querySelectorAll( '.vlt-log-level' ).forEach( function ( btn ) {
+				var on = ( btn.getAttribute( 'data-level' ) || '' ) === ( data.level || '' );
+				btn.classList.toggle( 'vlt-btn--primary', on );
+				btn.classList.toggle( 'vlt-btn--ghost', ! on );
+			} );
+			var count = document.getElementById( 'vlt-logs-count' );
+			if ( count ) {
+				count.textContent = i18n( 'logsCount', 'Showing last %1$d of %2$d entries' )
+					.replace( '%1$d', data.shown ).replace( '%2$d', data.total );
+			}
+			var tbody = document.getElementById( 'vlt-logs-tbody' );
+			if ( ! tbody ) return;
+			if ( ! data.rows.length ) {
+				tbody.innerHTML = '<tr><td colspan="5" class="vlt-empty">' + escHtml( i18n( 'noLogs', 'No log entries.' ) ) + '</td></tr>';
+			} else {
+				tbody.innerHTML = data.rows.map( function ( row ) {
+					var meta = row.metadata
+						? '<details class="vlt-log-meta"><summary>metadata</summary><pre>' + escHtml( row.metadata ) + '</pre></details>'
+						: '';
+					return '<tr>' +
+						'<td class="vlt-muted">' + escHtml( row.id ) + '</td>' +
+						'<td><span class="vlt-badge vlt-badge--' + escAttr( row.level ) + '">' + escHtml( String( row.level ).toUpperCase() ) + '</span></td>' +
+						'<td class="vlt-muted">' + escHtml( row.context ) + '</td>' +
+						'<td>' + escHtml( row.message ) + meta + '</td>' +
+						'<td class="vlt-muted">' + escHtml( row.time ) + '</td></tr>';
+				} ).join( '' );
+			}
+			root.classList.remove( 'is-loading' );
+		}
+	}
+
+	/* ---- Videos copy + delete modal ---- */
+
+	function initVideosPage() {
+		document.querySelectorAll( '.vlt-copy-btn' ).forEach( function ( btn ) {
+			btn.addEventListener( 'click', function () {
+				var text = btn.getAttribute( 'data-copy' ) || '';
+				if ( ! text ) return;
+				var done = function () {
+					if ( window.vltUi ) window.vltUi.toast( i18n( 'copied', 'Copied to clipboard.' ), 'success' );
+				};
+				if ( navigator.clipboard && navigator.clipboard.writeText ) {
+					navigator.clipboard.writeText( text ).then( done ).catch( function () {
+						window.prompt( 'Copy:', text );
+					} );
+				} else {
+					window.prompt( 'Copy:', text );
+				}
+			} );
+		} );
+
+		document.querySelectorAll( '.vlt-video-delete-form' ).forEach( function ( form ) {
+			form.addEventListener( 'submit', function ( e ) {
+				if ( form.getAttribute( 'data-confirmed' ) === '1' ) return;
+				e.preventDefault();
+				var btn = form.querySelector( '.vlt-video-delete-btn' );
+				if ( ! window.vltUi || ! window.vltUi.confirm ) {
+					if ( window.confirm( btn ? btn.getAttribute( 'data-confirm-body' ) : 'Delete?' ) ) {
+						form.setAttribute( 'data-confirmed', '1' );
+						form.submit();
+					}
+					return;
+				}
+				window.vltUi.confirm( {
+					title: ( btn && btn.getAttribute( 'data-confirm-title' ) ) || 'Delete?',
+					body: ( btn && btn.getAttribute( 'data-confirm-body' ) ) || '',
+					danger: true,
+				} ).then( function ( ok ) {
+					if ( ! ok ) return;
+					form.setAttribute( 'data-confirmed', '1' );
+					form.submit();
+				} );
+			} );
+		} );
+
+		var notice = document.querySelector( '[data-vlt-toast]' );
+		if ( notice && window.vltUi ) {
+			window.vltUi.toast( notice.textContent.trim(), 'success' );
+			notice.remove();
+		}
+	}
+
 	document.addEventListener( 'DOMContentLoaded', function () {
 		initFunnelPage();
 		initHeatmapPage();
 		initAnalyticsDetailPage();
+		initLeadsPage();
+		initLogsPage();
+		initVideosPage();
 	} );
 } )( window, document );

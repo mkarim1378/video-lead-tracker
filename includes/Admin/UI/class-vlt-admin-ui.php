@@ -157,7 +157,7 @@ class VLT_Admin_UI {
 	 * @return callable
 	 */
 	public static function wrap_page( $slug, $callback ) {
-		$self_shell = [ 'vlt-overview', 'vlt-video-analytics', 'vlt-funnel', 'vlt-heatmap' ];
+		$self_shell = [ 'vlt-overview', 'vlt-video-analytics', 'vlt-funnel', 'vlt-heatmap', 'vlt-leads', 'vlt-logs', 'vlt-videos', 'vlt-settings' ];
 		return static function () use ( $slug, $callback, $self_shell ) {
 			if ( in_array( $slug, $self_shell, true ) ) {
 				call_user_func( $callback );
