@@ -2,7 +2,7 @@
 
 **جهت تأییدشده:** داشبورد سفارشی برنددار (مستقل از ظاهر پیش‌فرض WP Admin) + گرافیک و AJAX برای تعامل‌های پرتکرار، با اولویت UX.
 
-**نسخه فعلی افزونه:** 1.4.4  
+**نسخه فعلی افزونه:** 1.4.5  
 **محدوده اصلی:** ۸ صفحه منوی ادمین  
 **محدوده فرعی:** هم‌راستاسازی سبک meta boxهای CPT/پست (بدون بازنویسی کامل آن‌ها)
 
@@ -274,12 +274,14 @@ Autoload map در `video-lead-tracker.php` برای کلاس‌های `UI/*` ب�
 - Videos: کارت‌های SaaS، کپی shortcode، delete modal، فرم سه‌ستونه
 - Settings داخل shell + تب‌های سفارشی + reset/purge با modal/toast
 
-### فاز 3 — Polish
-1. Sticky table headers، حالت موبایل ادمین
-2. هماهنگی meta boxها
-3. بررسی a11y (تب، مودال، فوکوس trap)
-4. به‌روزرسانی رشته‌های `fa_IR.po` برای UI جدید
-5. افزایش نسخه و changelog
+### فاز 3 — Polish — وضعیت: انجام‌شده
+
+پیاده‌سازی شد:
+1. Sticky table headers، حالت موبایل ادمین (card-collapse برای Leads/Logs)
+2. هماهنگی meta boxها (`.vlt-metabox`)
+3. a11y: تب‌ها (ARIA + کیبورد)، مودال (focus trap + restore)
+4. به‌روزرسانی رشته‌های `fa_IR.po` برای UI جدید + compile `.mo`
+5. افزایش نسخه به 1.4.5 و changelog
 
 هر فاز وقتی Acceptance همان فاز پاس شد متوقف می‌شود؛ فاز بعد فقط با تأیید.
 

@@ -38,36 +38,36 @@ $search  = $data['s'];
 	</div>
 
 	<div class="vlt-panel">
-		<div class="vlt-panel-body">
-			<table class="vlt-data-table" id="vlt-leads-table">
+		<div class="vlt-panel-body vlt-table-scroll">
+			<table class="vlt-data-table vlt-data-table--cards" id="vlt-leads-table">
 				<thead>
 					<tr>
-						<th data-sort="id"><?php esc_html_e( '#', 'video-lead-tracker' ); ?></th>
-						<th data-sort="primary_name"><?php esc_html_e( 'Name', 'video-lead-tracker' ); ?></th>
-						<th><?php esc_html_e( 'Mobile', 'video-lead-tracker' ); ?></th>
-						<th data-sort="is_verified"><?php esc_html_e( 'Verified', 'video-lead-tracker' ); ?></th>
-						<th data-sort="videos_count"><?php esc_html_e( 'Videos', 'video-lead-tracker' ); ?></th>
-						<th data-sort="avg_watch"><?php esc_html_e( 'Avg Watch', 'video-lead-tracker' ); ?></th>
-						<th data-sort="sessions_count"><?php esc_html_e( 'Sessions', 'video-lead-tracker' ); ?></th>
-						<th data-sort="first_seen_at"><?php esc_html_e( 'First Seen', 'video-lead-tracker' ); ?></th>
+						<th data-sort="id" scope="col" tabindex="0"><?php esc_html_e( '#', 'video-lead-tracker' ); ?></th>
+						<th data-sort="primary_name" scope="col" tabindex="0"><?php esc_html_e( 'Name', 'video-lead-tracker' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Mobile', 'video-lead-tracker' ); ?></th>
+						<th data-sort="is_verified" scope="col" tabindex="0"><?php esc_html_e( 'Verified', 'video-lead-tracker' ); ?></th>
+						<th data-sort="videos_count" scope="col" tabindex="0"><?php esc_html_e( 'Videos', 'video-lead-tracker' ); ?></th>
+						<th data-sort="avg_watch" scope="col" tabindex="0"><?php esc_html_e( 'Avg Watch', 'video-lead-tracker' ); ?></th>
+						<th data-sort="sessions_count" scope="col" tabindex="0"><?php esc_html_e( 'Sessions', 'video-lead-tracker' ); ?></th>
+						<th data-sort="first_seen_at" scope="col" tabindex="0"><?php esc_html_e( 'First Seen', 'video-lead-tracker' ); ?></th>
 					</tr>
 				</thead>
 				<tbody id="vlt-leads-tbody">
 				<?php if ( $data['rows'] ) : ?>
 					<?php foreach ( $data['rows'] as $row ) : ?>
 					<tr>
-						<td class="vlt-muted"><?php echo esc_html( (string) $row['id'] ); ?></td>
-						<td><a class="vlt-link" href="<?php echo esc_url( $row['url'] ); ?>"><?php echo esc_html( $row['name'] ); ?></a></td>
-						<td><code class="vlt-mono"><?php echo esc_html( $row['mobile'] ); ?></code></td>
-						<td>
+						<td class="vlt-muted" data-label="<?php esc_attr_e( '#', 'video-lead-tracker' ); ?>"><?php echo esc_html( (string) $row['id'] ); ?></td>
+						<td data-label="<?php esc_attr_e( 'Name', 'video-lead-tracker' ); ?>"><a class="vlt-link" href="<?php echo esc_url( $row['url'] ); ?>"><?php echo esc_html( $row['name'] ); ?></a></td>
+						<td data-label="<?php esc_attr_e( 'Mobile', 'video-lead-tracker' ); ?>"><code class="vlt-mono"><?php echo esc_html( $row['mobile'] ); ?></code></td>
+						<td data-label="<?php esc_attr_e( 'Verified', 'video-lead-tracker' ); ?>">
 							<?php if ( $row['verified'] ) : ?>
 								<span class="vlt-badge vlt-badge--success"><?php esc_html_e( 'Yes', 'video-lead-tracker' ); ?></span>
 							<?php else : ?>
 								<span class="vlt-badge"><?php esc_html_e( 'No', 'video-lead-tracker' ); ?></span>
 							<?php endif; ?>
 						</td>
-						<td><?php echo esc_html( $row['videos_count'] ); ?></td>
-						<td>
+						<td data-label="<?php esc_attr_e( 'Videos', 'video-lead-tracker' ); ?>"><?php echo esc_html( $row['videos_count'] ); ?></td>
+						<td data-label="<?php esc_attr_e( 'Avg Watch', 'video-lead-tracker' ); ?>">
 							<div class="vlt-progress">
 								<div class="vlt-progress-track">
 									<div class="vlt-progress-bar" style="--vlt-bar:<?php echo esc_attr( (string) $row['avg_watch_int'] ); ?>%"></div>
@@ -75,8 +75,8 @@ $search  = $data['s'];
 								<span><?php echo esc_html( $row['avg_watch'] ); ?></span>
 							</div>
 						</td>
-						<td><?php echo esc_html( $row['sessions'] ); ?></td>
-						<td class="vlt-muted"><?php echo esc_html( $row['first_seen'] ); ?></td>
+						<td data-label="<?php esc_attr_e( 'Sessions', 'video-lead-tracker' ); ?>"><?php echo esc_html( $row['sessions'] ); ?></td>
+						<td class="vlt-muted" data-label="<?php esc_attr_e( 'First Seen', 'video-lead-tracker' ); ?>"><?php echo esc_html( $row['first_seen'] ); ?></td>
 					</tr>
 					<?php endforeach; ?>
 				<?php else : ?>

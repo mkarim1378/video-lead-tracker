@@ -437,7 +437,8 @@ body.vlt-admin-screen #wpbody-content > .error {
 
 .vlt-data-table {
 	width: 100%;
-	border-collapse: collapse;
+	border-collapse: separate;
+	border-spacing: 0;
 	margin: 0;
 }
 
@@ -451,6 +452,37 @@ body.vlt-admin-screen #wpbody-content > .error {
 	padding: 10px 8px;
 	border-bottom: 1px solid var(--vlt-border);
 	white-space: nowrap;
+	position: sticky;
+	top: 0;
+	z-index: 2;
+	background: var(--vlt-surface);
+	box-shadow: 0 1px 0 var(--vlt-border);
+}
+
+.vlt-data-table th[data-sort] {
+	cursor: pointer;
+	user-select: none;
+}
+
+.vlt-data-table th[data-sort]::after {
+	content: "";
+	display: inline-block;
+	margin-inline-start: 4px;
+	opacity: .35;
+	font-size: 9px;
+	vertical-align: middle;
+}
+
+.vlt-data-table th.is-sorted-asc::after {
+	content: "▲";
+	opacity: .9;
+	color: var(--vlt-accent);
+}
+
+.vlt-data-table th.is-sorted-desc::after {
+	content: "▼";
+	opacity: .9;
+	color: var(--vlt-accent);
 }
 
 .vlt-data-table td {
@@ -468,6 +500,12 @@ body.vlt-admin-screen #wpbody-content > .error {
 
 .vlt-data-table tbody tr:hover td {
 	background: rgba(26, 154, 168, .06);
+}
+
+.vlt-table-scroll {
+	overflow: auto;
+	max-height: min(70vh, 720px);
+	-webkit-overflow-scrolling: touch;
 }
 
 .vlt-badge {
@@ -1213,4 +1251,228 @@ body.vlt-modal-open {
 .vlt-lead-meta {
 	background: var(--vlt-surface);
 	border-color: var(--vlt-border);
+}
+
+/* =========================================================================
+   Phase 3 — Polish (mobile, a11y helpers, meta boxes)
+   ========================================================================= */
+
+body.vlt-modal-open {
+	overflow: hidden;
+}
+
+.vlt-modal:focus {
+	outline: none;
+}
+
+.vlt-modal-dialog:focus {
+	outline: 2px solid var(--vlt-accent);
+	outline-offset: 2px;
+}
+
+.vlt-tab-btn:focus-visible,
+.vlt-btn:focus-visible,
+.vlt-app-nav-link:focus-visible,
+.vlt-input:focus-visible,
+.vlt-data-table th[data-sort]:focus-visible {
+	outline: 2px solid var(--vlt-accent);
+	outline-offset: 2px;
+}
+
+@media (max-width: 782px) {
+	.vlt-app-main {
+		padding: 14px 12px 28px;
+	}
+
+	.vlt-page-header {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 12px;
+	}
+
+	.vlt-page-actions {
+		flex-wrap: wrap;
+	}
+
+	.vlt-toolbar {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.vlt-search-form {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		width: 100%;
+	}
+
+	.vlt-search-input,
+	.vlt-input {
+		max-width: none;
+	}
+
+	.vlt-kpi-row {
+		gap: 10px;
+	}
+
+	.vlt-kpi-card {
+		flex: 1 1 calc(50% - 10px);
+		min-width: 140px;
+	}
+
+	.vlt-form-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.vlt-video-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.vlt-table-scroll {
+		max-height: none;
+	}
+
+	/* Card-collapse for labeled responsive tables */
+	.vlt-data-table--cards thead {
+		display: none;
+	}
+
+	.vlt-data-table--cards,
+	.vlt-data-table--cards tbody,
+	.vlt-data-table--cards tr,
+	.vlt-data-table--cards td {
+		display: block;
+		width: 100%;
+		white-space: normal;
+	}
+
+	.vlt-data-table--cards tr {
+		background: var(--vlt-surface-2);
+		border: 1px solid var(--vlt-border);
+		border-radius: var(--vlt-radius-sm);
+		margin-bottom: 10px;
+		padding: 6px 0;
+	}
+
+	.vlt-data-table--cards td {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		gap: 12px;
+		border-bottom: 1px solid rgba(42, 58, 63, .45);
+		padding: 8px 12px;
+	}
+
+	.vlt-data-table--cards td:last-child {
+		border-bottom: none;
+	}
+
+	.vlt-data-table--cards td::before {
+		content: attr(data-label);
+		flex: 0 0 42%;
+		font-size: 11px;
+		text-transform: uppercase;
+		letter-spacing: .04em;
+		color: var(--vlt-text-muted);
+		font-weight: 600;
+	}
+
+	.vlt-data-table--cards th {
+		position: static;
+		box-shadow: none;
+	}
+}
+
+/* Meta boxes on classic WP edit screens (light theme tokens) */
+.vlt-metabox {
+	--vlt-mb-border: #dcdcde;
+	--vlt-mb-muted: #646970;
+	--vlt-mb-accent: #0b6e7a;
+	margin: 0;
+}
+
+.vlt-metabox-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin: 0;
+}
+
+.vlt-metabox-table th {
+	padding: 6px 10px 6px 0;
+	font-weight: 600;
+	width: 110px;
+	vertical-align: top;
+	text-align: start;
+}
+
+.vlt-metabox-table td {
+	padding: 6px 0;
+	vertical-align: top;
+}
+
+.vlt-metabox-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.vlt-metabox-hint {
+	margin: 4px 0 0;
+	color: var(--vlt-mb-muted);
+	font-size: 12px;
+}
+
+.vlt-metabox-test {
+	white-space: nowrap;
+	font-size: 12px;
+	color: var(--vlt-mb-accent);
+	text-decoration: none;
+}
+
+.vlt-metabox-test.is-hidden {
+	visibility: hidden;
+}
+
+.vlt-metabox-poster {
+	margin-bottom: 8px;
+}
+
+.vlt-metabox-poster img {
+	max-width: 160px;
+	max-height: 90px;
+	border: 1px solid var(--vlt-mb-border);
+	border-radius: 4px;
+	display: block;
+}
+
+.vlt-metabox-actions {
+	display: flex;
+	gap: 6px;
+	align-items: center;
+	flex-wrap: wrap;
+}
+
+.vlt-metabox-label {
+	display: block;
+	margin-bottom: 4px;
+	font-weight: 600;
+}
+
+.vlt-metabox-select {
+	width: 100%;
+}
+
+.vlt-metabox-preview {
+	margin-top: 8px;
+}
+
+.vlt-metabox-preview img {
+	max-width: 100%;
+	border: 1px solid var(--vlt-mb-border);
+	border-radius: 4px;
+	display: block;
+}
+
+.vlt-metabox .button.vlt-metabox-copy {
+	border-color: var(--vlt-mb-accent);
 }

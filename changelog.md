@@ -5,6 +5,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.4.5] - 2026-09-06
+
+### Added
+- **Admin SaaS polish (Phase 3)**: sticky table headers, mobile card-collapse for Leads/Logs, sort indicators with `aria-sort`, and stronger mobile shell layout.
+- **A11y**: confirm modal focus trap + restore focus; Settings tabs as `tablist` with arrow/Home/End keyboard support.
+- **Meta box alignment**: CPT/post meta boxes use shared `.vlt-metabox` classes (accent, poster preview, copy control) instead of inline styles.
+
+### Changed
+- Farsi (`fa_IR`) strings updated for the new SaaS admin UI; `.mo` recompiled.
+- `VLT_VERSION` bumped 1.4.4 → 1.4.5.
+
+---
+
 ## [1.4.4] - 2026-08-27
 
 ### Added

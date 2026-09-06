@@ -331,8 +331,7 @@
 
 		document.querySelectorAll( '#vlt-leads-table th[data-sort]' ).forEach( function ( th ) {
 			th.style.cursor = 'pointer';
-			th.addEventListener( 'click', function () {
-				var col = th.getAttribute( 'data-sort' );
+			function applySort( col ) {
 				if ( state.orderby === col ) {
 					state.order = state.order === 'ASC' ? 'DESC' : 'ASC';
 				} else {
@@ -340,9 +339,32 @@
 					state.order = 'ASC';
 				}
 				state.paged = 1;
+				updateSortIndicators();
 				refresh();
+			}
+			th.addEventListener( 'click', function () {
+				applySort( th.getAttribute( 'data-sort' ) );
+			} );
+			th.addEventListener( 'keydown', function ( e ) {
+				if ( e.key === 'Enter' || e.key === ' ' ) {
+					e.preventDefault();
+					applySort( th.getAttribute( 'data-sort' ) );
+				}
 			} );
 		} );
+
+		function updateSortIndicators() {
+			document.querySelectorAll( '#vlt-leads-table th[data-sort]' ).forEach( function ( th ) {
+				var col = th.getAttribute( 'data-sort' );
+				th.classList.remove( 'is-sorted-asc', 'is-sorted-desc' );
+				th.removeAttribute( 'aria-sort' );
+				if ( col === state.orderby ) {
+					th.classList.add( state.order === 'ASC' ? 'is-sorted-asc' : 'is-sorted-desc' );
+					th.setAttribute( 'aria-sort', state.order === 'ASC' ? 'ascending' : 'descending' );
+				}
+			} );
+		}
+		updateSortIndicators();
 
 		document.addEventListener( 'click', function ( e ) {
 			var btn = e.target.closest( '#vlt-leads-pagination [data-page]' );
@@ -406,11 +428,16 @@
 			state.orderby = data.orderby;
 			state.order = data.order;
 			root.setAttribute( 'data-video', data.video || '' );
+			updateSortIndicators();
 			var count = document.getElementById( 'vlt-leads-count' );
 			if ( count ) {
 				count.textContent = i18n( 'showingRange', 'Showing %1$d to %2$d of %3$d' )
 					.replace( '%1$d', data.from ).replace( '%2$d', data.to ).replace( '%3$d', data.total );
 			}
+			var labels = [];
+			document.querySelectorAll( '#vlt-leads-table thead th' ).forEach( function ( th ) {
+				labels.push( th.textContent.trim() );
+			} );
 			var tbody = document.getElementById( 'vlt-leads-tbody' );
 			if ( ! tbody ) return;
 			if ( ! data.rows.length ) {
@@ -421,14 +448,14 @@
 						? '<span class="vlt-badge vlt-badge--success">' + escHtml( i18n( 'yes', 'Yes' ) ) + '</span>'
 						: '<span class="vlt-badge">' + escHtml( i18n( 'no', 'No' ) ) + '</span>';
 					return '<tr>' +
-						'<td class="vlt-muted">' + escHtml( row.id ) + '</td>' +
-						'<td><a class="vlt-link" href="' + escAttr( row.url ) + '">' + escHtml( row.name ) + '</a></td>' +
-						'<td><code class="vlt-mono">' + escHtml( row.mobile ) + '</code></td>' +
-						'<td>' + badge + '</td>' +
-						'<td>' + escHtml( row.videos_count ) + '</td>' +
-						'<td><div class="vlt-progress"><div class="vlt-progress-track"><div class="vlt-progress-bar" style="--vlt-bar:' + escAttr( row.avg_watch_int ) + '%"></div></div><span>' + escHtml( row.avg_watch ) + '</span></div></td>' +
-						'<td>' + escHtml( row.sessions ) + '</td>' +
-						'<td class="vlt-muted">' + escHtml( row.first_seen ) + '</td></tr>';
+						'<td class="vlt-muted" data-label="' + escAttr( labels[0] || '#' ) + '">' + escHtml( row.id ) + '</td>' +
+						'<td data-label="' + escAttr( labels[1] || 'Name' ) + '"><a class="vlt-link" href="' + escAttr( row.url ) + '">' + escHtml( row.name ) + '</a></td>' +
+						'<td data-label="' + escAttr( labels[2] || 'Mobile' ) + '"><code class="vlt-mono">' + escHtml( row.mobile ) + '</code></td>' +
+						'<td data-label="' + escAttr( labels[3] || 'Verified' ) + '">' + badge + '</td>' +
+						'<td data-label="' + escAttr( labels[4] || 'Videos' ) + '">' + escHtml( row.videos_count ) + '</td>' +
+						'<td data-label="' + escAttr( labels[5] || 'Avg Watch' ) + '"><div class="vlt-progress"><div class="vlt-progress-track"><div class="vlt-progress-bar" style="--vlt-bar:' + escAttr( row.avg_watch_int ) + '%"></div></div><span>' + escHtml( row.avg_watch ) + '</span></div></td>' +
+						'<td data-label="' + escAttr( labels[6] || 'Sessions' ) + '">' + escHtml( row.sessions ) + '</td>' +
+						'<td class="vlt-muted" data-label="' + escAttr( labels[7] || 'First Seen' ) + '">' + escHtml( row.first_seen ) + '</td></tr>';
 				} ).join( '' );
 			}
 			var pag = document.getElementById( 'vlt-leads-pagination' );
@@ -489,6 +516,10 @@
 				count.textContent = i18n( 'logsCount', 'Showing last %1$d of %2$d entries' )
 					.replace( '%1$d', data.shown ).replace( '%2$d', data.total );
 			}
+			var labels = [];
+			document.querySelectorAll( '#vlt-logs-table thead th' ).forEach( function ( th ) {
+				labels.push( th.textContent.trim() );
+			} );
 			var tbody = document.getElementById( 'vlt-logs-tbody' );
 			if ( ! tbody ) return;
 			if ( ! data.rows.length ) {
@@ -499,11 +530,11 @@
 						? '<details class="vlt-log-meta"><summary>metadata</summary><pre>' + escHtml( row.metadata ) + '</pre></details>'
 						: '';
 					return '<tr>' +
-						'<td class="vlt-muted">' + escHtml( row.id ) + '</td>' +
-						'<td><span class="vlt-badge vlt-badge--' + escAttr( row.level ) + '">' + escHtml( String( row.level ).toUpperCase() ) + '</span></td>' +
-						'<td class="vlt-muted">' + escHtml( row.context ) + '</td>' +
-						'<td>' + escHtml( row.message ) + meta + '</td>' +
-						'<td class="vlt-muted">' + escHtml( row.time ) + '</td></tr>';
+						'<td class="vlt-muted" data-label="' + escAttr( labels[0] || 'ID' ) + '">' + escHtml( row.id ) + '</td>' +
+						'<td data-label="' + escAttr( labels[1] || 'Level' ) + '"><span class="vlt-badge vlt-badge--' + escAttr( row.level ) + '">' + escHtml( String( row.level ).toUpperCase() ) + '</span></td>' +
+						'<td class="vlt-muted" data-label="' + escAttr( labels[2] || 'Context' ) + '">' + escHtml( row.context ) + '</td>' +
+						'<td data-label="' + escAttr( labels[3] || 'Message' ) + '">' + escHtml( row.message ) + meta + '</td>' +
+						'<td class="vlt-muted" data-label="' + escAttr( labels[4] || 'Time' ) + '">' + escHtml( row.time ) + '</td></tr>';
 				} ).join( '' );
 			}
 			root.classList.remove( 'is-loading' );

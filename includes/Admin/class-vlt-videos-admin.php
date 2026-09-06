@@ -20,7 +20,19 @@ class VLT_Videos_Admin {
 			return;
 		}
 		$screen = get_current_screen();
-		if ( $screen && $screen->post_type === VLT_CPT::POST_TYPE ) {
+		if ( ! $screen ) {
+			return;
+		}
+		$needs_style = in_array( $screen->post_type, [ VLT_CPT::POST_TYPE, 'post', 'page' ], true );
+		if ( $needs_style ) {
+			wp_enqueue_style(
+				'vlt-admin',
+				VLT_PLUGIN_URL . 'assets/css/vlt-admin.css',
+				[],
+				VLT_VERSION
+			);
+		}
+		if ( $screen->post_type === VLT_CPT::POST_TYPE ) {
 			wp_enqueue_media();
 		}
 	}
@@ -76,89 +88,85 @@ class VLT_Videos_Admin {
 		$use_label    = esc_attr__( 'Use This Image',  'video-lead-tracker' );
 		$media_title  = esc_attr__( 'Select Poster Image', 'video-lead-tracker' );
 		?>
-		<table class="form-table" style="margin:0">
+		<div class="vlt-metabox">
+		<table class="vlt-metabox-table">
 			<tr>
-				<th style="padding:6px 4px 6px 0;font-weight:600;width:100px">
+				<th>
 					<label for="vlt_mb_video_url"><?php esc_html_e( 'Video URL', 'video-lead-tracker' ); ?></label>
 				</th>
-				<td style="padding:6px 0">
-					<div style="display:flex;align-items:center;gap:8px">
+				<td>
+					<div class="vlt-metabox-row">
 						<input type="url" id="vlt_mb_video_url" name="vlt_video_url"
 						       value="<?php echo esc_attr( $video_url ); ?>" class="widefat">
-						<a id="vlt-mb-test-link"
+						<a id="vlt-mb-test-link" class="vlt-metabox-test<?php echo $video_url ? '' : ' is-hidden'; ?>"
 						   href="<?php echo $video_url ? esc_url( $video_url ) : '#'; ?>"
-						   target="_blank" rel="noopener"
-						   style="white-space:nowrap;font-size:12px<?php echo $video_url ? '' : ';visibility:hidden'; ?>">
+						   target="_blank" rel="noopener">
 							<?php esc_html_e( 'Test ↗', 'video-lead-tracker' ); ?>
 						</a>
 					</div>
-					<p class="description" style="margin:4px 0 0"><?php esc_html_e( 'Direct URL to the MP4 hosted on your CDN.', 'video-lead-tracker' ); ?></p>
+					<p class="vlt-metabox-hint"><?php esc_html_e( 'Direct URL to the MP4 hosted on your CDN.', 'video-lead-tracker' ); ?></p>
 				</td>
 			</tr>
 			<tr>
-				<th style="padding:6px 4px 6px 0;font-weight:600">
-					<?php esc_html_e( 'Poster Image', 'video-lead-tracker' ); ?>
-				</th>
-				<td style="padding:6px 0">
+				<th><?php esc_html_e( 'Poster Image', 'video-lead-tracker' ); ?></th>
+				<td>
 					<input type="hidden" id="vlt_mb_poster_url" name="vlt_poster_url"
 					       value="<?php echo esc_attr( $poster_url ); ?>">
-					<div id="vlt-mb-poster-wrap" style="margin-bottom:8px<?php echo $poster_url ? '' : ';display:none'; ?>">
+					<div id="vlt-mb-poster-wrap" class="vlt-metabox-poster<?php echo $poster_url ? '' : ' is-hidden'; ?>">
 						<img id="vlt-mb-poster-img"
 						     src="<?php echo esc_url( $poster_url ); ?>"
-						     alt=""
-						     style="max-width:160px;max-height:90px;border:1px solid #c3c4c7;border-radius:2px;display:block">
+						     alt="">
 					</div>
-					<div style="display:flex;gap:6px;align-items:center">
+					<div class="vlt-metabox-actions">
 						<button type="button" class="button" id="vlt-mb-poster-select"
 						        data-title="<?php echo $media_title; ?>"
 						        data-button="<?php echo $use_label; ?>">
 							<?php esc_html_e( 'Select Image', 'video-lead-tracker' ); ?>
 						</button>
-						<button type="button" class="button-link-delete" id="vlt-mb-poster-remove"
-						        style="<?php echo $poster_url ? '' : 'display:none'; ?>">
+						<button type="button" class="button-link-delete<?php echo $poster_url ? '' : ' is-hidden'; ?>" id="vlt-mb-poster-remove">
 							<?php esc_html_e( 'Remove', 'video-lead-tracker' ); ?>
 						</button>
 					</div>
 				</td>
 			</tr>
 			<tr>
-				<th style="padding:6px 4px 6px 0;font-weight:600">
+				<th>
 					<label for="vlt_mb_audio_url"><?php esc_html_e( 'Audio URL', 'video-lead-tracker' ); ?></label>
 				</th>
-				<td style="padding:6px 0">
-					<div style="display:flex;align-items:center;gap:8px">
+				<td>
+					<div class="vlt-metabox-row">
 						<input type="url" id="vlt_mb_audio_url" name="vlt_audio_url"
 						       value="<?php echo esc_attr( $audio_url ); ?>" class="widefat"
 						       placeholder="https://example.com/audio.mp3">
-						<a id="vlt-mb-audio-test-link"
+						<a id="vlt-mb-audio-test-link" class="vlt-metabox-test<?php echo $audio_url ? '' : ' is-hidden'; ?>"
 						   href="<?php echo $audio_url ? esc_url( $audio_url ) : '#'; ?>"
-						   target="_blank" rel="noopener"
-						   style="white-space:nowrap;font-size:12px<?php echo $audio_url ? '' : ';visibility:hidden'; ?>">
+						   target="_blank" rel="noopener">
 							<?php esc_html_e( 'Test ↗', 'video-lead-tracker' ); ?>
 						</a>
 					</div>
-					<p class="description" style="margin:4px 0 0"><?php esc_html_e( 'Direct URL to the audio file (MP3). Use [vlt_audio_player] shortcode to embed.', 'video-lead-tracker' ); ?></p>
+					<p class="vlt-metabox-hint"><?php esc_html_e( 'Direct URL to the audio file (MP3). Use [vlt_audio_player] shortcode to embed.', 'video-lead-tracker' ); ?></p>
 				</td>
 			</tr>
 			<?php if ( $video_key ) : ?>
 			<tr>
-				<th style="padding:6px 4px 6px 0;font-weight:600"><?php esc_html_e( 'Shortcode', 'video-lead-tracker' ); ?></th>
-				<td style="padding:6px 0">
-					<div style="display:flex;align-items:center;gap:8px">
+				<th><?php esc_html_e( 'Shortcode', 'video-lead-tracker' ); ?></th>
+				<td>
+					<div class="vlt-metabox-row">
 						<code id="vlt-mb-shortcode">[vlt_video key="<?php echo esc_attr( $video_key ); ?>"]</code>
-						<button type="button" class="button button-small" id="vlt-mb-copy-sc"
+						<button type="button" class="button button-small vlt-metabox-copy" id="vlt-mb-copy-sc"
 						        data-copy="<?php echo $copy_label; ?>"
 						        data-copied="<?php echo $copied_label; ?>">
 							<?php esc_html_e( 'Copy', 'video-lead-tracker' ); ?>
 						</button>
 					</div>
-					<p class="description" style="margin:4px 0 0">
+					<p class="vlt-metabox-hint">
 						<?php esc_html_e( 'Paste this shortcode anywhere in the content to embed the video.', 'video-lead-tracker' ); ?>
 					</p>
 				</td>
 			</tr>
 			<?php endif; ?>
 		</table>
+		</div>
 		<script>
 		( function () {
 			// ── Video URL test link ──────────────────────────────────────────────
@@ -169,7 +177,7 @@ class VLT_Videos_Admin {
 				videoIn.addEventListener( 'input', function () {
 					var u = videoIn.value.trim();
 					testLink.href = u || '#';
-					testLink.style.visibility = u ? '' : 'hidden';
+					testLink.classList.toggle( 'is-hidden', ! u );
 				} );
 			}
 
@@ -181,7 +189,7 @@ class VLT_Videos_Admin {
 				audioIn.addEventListener( 'input', function () {
 					var u = audioIn.value.trim();
 					audioTestLnk.href = u || '#';
-					audioTestLnk.style.visibility = u ? '' : 'hidden';
+					audioTestLnk.classList.toggle( 'is-hidden', ! u );
 				} );
 			}
 
@@ -214,10 +222,10 @@ class VLT_Videos_Admin {
 					mediaFrame.on( 'select', function () {
 						var att = mediaFrame.state().get( 'selection' ).first().toJSON();
 						var url = att.url || '';
-						posterIn.value         = url;
-						posterIm.src           = url;
-						posterWr.style.display = url ? '' : 'none';
-						if ( removeBtn ) removeBtn.style.display = url ? '' : 'none';
+						posterIn.value = url;
+						posterIm.src   = url;
+						posterWr.classList.toggle( 'is-hidden', ! url );
+						if ( removeBtn ) removeBtn.classList.toggle( 'is-hidden', ! url );
 					} );
 					mediaFrame.open();
 				} );
@@ -225,10 +233,10 @@ class VLT_Videos_Admin {
 
 			if ( removeBtn ) {
 				removeBtn.addEventListener( 'click', function () {
-					posterIn.value          = '';
-					posterIm.src            = '';
-					posterWr.style.display  = 'none';
-					removeBtn.style.display = 'none';
+					posterIn.value = '';
+					posterIm.src   = '';
+					posterWr.classList.add( 'is-hidden' );
+					removeBtn.classList.add( 'is-hidden' );
 				} );
 			}
 
@@ -278,11 +286,12 @@ class VLT_Videos_Admin {
 			}
 		}
 		?>
+		<div class="vlt-metabox">
 		<p>
-			<label for="vlt_post_video_key" style="display:block;margin-bottom:4px;font-weight:600">
+			<label for="vlt_post_video_key" class="vlt-metabox-label">
 				<?php esc_html_e( 'Linked Video', 'video-lead-tracker' ); ?>
 			</label>
-			<select id="vlt_post_video_key" name="vlt_video_key_select" style="width:100%">
+			<select id="vlt_post_video_key" name="vlt_video_key_select" class="vlt-metabox-select">
 				<option value=""><?php esc_html_e( '— None —', 'video-lead-tracker' ); ?></option>
 				<?php foreach ( $videos as $v ) : ?>
 					<option value="<?php echo esc_attr( $v->video_key ); ?>"
@@ -293,15 +302,15 @@ class VLT_Videos_Admin {
 				<?php endforeach; ?>
 			</select>
 		</p>
-		<div id="vlt-post-poster-wrap" style="margin-top:8px<?php echo ( $current_key && self::get_video_poster( $current_key, $videos ) ) ? '' : ';display:none'; ?>">
+		<div id="vlt-post-poster-wrap" class="vlt-metabox-preview<?php echo ( $current_key && self::get_video_poster( $current_key, $videos ) ) ? '' : ' is-hidden'; ?>">
 			<img id="vlt-post-poster-img"
 			     src="<?php echo esc_url( self::get_video_poster( $current_key, $videos ) ); ?>"
-			     alt=""
-			     style="max-width:100%;border:1px solid #c3c4c7;border-radius:2px">
+			     alt="">
 		</div>
-		<p class="description" style="margin-top:4px">
+		<p class="vlt-metabox-hint">
 			<?php esc_html_e( 'Place [vlt_video] in the content to embed the selected video.', 'video-lead-tracker' ); ?>
 		</p>
+		</div>
 		<script>
 		( function () {
 			var sel  = document.getElementById( 'vlt_post_video_key' );
@@ -312,10 +321,10 @@ class VLT_Videos_Admin {
 				var opt    = sel.options[ sel.selectedIndex ];
 				var poster = opt ? opt.getAttribute( 'data-poster' ) : '';
 				if ( poster ) {
-					img.src         = poster;
-					wrap.style.display = '';
+					img.src = poster;
+					wrap.classList.remove( 'is-hidden' );
 				} else {
-					wrap.style.display = 'none';
+					wrap.classList.add( 'is-hidden' );
 				}
 			} );
 		}() );

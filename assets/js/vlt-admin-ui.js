@@ -3,6 +3,8 @@
 	'use strict';
 
 	var confirmResolver = null;
+	var lastFocus = null;
+	var trapHandler = null;
 
 	function toastHost() {
 		return document.getElementById( 'vlt-toast-host' );
@@ -28,11 +30,38 @@
 		return document.getElementById( 'vlt-confirm-modal' );
 	}
 
+	function getFocusable( root ) {
+		if ( ! root ) return [];
+		var nodes = root.querySelectorAll(
+			'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+		);
+		return Array.prototype.filter.call( nodes, function ( el ) {
+			return ! el.hasAttribute( 'hidden' ) && el.getAttribute( 'aria-hidden' ) !== 'true';
+		} );
+	}
+
+	function releaseFocusTrap() {
+		if ( trapHandler ) {
+			document.removeEventListener( 'keydown', trapHandler, true );
+			trapHandler = null;
+		}
+	}
+
+	function restoreFocus() {
+		if ( lastFocus && typeof lastFocus.focus === 'function' ) {
+			try { lastFocus.focus(); } catch ( e ) { /* ignore */ }
+		}
+		lastFocus = null;
+	}
+
 	function closeModal() {
 		var modal = getModal();
 		if ( ! modal ) return;
 		modal.hidden = true;
+		modal.setAttribute( 'aria-hidden', 'true' );
 		document.body.classList.remove( 'vlt-modal-open' );
+		releaseFocusTrap();
+		restoreFocus();
 		if ( confirmResolver ) {
 			confirmResolver( false );
 			confirmResolver = null;
@@ -47,13 +76,38 @@
 		}
 		return new Promise( function ( resolve ) {
 			confirmResolver = resolve;
+			lastFocus = document.activeElement;
 			document.getElementById( 'vlt-confirm-title' ).textContent = opts.title || '';
 			document.getElementById( 'vlt-confirm-body' ).textContent = opts.body || '';
 			var ok = document.getElementById( 'vlt-confirm-ok' );
 			ok.textContent = opts.confirmLabel || ok.getAttribute( 'data-default-label' ) || 'Confirm';
 			ok.className = 'vlt-btn ' + ( opts.danger === false ? 'vlt-btn--primary' : 'vlt-btn--danger' );
 			modal.hidden = false;
+			modal.setAttribute( 'aria-hidden', 'false' );
 			document.body.classList.add( 'vlt-modal-open' );
+
+			releaseFocusTrap();
+			trapHandler = function ( e ) {
+				if ( modal.hidden ) return;
+				if ( e.key === 'Escape' ) {
+					e.preventDefault();
+					closeModal();
+					return;
+				}
+				if ( e.key !== 'Tab' ) return;
+				var nodes = getFocusable( modal.querySelector( '.vlt-modal-dialog' ) );
+				if ( ! nodes.length ) return;
+				var first = nodes[ 0 ];
+				var last = nodes[ nodes.length - 1 ];
+				if ( e.shiftKey && document.activeElement === first ) {
+					e.preventDefault();
+					last.focus();
+				} else if ( ! e.shiftKey && document.activeElement === last ) {
+					e.preventDefault();
+					first.focus();
+				}
+			};
+			document.addEventListener( 'keydown', trapHandler, true );
 			ok.focus();
 		} );
 	}
@@ -127,6 +181,7 @@
 	function initModal() {
 		var modal = getModal();
 		if ( ! modal ) return;
+		modal.setAttribute( 'aria-hidden', modal.hidden ? 'true' : 'false' );
 		var ok = document.getElementById( 'vlt-confirm-ok' );
 		if ( ok && ! ok.getAttribute( 'data-default-label' ) ) {
 			ok.setAttribute( 'data-default-label', ok.textContent );
@@ -139,13 +194,13 @@
 				var resolve = confirmResolver;
 				confirmResolver = null;
 				modal.hidden = true;
+				modal.setAttribute( 'aria-hidden', 'true' );
 				document.body.classList.remove( 'vlt-modal-open' );
+				releaseFocusTrap();
+				restoreFocus();
 				if ( resolve ) resolve( true );
 			} );
 		}
-		document.addEventListener( 'keydown', function ( e ) {
-			if ( e.key === 'Escape' && modal && ! modal.hidden ) closeModal();
-		} );
 	}
 
 	document.addEventListener( 'DOMContentLoaded', function () {

@@ -25,6 +25,22 @@
 
 		if ( ! buttons.length ) return;
 
+		nav.setAttribute( 'role', 'tablist' );
+
+		buttons.forEach( function ( btn ) {
+			var panelId = btn.dataset.tab;
+			var tabId   = 'vlt-tabbtn-' + panelId;
+			btn.setAttribute( 'role', 'tab' );
+			btn.setAttribute( 'id', tabId );
+			btn.setAttribute( 'aria-controls', panelId );
+			var panel = document.getElementById( panelId );
+			if ( panel ) {
+				panel.setAttribute( 'role', 'tabpanel' );
+				panel.setAttribute( 'aria-labelledby', tabId );
+				panel.setAttribute( 'tabindex', '0' );
+			}
+		} );
+
 		// Find the button to activate initially.
 		var savedId    = localStorage.getItem( storageKey );
 		var activeBtn  = buttons.find( function ( b ) { return b.dataset.tab === savedId; } )
@@ -37,18 +53,46 @@
 				activate( btn, buttons, storageKey );
 			} );
 		} );
+
+		nav.addEventListener( 'keydown', function ( e ) {
+			var idx = buttons.indexOf( document.activeElement );
+			if ( idx < 0 ) return;
+			var rtl = document.documentElement.getAttribute( 'dir' ) === 'rtl'
+				|| document.body.classList.contains( 'rtl' );
+			var next = null;
+			if ( e.key === 'ArrowRight' || e.key === 'ArrowLeft' ) {
+				var dir = e.key === 'ArrowRight' ? 1 : -1;
+				if ( rtl ) dir *= -1;
+				next = buttons[ ( idx + dir + buttons.length ) % buttons.length ];
+			} else if ( e.key === 'Home' ) {
+				next = buttons[ 0 ];
+			} else if ( e.key === 'End' ) {
+				next = buttons[ buttons.length - 1 ];
+			}
+			if ( ! next ) return;
+			e.preventDefault();
+			activate( next, buttons, storageKey );
+			next.focus();
+		} );
 	}
 
 	function activate( activeBtn, allButtons, storageKey ) {
 		allButtons.forEach( function ( btn ) {
 			var panel = document.getElementById( btn.dataset.tab );
+			var on = btn === activeBtn;
 
-			if ( btn === activeBtn ) {
+			if ( on ) {
 				btn.classList.add( 'nav-tab-active', 'is-active' );
-				if ( panel ) panel.style.display = '';
 			} else {
 				btn.classList.remove( 'nav-tab-active', 'is-active' );
-				if ( panel ) panel.style.display = 'none';
+			}
+			btn.setAttribute( 'aria-selected', on ? 'true' : 'false' );
+			btn.tabIndex = on ? 0 : -1;
+
+			if ( panel ) {
+				panel.style.display = on ? '' : 'none';
+				panel.hidden = ! on;
+				panel.setAttribute( 'aria-hidden', on ? 'false' : 'true' );
 			}
 		} );
 

@@ -30,25 +30,25 @@ $level = $data['level'];
 	</div>
 
 	<div class="vlt-panel">
-		<div class="vlt-panel-body">
-			<table class="vlt-data-table" id="vlt-logs-table">
+		<div class="vlt-panel-body vlt-table-scroll">
+			<table class="vlt-data-table vlt-data-table--cards" id="vlt-logs-table">
 				<thead>
 					<tr>
-						<th><?php esc_html_e( 'ID', 'video-lead-tracker' ); ?></th>
-						<th><?php esc_html_e( 'Level', 'video-lead-tracker' ); ?></th>
-						<th><?php esc_html_e( 'Context', 'video-lead-tracker' ); ?></th>
-						<th><?php esc_html_e( 'Message', 'video-lead-tracker' ); ?></th>
-						<th><?php esc_html_e( 'Time', 'video-lead-tracker' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'ID', 'video-lead-tracker' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Level', 'video-lead-tracker' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Context', 'video-lead-tracker' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Message', 'video-lead-tracker' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Time', 'video-lead-tracker' ); ?></th>
 					</tr>
 				</thead>
 				<tbody id="vlt-logs-tbody">
 				<?php if ( $data['rows'] ) : ?>
 					<?php foreach ( $data['rows'] as $row ) : ?>
 					<tr>
-						<td class="vlt-muted"><?php echo esc_html( (string) $row['id'] ); ?></td>
-						<td><span class="vlt-badge vlt-badge--<?php echo esc_attr( $row['level'] ); ?>"><?php echo esc_html( strtoupper( $row['level'] ) ); ?></span></td>
-						<td class="vlt-muted"><?php echo esc_html( $row['context'] ); ?></td>
-						<td>
+						<td class="vlt-muted" data-label="<?php esc_attr_e( 'ID', 'video-lead-tracker' ); ?>"><?php echo esc_html( (string) $row['id'] ); ?></td>
+						<td data-label="<?php esc_attr_e( 'Level', 'video-lead-tracker' ); ?>"><span class="vlt-badge vlt-badge--<?php echo esc_attr( $row['level'] ); ?>"><?php echo esc_html( strtoupper( $row['level'] ) ); ?></span></td>
+						<td class="vlt-muted" data-label="<?php esc_attr_e( 'Context', 'video-lead-tracker' ); ?>"><?php echo esc_html( $row['context'] ); ?></td>
+						<td data-label="<?php esc_attr_e( 'Message', 'video-lead-tracker' ); ?>">
 							<?php echo esc_html( $row['message'] ); ?>
 							<?php if ( $row['metadata'] ) : ?>
 								<details class="vlt-log-meta">
@@ -57,7 +57,7 @@ $level = $data['level'];
 								</details>
 							<?php endif; ?>
 						</td>
-						<td class="vlt-muted"><?php echo esc_html( $row['time'] ); ?></td>
+						<td class="vlt-muted" data-label="<?php esc_attr_e( 'Time', 'video-lead-tracker' ); ?>"><?php echo esc_html( $row['time'] ); ?></td>
 					</tr>
 					<?php endforeach; ?>
 				<?php else : ?>

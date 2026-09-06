@@ -3,10 +3,10 @@
 # This file is distributed under the same license as the Video Lead Tracker package.
 msgid ""
 msgstr ""
-"Project-Id-Version: Video Lead Tracker 0.11.0\n"
+"Project-Id-Version: Video Lead Tracker 1.4.5\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-05-12 00:00+0000\n"
-"PO-Revision-Date: 2026-05-12 00:00+0000\n"
+"PO-Revision-Date: 2026-09-06 00:00+0000\n"
 "Last-Translator: Mohamad Karim\n"
 "Language-Team: Persian\n"
 "Language: fa_IR\n"
@@ -1637,3 +1637,199 @@ msgstr "باکس نکته / یادداشت با پس‌زمینه سبز."
 #: includes/Settings/class-vlt-settings.php
 msgid "Icon emoji. Default: ✅."
 msgstr "ایموجی آیکون. پیش‌فرض: ✅."
+
+#: Phase 3 SaaS UI
+msgid "#"
+msgstr "#"
+
+#: Phase 3 SaaS UI
+msgid "(OTP off)"
+msgstr "(OTP خاموش)"
+
+#: Phase 3 SaaS UI
+msgid "(no title)"
+msgstr "(بدون عنوان)"
+
+#: Phase 3 SaaS UI
+msgid "Add an active video to see analytics."
+msgstr "برای دیدن آنالیتیکس یک ویدیوی فعال اضافه کنید."
+
+#: Phase 3 SaaS UI
+msgid "Add your first gated video to start tracking leads."
+msgstr "اولین ویدیوی دروازه‌دار را اضافه کنید تا ردیابی لید شروع شود."
+
+#: Phase 3 SaaS UI
+msgid "All videos"
+msgstr "همه ویدیوها"
+
+#: Phase 3 SaaS UI
+msgid "Analytics"
+msgstr "آنالیتیکس"
+
+#: Phase 3 SaaS UI
+msgid "Analytics data will be preserved. This cannot be undone."
+msgstr "داده‌های آنالیتیکس حفظ می‌شود. این عمل برگشت‌پذیر نیست."
+
+#: Phase 3 SaaS UI
+msgid "Audio URL"
+msgstr "آدرس صوت"
+
+#: Phase 3 SaaS UI
+msgid "Campaign performance at a glance."
+msgstr "عملکرد کمپین در یک نگاه."
+
+#: Phase 3 SaaS UI
+msgid "Choose a video to explore watch heatmap and drop-off."
+msgstr "یک ویدیو انتخاب کنید تا هیت‌مپ تماشا و نقاط ترک را ببینید."
+
+#: Phase 3 SaaS UI
+msgid "Choose a video to view its conversion funnel."
+msgstr "یک ویدیو انتخاب کنید تا قیف تبدیل آن را ببینید."
+
+#: Phase 3 SaaS UI
+msgid "Compare performance across active videos."
+msgstr "عملکرد ویدیوهای فعال را مقایسه کنید."
+
+#: Phase 3 SaaS UI
+msgid "Configure tracking, OTP, and data tools."
+msgstr "ردیابی، OTP و ابزارهای داده را پیکربندی کنید."
+
+#: Phase 3 SaaS UI
+msgid "Confirm"
+msgstr "تأیید"
+
+#: Phase 3 SaaS UI
+msgid "Copied to clipboard."
+msgstr "در کلیپ‌بورد کپی شد."
+
+#: Phase 3 SaaS UI
+msgid "Could not refresh data."
+msgstr "به‌روزرسانی داده ممکن نشد."
+
+#: Phase 3 SaaS UI
+msgid "Data appears after viewers start watching this video."
+msgstr "پس از شروع تماشا توسط بازدیدکنندگان، داده ظاهر می‌شود."
+
+#: Phase 3 SaaS UI
+msgid "Delete video?"
+msgstr "ویدیو حذف شود؟"
+
+#: Phase 3 SaaS UI
+msgid "Done"
+msgstr "انجام شد"
+
+#: Phase 3 SaaS UI
+msgid "Duration %s"
+msgstr "مدت %s"
+
+#: Phase 3 SaaS UI
+msgid "Export Ranges"
+msgstr "خروجی بازه‌ها"
+
+#: Phase 3 SaaS UI
+msgid "Export Summary"
+msgstr "خروجی خلاصه"
+
+#: Phase 3 SaaS UI
+msgid "ID"
+msgstr "شناسه"
+
+#: Phase 3 SaaS UI
+msgid "Inactive"
+msgstr "غیرفعال"
+
+#: Phase 3 SaaS UI
+msgid "Lead not found"
+msgstr "لید پیدا نشد"
+
+#: Phase 3 SaaS UI
+msgid "Lead profile and watch history."
+msgstr "پروفایل لید و تاریخچه تماشا."
+
+#: Phase 3 SaaS UI
+msgid "Manage gated videos, shortcodes, and lead forms."
+msgstr "مدیریت ویدیوهای دروازه‌دار، شورت‌کدها و فرم‌های لید."
+
+#: Phase 3 SaaS UI
+msgid "Media"
+msgstr "رسانه"
+
+#: Phase 3 SaaS UI
+msgid "Media, lead form copy, and playback options."
+msgstr "رسانه، متن فرم لید و گزینه‌های پخش."
+
+#: Phase 3 SaaS UI
+msgid "N/A"
+msgstr "ناموجود"
+
+#: Phase 3 SaaS UI
+msgid "No heatmap data yet"
+msgstr "هنوز داده هیت‌مپ نیست"
+
+#: Phase 3 SaaS UI
+msgid "No videos registered yet"
+msgstr "هنوز ویدیویی ثبت نشده"
+
+#: Phase 3 SaaS UI
+msgid "No videos yet"
+msgstr "هنوز ویدیویی نیست"
+
+#: Phase 3 SaaS UI
+msgid "Plugin diagnostics and operational messages."
+msgstr "تشخیص‌های افزونه و پیام‌های عملیاتی."
+
+#: Phase 3 SaaS UI
+msgid "Search and review captured leads."
+msgstr "جستجو و بررسی لیدهای ثبت‌شده."
+
+#: Phase 3 SaaS UI
+msgid "See where viewers watch and where they drop off."
+msgstr "ببینید مخاطب کجا تماشا می‌کند و کجا ترک می‌کند."
+
+#: Phase 3 SaaS UI
+msgid "Select a video"
+msgstr "یک ویدیو انتخاب کنید"
+
+#: Phase 3 SaaS UI
+msgid "Showing last %1$d of %2$d entries"
+msgstr "نمایش %1$d مورد آخر از %2$d"
+
+#: Phase 3 SaaS UI
+msgid "Test"
+msgstr "تست"
+
+#: Phase 3 SaaS UI
+msgid "The selected video is missing or inactive."
+msgstr "ویدیوی انتخاب‌شده موجود نیست یا غیرفعال است."
+
+#: Phase 3 SaaS UI
+msgid "This lead may have been deleted."
+msgstr "این لید ممکن است حذف شده باشد."
+
+#: Phase 3 SaaS UI
+msgid "Track conversion from visit to video completion."
+msgstr "تبدیل از بازدید تا تکمیل ویدیو را ردیابی کنید."
+
+#: Phase 3 SaaS UI
+msgid "Video not found"
+msgstr "ویدیو پیدا نشد"
+
+#: Phase 3 SaaS UI
+msgid "View all leads"
+msgstr "مشاهده همه لیدها"
+
+#: Phase 3 SaaS UI
+msgid "View analytics"
+msgstr "مشاهده آنالیتیکس"
+
+#: Phase 3 SaaS UI
+msgid "from prev"
+msgstr "نسبت به قبل"
+
+#: Phase 3 SaaS UI
+msgid "← All leads"
+msgstr "← همه لیدها"
+
+#: Phase 3 SaaS UI
+msgid "← Back to Videos"
+msgstr "← بازگشت به ویدیوها"

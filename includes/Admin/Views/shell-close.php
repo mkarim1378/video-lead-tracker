@@ -8,9 +8,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 	<div class="vlt-toast-host" id="vlt-toast-host" aria-live="polite" aria-relevant="additions"></div>
 
-	<div class="vlt-modal" id="vlt-confirm-modal" hidden>
+	<div class="vlt-modal" id="vlt-confirm-modal" hidden aria-hidden="true">
 		<div class="vlt-modal-backdrop" data-vlt-modal-dismiss></div>
-		<div class="vlt-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="vlt-confirm-title">
+		<div class="vlt-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="vlt-confirm-title" tabindex="-1">
 			<h2 class="vlt-modal-title" id="vlt-confirm-title"></h2>
 			<p class="vlt-modal-body" id="vlt-confirm-body"></p>
 			<div class="vlt-modal-actions">
