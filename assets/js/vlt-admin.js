@@ -4,8 +4,19 @@
 	'use strict';
 
 	document.addEventListener( 'DOMContentLoaded', function () {
-		document.querySelectorAll( '.vlt-tab-nav' ).forEach( initTabGroup );
+		mountAdmin();
 	} );
+
+	function mountAdmin() {
+		bindDataManagementOnce();
+		document.querySelectorAll( '.vlt-tab-nav' ).forEach( initTabGroup );
+		initOverviewPage();
+		initKpiCustomize();
+	}
+
+	window.vltAdmin = {
+		mount: mountAdmin,
+	};
 
 	/**
 	 * Wire up one tab nav + its panels.
@@ -107,156 +118,175 @@
 		localStorage.setItem( storageKey, activeBtn.dataset.tab );
 	}
 
-	/* ---- Data Management resets ---- */
+	/* ---- Data Management (delegated — safe across AJAX page swaps) ---- */
 
-	document.querySelectorAll( '.vlt-reset-btn' ).forEach( function ( btn ) {
-		btn.addEventListener( 'click', function () {
-			var panel       = btn.closest( '.vlt-reset-panel' );
-			var scope       = btn.getAttribute( 'data-scope' );
-			var confirmText = btn.getAttribute( 'data-confirm-text' ) || '';
-			var body        = { scope: scope };
-			var toast       = window.vltUi && window.vltUi.toast ? window.vltUi.toast : function ( m ) { alert( m ); };
+	function bindDataManagementOnce() {
+		if ( window.__vltDmBound ) return;
+		window.__vltDmBound = true;
 
-			if ( scope === 'full' ) {
-				var typed = panel ? panel.querySelector( '.vlt-reset-typed-confirm' ) : null;
-				if ( ! typed || typed.value.trim() !== confirmText ) {
-					toast( 'Type ' + confirmText + ' to confirm.', 'error' );
-					return;
-				}
-			} else {
-				var cb = panel ? panel.querySelector( '.vlt-reset-confirm-cb' ) : null;
-				if ( ! cb || ! cb.checked ) {
-					toast( 'Check the confirmation box first.', 'error' );
-					return;
-				}
-				var idInput = panel ? panel.querySelector( '.vlt-reset-id-input' ) : null;
-				if ( idInput ) {
-					var idVal = idInput.value;
-					if ( ! idVal ) { toast( 'Select or enter a value first.', 'error' ); return; }
-					body[ idInput.name ] = parseInt( idVal, 10 ) || idVal;
-				}
+		document.addEventListener( 'click', function ( e ) {
+			var resetBtn = e.target.closest( '.vlt-reset-btn' );
+			if ( resetBtn ) {
+				handleResetClick( resetBtn );
+				return;
 			}
-
-			var run = function () {
-				var origText = btn.textContent;
-				btn.disabled    = true;
-				btn.textContent = '…';
-				var api = window.vltApi;
-				var req = api
-					? api.post( 'admin/reset', body )
-					: fetch( ( window.vltAdminData.restBase || '' ) + 'admin/reset', {
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': window.vltAdminData.nonce || '' },
-						body: JSON.stringify( body ),
-					} ).then( function ( r ) { return r.json(); } );
-
-				req.then( function ( data ) {
-					if ( data.success ) {
-						btn.textContent = '✓ Done';
-						btn.classList.add( 'vlt-btn--primary' );
-						toast( 'Reset complete.', 'success' );
-					} else {
-						btn.disabled    = false;
-						btn.textContent = origText;
-						toast( ( data.message || ( data.data && data.data.message ) ) || 'Reset failed.', 'error' );
-					}
-				} ).catch( function () {
-					btn.disabled    = false;
-					btn.textContent = origText;
-					toast( 'Network error. Please try again.', 'error' );
-				} );
-			};
-
-			if ( window.vltUi && window.vltUi.confirm ) {
-				window.vltUi.confirm( {
-					title: 'Confirm reset',
-					body: 'This action cannot be undone.',
-					danger: true,
-				} ).then( function ( ok ) { if ( ok ) run(); } );
-			} else {
-				run();
+			var purgeBtn = e.target.closest( '.vlt-purge-logs-btn' );
+			if ( purgeBtn ) {
+				handlePurgeClick( purgeBtn );
 			}
 		} );
-	} );
 
-	/* ---- Purge Logs ---- */
+		document.addEventListener( 'input', function ( e ) {
+			var input = e.target.closest( '.vlt-reset-id-input[name="lead_id"], .vlt-reset-id-input[name="page_id"]' );
+			if ( ! input ) return;
+			handleLookupInput( input );
+		} );
+	}
 
-	document.querySelectorAll( '.vlt-purge-logs-btn' ).forEach( function ( btn ) {
-		btn.addEventListener( 'click', function () {
-			var proceed = function () {
-				var origText = btn.textContent;
-				btn.disabled    = true;
-				btn.textContent = '…';
-				var api = window.vltApi;
-				var req = api
-					? api.post( 'admin/purge-logs', {} )
-					: fetch( ( window.vltAdminData.restBase || '' ) + 'admin/purge-logs', {
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': window.vltAdminData.nonce || '' },
-						body: '{}',
-					} ).then( function ( r ) { return r.json(); } );
+	function handleResetClick( btn ) {
+		var panel       = btn.closest( '.vlt-reset-panel' );
+		var scope       = btn.getAttribute( 'data-scope' );
+		var confirmText = btn.getAttribute( 'data-confirm-text' ) || '';
+		var body        = { scope: scope };
+		var toast       = window.vltUi && window.vltUi.toast ? window.vltUi.toast : function ( m ) { alert( m ); };
 
-				req.then( function ( data ) {
-					if ( data.success ) {
+		if ( scope === 'full' ) {
+			var typed = panel ? panel.querySelector( '.vlt-reset-typed-confirm' ) : null;
+			if ( ! typed || typed.value.trim() !== confirmText ) {
+				toast( 'Type ' + confirmText + ' to confirm.', 'error' );
+				return;
+			}
+		} else {
+			var cb = panel ? panel.querySelector( '.vlt-reset-confirm-cb' ) : null;
+			if ( ! cb || ! cb.checked ) {
+				toast( 'Check the confirmation box first.', 'error' );
+				return;
+			}
+			var idInput = panel ? panel.querySelector( '.vlt-reset-id-input' ) : null;
+			if ( idInput ) {
+				var idVal = idInput.value;
+				if ( ! idVal ) { toast( 'Select or enter a value first.', 'error' ); return; }
+				body[ idInput.name ] = parseInt( idVal, 10 ) || idVal;
+			}
+		}
+
+		var run = function () {
+			var origText = btn.textContent;
+			btn.disabled    = true;
+			btn.textContent = '…';
+			var api = window.vltApi;
+			var req = api
+				? api.post( 'admin/reset', body )
+				: fetch( ( window.vltAdminData.restBase || '' ) + 'admin/reset', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': window.vltAdminData.nonce || '' },
+					body: JSON.stringify( body ),
+				} ).then( function ( r ) { return r.json(); } );
+
+			req.then( function ( data ) {
+				if ( data.success ) {
+					btn.textContent = '✓ Done';
+					btn.classList.add( 'vlt-btn--primary' );
+					toast( 'Reset complete.', 'success' );
+				} else {
+					btn.disabled    = false;
+					btn.textContent = origText;
+					toast( ( data.message || ( data.data && data.data.message ) ) || 'Reset failed.', 'error' );
+				}
+			} ).catch( function () {
+				btn.disabled    = false;
+				btn.textContent = origText;
+				toast( 'Network error. Please try again.', 'error' );
+			} );
+		};
+
+		if ( window.vltUi && window.vltUi.confirm ) {
+			window.vltUi.confirm( {
+				title: 'Confirm reset',
+				body: 'This action cannot be undone.',
+				danger: true,
+			} ).then( function ( ok ) { if ( ok ) run(); } );
+		} else {
+			run();
+		}
+	}
+
+	function handlePurgeClick( btn ) {
+		var proceed = function () {
+			var origText = btn.textContent;
+			btn.disabled    = true;
+			btn.textContent = '…';
+			var api = window.vltApi;
+			var req = api
+				? api.post( 'admin/purge-logs', {} )
+				: fetch( ( window.vltAdminData.restBase || '' ) + 'admin/purge-logs', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': window.vltAdminData.nonce || '' },
+					body: '{}',
+				} ).then( function ( r ) { return r.json(); } );
+
+			req.then( function ( data ) {
+				if ( data.success ) {
+					if ( window.vltAdminNav && window.vltAdminNav.navigate ) {
+						window.vltAdminNav.navigate( window.location.href, { replace: true } );
+					} else {
 						window.location.reload();
-					} else {
-						btn.disabled    = false;
-						btn.textContent = origText;
-						if ( window.vltUi ) window.vltUi.toast( 'Purge failed.', 'error' );
 					}
-				} ).catch( function () {
+				} else {
 					btn.disabled    = false;
 					btn.textContent = origText;
-					if ( window.vltUi ) window.vltUi.toast( 'Network error. Please try again.', 'error' );
-				} );
-			};
+					if ( window.vltUi ) window.vltUi.toast( 'Purge failed.', 'error' );
+				}
+			} ).catch( function () {
+				btn.disabled    = false;
+				btn.textContent = origText;
+				if ( window.vltUi ) window.vltUi.toast( 'Network error. Please try again.', 'error' );
+			} );
+		};
 
-			if ( window.vltUi && window.vltUi.confirm ) {
-				window.vltUi.confirm( {
-					title: 'Purge all logs?',
-					body: 'Delete all log entries? This cannot be undone.',
-					danger: true,
-				} ).then( function ( ok ) { if ( ok ) proceed(); } );
-			} else if ( window.confirm( 'Delete all log entries? This cannot be undone.' ) ) {
-				proceed();
-			}
-		} );
-	} );
+		if ( window.vltUi && window.vltUi.confirm ) {
+			window.vltUi.confirm( {
+				title: 'Purge all logs?',
+				body: 'Delete all log entries? This cannot be undone.',
+				danger: true,
+			} ).then( function ( ok ) { if ( ok ) proceed(); } );
+		} else if ( window.confirm( 'Delete all log entries? This cannot be undone.' ) ) {
+			proceed();
+		}
+	}
 
-	/* ---- Data Management — ID preview lookup ---- */
+	var lookupTimers = new WeakMap();
 
-	document.querySelectorAll( '.vlt-reset-id-input[name="lead_id"], .vlt-reset-id-input[name="page_id"]' ).forEach( function ( input ) {
+	function handleLookupInput( input ) {
 		var preview = input.parentElement.querySelector( '.vlt-dm-preview' );
 		var type    = preview ? preview.getAttribute( 'data-lookup-type' ) : null;
 		if ( ! preview || ! type ) return;
 
-		var timer = null;
-		input.addEventListener( 'input', function () {
-			clearTimeout( timer );
-			preview.textContent = '';
-			preview.style.color = '';
-			if ( ! input.value ) return;
-			preview.textContent = '…';
-			timer = setTimeout( function () {
-				var restBase = ( window.vltAdminData && window.vltAdminData.restBase ) || '';
-				var nonce    = ( window.vltAdminData && window.vltAdminData.nonce )    || '';
-				fetch( restBase + 'admin/lookup?type=' + type + '&id=' + parseInt( input.value, 10 ), {
-					headers: { 'X-WP-Nonce': nonce },
-				} )
-				.then( function ( r ) { return r.json(); } )
-				.then( function ( data ) {
-					if ( data.success ) {
-						preview.textContent = data.label + ' \u2014 ' + data.sub;
-						preview.style.color = '#1a9e6a';
-					} else {
-						preview.textContent = 'Not found';
-						preview.style.color = '#c22f3a';
-					}
-				} )
-				.catch( function () { preview.textContent = ''; } );
-			}, 500 );
-		} );
-	} );
+		var prev = lookupTimers.get( input );
+		if ( prev ) clearTimeout( prev );
+		preview.textContent = '';
+		preview.style.color = '';
+		if ( ! input.value ) return;
+		preview.textContent = '…';
+		lookupTimers.set( input, setTimeout( function () {
+			var restBase = ( window.vltAdminData && window.vltAdminData.restBase ) || '';
+			var nonce    = ( window.vltAdminData && window.vltAdminData.nonce )    || '';
+			fetch( restBase + 'admin/lookup?type=' + type + '&id=' + parseInt( input.value, 10 ), {
+				headers: { 'X-WP-Nonce': nonce },
+			} )
+			.then( function ( r ) { return r.json(); } )
+			.then( function ( data ) {
+				if ( data.success ) {
+					preview.textContent = data.label + ' \u2014 ' + data.sub;
+					preview.style.color = '#1a9e6a';
+				} else {
+					preview.textContent = 'Not found';
+					preview.style.color = '#c22f3a';
+				}
+			} )
+			.catch( function () { preview.textContent = ''; } );
+		}, 500 ) );
+	}
 
 	/* ---- Heatmap (exposed for AJAX remount) ---- */
 
@@ -426,19 +456,22 @@
 
 	/* ---- Overview AJAX + KPI customize (Phase 0) ---- */
 
-	document.addEventListener( 'DOMContentLoaded', function () {
-		initOverviewPage();
-		initKpiCustomize();
-	} );
+	/* Overview + KPI customize are mounted via window.vltAdmin.mount() */
 
 	function i18n( key, fallback ) {
 		var map = ( window.vltAdminData && window.vltAdminData.i18n ) || {};
 		return map[ key ] || fallback || key;
 	}
 
+	var overviewScope = null;
+
 	function initOverviewPage() {
 		var root = document.getElementById( 'vlt-overview-root' );
 		if ( ! root || ! window.vltApi ) return;
+
+		if ( overviewScope ) overviewScope.abort();
+		overviewScope = window.AbortController ? new AbortController() : null;
+		var signal = overviewScope ? overviewScope.signal : undefined;
 
 		var abort = null;
 
@@ -447,7 +480,7 @@
 			if ( ! app ) return;
 			var video = ( e.detail && e.detail.video ) || '';
 			refreshOverview( video );
-		} );
+		}, signal ? { signal: signal } : false );
 
 		function refreshOverview( video ) {
 			if ( abort ) abort.abort();
@@ -578,52 +611,53 @@
 	}
 
 	function initKpiCustomize() {
-		var btn = document.querySelector( '.vlt-kpi-customize-btn' );
-		if ( ! btn ) return;
-
 		applyKpiVisibility();
-
-		btn.addEventListener( 'click', function () {
-			var existing = document.getElementById( 'vlt-kpi-picker' );
-			if ( existing ) { existing.remove(); return; }
-
-			var cards = document.querySelectorAll( '#vlt-overview-kpis .vlt-kpi-card[data-kpi-key]' );
-			if ( ! cards.length ) return;
-
-			var hidden = getHiddenKpis();
-			var picker = document.createElement( 'div' );
-			picker.id = 'vlt-kpi-picker';
-			picker.className = 'vlt-kpi-picker-popover';
-			picker.setAttribute( 'role', 'dialog' );
-			picker.setAttribute( 'aria-label', i18n( 'customize', 'Customize Widgets' ) );
-
-			cards.forEach( function ( card ) {
-				var key   = card.getAttribute( 'data-kpi-key' );
-				var label = card.querySelector( '.vlt-kpi-label' );
-				var text  = label ? label.textContent : key;
-				var row   = document.createElement( 'label' );
-				var cb    = document.createElement( 'input' );
-				cb.type = 'checkbox';
-				cb.checked = hidden.indexOf( key ) === -1;
-				cb.addEventListener( 'change', function () {
-					var list = getHiddenKpis();
-					if ( cb.checked ) {
-						list = list.filter( function ( k ) { return k !== key; } );
-					} else if ( list.indexOf( key ) === -1 ) {
-						list.push( key );
-					}
-					localStorage.setItem( KPI_LS_KEY, JSON.stringify( list ) );
-					applyKpiVisibility();
-				} );
-				row.appendChild( cb );
-				row.appendChild( document.createTextNode( ' ' + text ) );
-				picker.appendChild( row );
-			} );
-
-			btn.parentNode.appendChild( picker );
-		} );
+		if ( window.__vltKpiCustomizeBound ) return;
+		window.__vltKpiCustomizeBound = true;
 
 		document.addEventListener( 'click', function ( e ) {
+			var btn = e.target.closest( '.vlt-kpi-customize-btn' );
+			if ( btn ) {
+				var existing = document.getElementById( 'vlt-kpi-picker' );
+				if ( existing ) { existing.remove(); return; }
+
+				var cards = document.querySelectorAll( '#vlt-overview-kpis .vlt-kpi-card[data-kpi-key]' );
+				if ( ! cards.length ) return;
+
+				var hidden = getHiddenKpis();
+				var picker = document.createElement( 'div' );
+				picker.id = 'vlt-kpi-picker';
+				picker.className = 'vlt-kpi-picker-popover';
+				picker.setAttribute( 'role', 'dialog' );
+				picker.setAttribute( 'aria-label', i18n( 'customize', 'Customize Widgets' ) );
+
+				cards.forEach( function ( card ) {
+					var key   = card.getAttribute( 'data-kpi-key' );
+					var label = card.querySelector( '.vlt-kpi-label' );
+					var text  = label ? label.textContent : key;
+					var row   = document.createElement( 'label' );
+					var cb    = document.createElement( 'input' );
+					cb.type = 'checkbox';
+					cb.checked = hidden.indexOf( key ) === -1;
+					cb.addEventListener( 'change', function () {
+						var list = getHiddenKpis();
+						if ( cb.checked ) {
+							list = list.filter( function ( k ) { return k !== key; } );
+						} else if ( list.indexOf( key ) === -1 ) {
+							list.push( key );
+						}
+						localStorage.setItem( KPI_LS_KEY, JSON.stringify( list ) );
+						applyKpiVisibility();
+					} );
+					row.appendChild( cb );
+					row.appendChild( document.createTextNode( ' ' + text ) );
+					picker.appendChild( row );
+				} );
+
+				btn.parentNode.appendChild( picker );
+				return;
+			}
+
 			var picker = document.getElementById( 'vlt-kpi-picker' );
 			if ( ! picker ) return;
 			if ( e.target.closest( '#vlt-kpi-picker' ) || e.target.closest( '.vlt-kpi-customize-btn' ) ) return;

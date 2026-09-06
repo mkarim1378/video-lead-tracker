@@ -5,6 +5,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.4.7] - 2026-09-06
+
+### Added
+- **Dark / Light theme toggle** in the page header (persisted in `localStorage`).
+- **Sticky in-app sidebar** that stays fixed while the content scrolls.
+- **AJAX in-app navigation** between VLT admin pages (shell nav + WP submenu), with `history.pushState` and page controller remount.
+
+### Changed
+- `VLT_VERSION` bumped 1.4.6 → 1.4.7.
+
+---
+
 ## [1.4.6] - 2026-09-06
 
 ### Added

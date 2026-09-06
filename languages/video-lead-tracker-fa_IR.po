@@ -3,7 +3,7 @@
 # This file is distributed under the same license as the Video Lead Tracker package.
 msgid ""
 msgstr ""
-"Project-Id-Version: Video Lead Tracker 1.4.6\n"
+"Project-Id-Version: Video Lead Tracker 1.4.7\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-05-12 00:00+0000\n"
 "PO-Revision-Date: 2026-09-06 00:00+0000\n"
@@ -1833,3 +1833,19 @@ msgstr "← همه لیدها"
 #: Phase 3 SaaS UI
 msgid "← Back to Videos"
 msgstr "← بازگشت به ویدیوها"
+
+#: Phase theme/nav
+msgid "Toggle color theme"
+msgstr "تغییر تم رنگی"
+
+#: Phase theme/nav
+msgid "Dark"
+msgstr "تیره"
+
+#: Phase theme/nav
+msgid "Light"
+msgstr "روشن"
+
+#: Phase theme/nav
+msgid "Could not load page."
+msgstr "بارگذاری صفحه ممکن نشد."

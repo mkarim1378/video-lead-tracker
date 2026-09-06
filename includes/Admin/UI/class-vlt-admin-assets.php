@@ -74,6 +74,13 @@ class VLT_Admin_Assets {
 			VLT_VERSION,
 			true
 		);
+		wp_enqueue_script(
+			'vlt-admin-nav',
+			VLT_PLUGIN_URL . 'assets/js/vlt-admin-nav.js',
+			[ 'vlt-admin-pages' ],
+			VLT_VERSION,
+			true
+		);
 	}
 
 	/**
@@ -125,6 +132,9 @@ class VLT_Admin_Assets {
 				'noLogs'         => __( 'No log entries.', 'video-lead-tracker' ),
 				'copied'         => __( 'Copied to clipboard.', 'video-lead-tracker' ),
 				'settingsSaved'  => __( 'Settings saved.', 'video-lead-tracker' ),
+				'themeDark'      => __( 'Dark', 'video-lead-tracker' ),
+				'themeLight'     => __( 'Light', 'video-lead-tracker' ),
+				'navError'       => __( 'Could not load page.', 'video-lead-tracker' ),
 			],
 		] );
 	}

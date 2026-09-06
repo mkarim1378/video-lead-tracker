@@ -47,7 +47,7 @@
 
 	/* ---- Funnel ---- */
 
-	function initFunnelPage() {
+	function initFunnelPage( signal ) {
 		var root = document.getElementById( 'vlt-funnel-root' );
 		if ( ! root || ! window.vltApi ) return;
 		var abort = null;
@@ -57,7 +57,7 @@
 			if ( ! app ) return;
 			var id = ( e.detail && e.detail.videoId ) || 0;
 			refresh( id );
-		} );
+		}, signal ? { signal: signal } : false );
 
 		function refresh( videoId ) {
 			if ( abort ) abort.abort();
@@ -120,7 +120,7 @@
 
 	/* ---- Heatmap ---- */
 
-	function initHeatmapPage() {
+	function initHeatmapPage( signal ) {
 		var root = document.getElementById( 'vlt-heatmap-root' );
 		if ( ! root || ! window.vltApi ) return;
 		var abort = null;
@@ -131,7 +131,7 @@
 			var app = document.querySelector( '.vlt-app[data-page="vlt-heatmap"]' );
 			if ( ! app ) return;
 			refresh( ( e.detail && e.detail.videoId ) || 0 );
-		} );
+		}, signal ? { signal: signal } : false );
 
 		function refresh( videoId ) {
 			if ( abort ) abort.abort();
@@ -196,7 +196,7 @@
 
 	/* ---- Analytics detail ---- */
 
-	function initAnalyticsDetailPage() {
+	function initAnalyticsDetailPage( signal ) {
 		var root = document.getElementById( 'vlt-analytics-detail-root' );
 		if ( ! root || ! window.vltApi ) return;
 		var abort = null;
@@ -210,7 +210,7 @@
 				return;
 			}
 			refresh( id );
-		} );
+		}, signal ? { signal: signal } : false );
 
 		function refresh( videoId ) {
 			if ( abort ) abort.abort();
@@ -298,7 +298,7 @@
 
 	/* ---- Leads list AJAX ---- */
 
-	function initLeadsPage() {
+	function initLeadsPage( signal ) {
 		var root = document.getElementById( 'vlt-leads-root' );
 		if ( ! root || ! window.vltApi ) return;
 		var abort = null;
@@ -388,7 +388,7 @@
 			if ( dir === 'prev' ) state.paged = Math.max( 1, state.paged - 1 );
 			if ( dir === 'next' ) state.paged = Math.min( total, state.paged + 1 );
 			refresh();
-		} );
+		}, signal ? { signal: signal } : false );
 
 		document.addEventListener( 'vlt:video-filter', function ( e ) {
 			var app = document.querySelector( '.vlt-app[data-page="vlt-leads"]' );
@@ -396,7 +396,7 @@
 			state.video = ( e.detail && e.detail.video ) || '';
 			state.paged = 1;
 			refresh();
-		} );
+		}, signal ? { signal: signal } : false );
 
 		function syncUrl() {
 			try {
@@ -493,7 +493,7 @@
 
 	/* ---- Logs AJAX ---- */
 
-	function initLogsPage() {
+	function initLogsPage( signal ) {
 		var root = document.getElementById( 'vlt-logs-root' );
 		if ( ! root || ! window.vltApi ) return;
 		var abort = null;
@@ -564,7 +564,7 @@
 
 	/* ---- Videos copy + delete modal ---- */
 
-	function initVideosPage() {
+	function initVideosPage( signal ) {
 		document.querySelectorAll( '.vlt-copy-btn' ).forEach( function ( btn ) {
 			btn.addEventListener( 'click', function () {
 				var text = btn.getAttribute( 'data-copy' ) || '';
@@ -613,12 +613,23 @@
 		}
 	}
 
-	document.addEventListener( 'DOMContentLoaded', function () {
-		initFunnelPage();
-		initHeatmapPage();
-		initAnalyticsDetailPage();
-		initLeadsPage();
-		initLogsPage();
-		initVideosPage();
-	} );
+	var pagesScope = null;
+
+	function mountPages() {
+		if ( pagesScope ) pagesScope.abort();
+		pagesScope = window.AbortController ? new AbortController() : null;
+		var signal = pagesScope ? pagesScope.signal : undefined;
+		initFunnelPage( signal );
+		initHeatmapPage( signal );
+		initAnalyticsDetailPage( signal );
+		initLeadsPage( signal );
+		initLogsPage( signal );
+		initVideosPage( signal );
+	}
+
+	document.addEventListener( 'DOMContentLoaded', mountPages );
+
+	window.vltAdminPages = {
+		mount: mountPages,
+	};
 } )( window, document );

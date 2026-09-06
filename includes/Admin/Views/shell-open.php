@@ -5,9 +5,30 @@ if ( ! defined( 'ABSPATH' ) ) {
 /** @var array $args extracted: $page, $title, $subtitle, $show_header, $show_video_filter, $ajax_video_filter, $actions_html, $legacy */
 $nav_items = VLT_Admin_UI::nav_items();
 ?>
+<script>
+( function () {
+	try {
+		var t = localStorage.getItem( 'vlt_admin_theme' ) || 'dark';
+		if ( t !== 'light' && t !== 'dark' ) t = 'dark';
+		if ( document.body ) document.body.setAttribute( 'data-vlt-theme', t );
+	} catch ( e ) { /* ignore */ }
+}() );
+</script>
 <div class="vlt-app<?php echo ! empty( $legacy ) ? ' vlt-app--legacy' : ''; ?>"
      data-page="<?php echo esc_attr( $page ); ?>"
+     data-theme="dark"
      dir="<?php echo is_rtl() ? 'rtl' : 'ltr'; ?>">
+<script>
+( function () {
+	try {
+		var app = document.currentScript.parentElement;
+		var t = localStorage.getItem( 'vlt_admin_theme' ) || 'dark';
+		if ( t !== 'light' && t !== 'dark' ) t = 'dark';
+		if ( app ) app.setAttribute( 'data-theme', t );
+		if ( document.body ) document.body.setAttribute( 'data-vlt-theme', t );
+	} catch ( e ) { /* ignore */ }
+}() );
+</script>
 
 	<nav class="vlt-app-nav" aria-label="<?php esc_attr_e( 'Video Lead Tracker', 'video-lead-tracker' ); ?>">
 		<div class="vlt-app-brand">

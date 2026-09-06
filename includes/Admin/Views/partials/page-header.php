@@ -21,6 +21,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<?php endif; ?>
 	</div>
 	<div class="vlt-page-header-tools">
+		<button type="button"
+		        class="vlt-btn vlt-btn--ghost vlt-theme-toggle"
+		        data-vlt-theme-toggle
+		        aria-label="<?php esc_attr_e( 'Toggle color theme', 'video-lead-tracker' ); ?>">
+			<span class="dashicons dashicons-admin-appearance" aria-hidden="true"></span>
+			<span data-vlt-theme-label><?php esc_html_e( 'Dark', 'video-lead-tracker' ); ?></span>
+		</button>
 		<?php if ( ! empty( $show_video_filter ) ) : ?>
 			<?php VLT_Admin_UI::render_video_filter( $page, [], ! empty( $ajax_video_filter ) ); ?>
 		<?php endif; ?>
