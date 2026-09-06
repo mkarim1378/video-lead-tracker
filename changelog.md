@@ -5,6 +5,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.4.8] - 2026-09-06
+
+### Fixed
+- **Admin UI consistency**: themed scrollbars; search/select/video-filter controls aligned to design tokens; Settings (form fields, Data Management, Shortcodes, Content Type) no longer ships WP-white inline styles.
+
+### Changed
+- `VLT_VERSION` bumped 1.4.7 → 1.4.8.
+
+---
+
 ## [1.4.7] - 2026-09-06
 
 ### Added

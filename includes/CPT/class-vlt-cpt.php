@@ -401,12 +401,12 @@ class VLT_CPT {
 						];
 						foreach ( $support_opts as $feat => $feat_label ) :
 						?>
-							<label style="display:inline-block;margin-right:16px;margin-bottom:4px">
+							<label class="vlt-check vlt-check--inline">
 								<input type="checkbox"
 								       name="vlt_cpt_config[supports][<?php echo esc_attr( $feat ); ?>]"
 								       value="1"
 								       <?php checked( ! empty( $cfg['supports'][ $feat ] ) ); ?>>
-								<?php echo esc_html( $feat_label ); ?>
+								<span><?php echo esc_html( $feat_label ); ?></span>
 							</label>
 						<?php endforeach; ?>
 						<p class="description"><?php esc_html_e( 'Title is always enabled.', 'video-lead-tracker' ); ?></p>
@@ -447,9 +447,11 @@ class VLT_CPT {
 				<!-- ── Categories ───────────────────────────────────────────── -->
 
 				<tr class="vlt-cpt-field">
-					<td colspan="2" style="padding-top:20px;padding-bottom:0">
-						<strong style="font-size:13px"><?php esc_html_e( 'Categories', 'video-lead-tracker' ); ?></strong>
-						<hr style="margin:6px 0 0">
+					<td colspan="2">
+						<span class="vlt-cpt-section-title">
+							<strong><?php esc_html_e( 'Categories', 'video-lead-tracker' ); ?></strong>
+							<hr>
+						</span>
 					</td>
 				</tr>
 
@@ -513,9 +515,11 @@ class VLT_CPT {
 				<!-- ── Tags ─────────────────────────────────────────────────── -->
 
 				<tr class="vlt-cpt-field">
-					<td colspan="2" style="padding-top:20px;padding-bottom:0">
-						<strong style="font-size:13px"><?php esc_html_e( 'Tags', 'video-lead-tracker' ); ?></strong>
-						<hr style="margin:6px 0 0">
+					<td colspan="2">
+						<span class="vlt-cpt-section-title">
+							<strong><?php esc_html_e( 'Tags', 'video-lead-tracker' ); ?></strong>
+							<hr>
+						</span>
 					</td>
 				</tr>
 
@@ -578,7 +582,9 @@ class VLT_CPT {
 
 			</table>
 
-			<?php submit_button( __( 'Save Content Type Settings', 'video-lead-tracker' ) ); ?>
+			<p class="vlt-form-actions">
+				<button type="submit" class="vlt-btn vlt-btn--primary"><?php esc_html_e( 'Save Content Type Settings', 'video-lead-tracker' ); ?></button>
+			</p>
 		</form>
 
 		<script>

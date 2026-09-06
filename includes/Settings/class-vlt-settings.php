@@ -150,7 +150,7 @@ class VLT_Settings {
 		switch ( $type ) {
 			case 'checkbox':
 				printf(
-					'<label><input type="checkbox" id="%s" name="%s" value="1" %s /> %s</label>',
+					'<label class="vlt-check"><input type="checkbox" id="%s" name="%s" value="1" %s /> <span>%s</span></label>',
 					esc_attr( $id ),
 					esc_attr( $name ),
 					checked( $value, true, false ),
@@ -160,7 +160,7 @@ class VLT_Settings {
 
 			case 'number':
 				printf(
-					'<input type="number" id="%s" name="%s" value="%s" min="%s" class="small-text" />',
+					'<input type="number" id="%s" name="%s" value="%s" min="%s" class="vlt-input vlt-input--sm small-text" />',
 					esc_attr( $id ),
 					esc_attr( $name ),
 					esc_attr( (string) $value ),
@@ -170,7 +170,7 @@ class VLT_Settings {
 
 			case 'url':
 				printf(
-					'<input type="url" id="%s" name="%s" value="%s" class="regular-text" />',
+					'<input type="url" id="%s" name="%s" value="%s" class="vlt-input regular-text" />',
 					esc_attr( $id ),
 					esc_attr( $name ),
 					esc_attr( (string) $value )
@@ -179,7 +179,7 @@ class VLT_Settings {
 
 			case 'password':
 				printf(
-					'<input type="password" id="%s" name="%s" value="%s" class="regular-text" autocomplete="new-password" />',
+					'<input type="password" id="%s" name="%s" value="%s" class="vlt-input regular-text" autocomplete="new-password" />',
 					esc_attr( $id ),
 					esc_attr( $name ),
 					esc_attr( (string) $value )
@@ -188,7 +188,7 @@ class VLT_Settings {
 
 			case 'textarea':
 				printf(
-					'<textarea id="%s" name="%s" rows="3" class="large-text">%s</textarea>',
+					'<textarea id="%s" name="%s" rows="3" class="vlt-input large-text">%s</textarea>',
 					esc_attr( $id ),
 					esc_attr( $name ),
 					esc_textarea( (string) $value )
@@ -196,7 +196,7 @@ class VLT_Settings {
 				break;
 
 			case 'select':
-				echo '<select id="' . esc_attr( $id ) . '" name="' . esc_attr( $name ) . '">';
+				echo '<select id="' . esc_attr( $id ) . '" name="' . esc_attr( $name ) . '" class="vlt-select">';
 				foreach ( ( $field['options'] ?? [] ) as $opt_val => $opt_label ) {
 					printf(
 						'<option value="%s" %s>%s</option>',
@@ -215,12 +215,13 @@ class VLT_Settings {
 					'selected'          => (int) $value,
 					'show_option_none'  => __( '— Select a page —', 'video-lead-tracker' ),
 					'option_none_value' => '0',
+					'class'             => 'vlt-select',
 				] );
 				break;
 
 			default:
 				printf(
-					'<input type="text" id="%s" name="%s" value="%s" class="regular-text" />',
+					'<input type="text" id="%s" name="%s" value="%s" class="vlt-input regular-text" />',
 					esc_attr( $id ),
 					esc_attr( $name ),
 					esc_attr( (string) $value )
@@ -335,18 +336,18 @@ class VLT_Settings {
 				<h3><?php esc_html_e( 'Reset Video Analytics', 'video-lead-tracker' ); ?></h3>
 				<p class="description"><?php esc_html_e( 'Clears all watch ranges, heatmap data, and viewer summaries for the selected video. The video registry entry is not deleted.', 'video-lead-tracker' ); ?></p>
 				<p>
-					<select class="vlt-reset-id-input" name="video_id">
+					<select class="vlt-select vlt-reset-id-input" name="video_id">
 						<option value=""><?php esc_html_e( '— Select a video —', 'video-lead-tracker' ); ?></option>
 						<?php foreach ( $videos as $v ) : ?>
 							<option value="<?php echo esc_attr( $v->id ); ?>"><?php echo esc_html( $v->title ?: $v->video_key ); ?></option>
 						<?php endforeach; ?>
 					</select>
 				</p>
-				<p><label>
+				<p><label class="vlt-check">
 					<input type="checkbox" class="vlt-reset-confirm-cb">
-					<?php esc_html_e( 'I understand this action is irreversible.', 'video-lead-tracker' ); ?>
+					<span><?php esc_html_e( 'I understand this action is irreversible.', 'video-lead-tracker' ); ?></span>
 				</label></p>
-				<button type="button" class="button button-secondary vlt-reset-btn" data-scope="video">
+				<button type="button" class="vlt-btn vlt-btn--secondary vlt-reset-btn" data-scope="video">
 					<?php esc_html_e( 'Reset Video Analytics', 'video-lead-tracker' ); ?>
 				</button>
 			</div>
@@ -356,16 +357,15 @@ class VLT_Settings {
 				<h3><?php esc_html_e( 'Delete Lead &amp; Data', 'video-lead-tracker' ); ?></h3>
 				<p class="description"><?php esc_html_e( 'Permanently deletes a lead record and all associated sessions, watch data, and page visits. Find the Lead ID on the Leads page.', 'video-lead-tracker' ); ?></p>
 				<p>
-					<input type="number" class="vlt-reset-id-input" name="lead_id" min="1"
-					       placeholder="<?php esc_attr_e( 'Lead ID', 'video-lead-tracker' ); ?>"
-					       style="width:120px">
+					<input type="number" class="vlt-input vlt-reset-id-input" name="lead_id" min="1"
+					       placeholder="<?php esc_attr_e( 'Lead ID', 'video-lead-tracker' ); ?>">
 					<span class="vlt-dm-preview" data-lookup-type="lead"></span>
 				</p>
-				<p><label>
+				<p><label class="vlt-check">
 					<input type="checkbox" class="vlt-reset-confirm-cb">
-					<?php esc_html_e( 'I understand this action is irreversible.', 'video-lead-tracker' ); ?>
+					<span><?php esc_html_e( 'I understand this action is irreversible.', 'video-lead-tracker' ); ?></span>
 				</label></p>
-				<button type="button" class="button button-secondary vlt-reset-btn" data-scope="lead">
+				<button type="button" class="vlt-btn vlt-btn--secondary vlt-reset-btn" data-scope="lead">
 					<?php esc_html_e( 'Delete Lead', 'video-lead-tracker' ); ?>
 				</button>
 			</div>
@@ -375,16 +375,15 @@ class VLT_Settings {
 				<h3><?php esc_html_e( 'Reset Page Analytics', 'video-lead-tracker' ); ?></h3>
 				<p class="description"><?php esc_html_e( 'Clears all page visit events for the given WordPress page ID.', 'video-lead-tracker' ); ?></p>
 				<p>
-					<input type="number" class="vlt-reset-id-input" name="page_id" min="1"
-					       placeholder="<?php esc_attr_e( 'Page ID', 'video-lead-tracker' ); ?>"
-					       style="width:120px">
+					<input type="number" class="vlt-input vlt-reset-id-input" name="page_id" min="1"
+					       placeholder="<?php esc_attr_e( 'Page ID', 'video-lead-tracker' ); ?>">
 					<span class="vlt-dm-preview" data-lookup-type="page"></span>
 				</p>
-				<p><label>
+				<p><label class="vlt-check">
 					<input type="checkbox" class="vlt-reset-confirm-cb">
-					<?php esc_html_e( 'I understand this action is irreversible.', 'video-lead-tracker' ); ?>
+					<span><?php esc_html_e( 'I understand this action is irreversible.', 'video-lead-tracker' ); ?></span>
 				</label></p>
-				<button type="button" class="button button-secondary vlt-reset-btn" data-scope="page">
+				<button type="button" class="vlt-btn vlt-btn--secondary vlt-reset-btn" data-scope="page">
 					<?php esc_html_e( 'Reset Page Analytics', 'video-lead-tracker' ); ?>
 				</button>
 			</div>
@@ -394,25 +393,15 @@ class VLT_Settings {
 				<h3><?php esc_html_e( 'Full Analytics Reset', 'video-lead-tracker' ); ?></h3>
 				<p class="description"><?php esc_html_e( 'Permanently deletes ALL analytics data: leads, sessions, watch ranges, heatmap, page visits, video events, and logs. Plugin settings and video registry are preserved.', 'video-lead-tracker' ); ?></p>
 				<p>
-					<input type="text" class="vlt-reset-typed-confirm"
-					       placeholder="<?php esc_attr_e( 'Type DELETE to confirm', 'video-lead-tracker' ); ?>"
-					       style="width:220px">
+					<input type="text" class="vlt-input vlt-reset-typed-confirm"
+					       placeholder="<?php esc_attr_e( 'Type DELETE to confirm', 'video-lead-tracker' ); ?>">
 				</p>
-				<button type="button" class="button vlt-reset-btn vlt-btn-danger" data-scope="full" data-confirm-text="DELETE">
+				<button type="button" class="vlt-btn vlt-btn--danger vlt-reset-btn" data-scope="full" data-confirm-text="DELETE">
 					<?php esc_html_e( 'Reset All Analytics', 'video-lead-tracker' ); ?>
 				</button>
 			</div>
 
 		</div>
-		<style>
-		.vlt-dm-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:20px; margin-top:20px; }
-		.vlt-reset-panel { background:#fff; border:1px solid #c3c4c7; border-radius:4px; padding:18px 20px; }
-		.vlt-reset-panel h3 { margin-top:0; font-size:14px; }
-		.vlt-reset-panel--danger { border-color:#c22f3a; }
-		.vlt-btn-danger { background:#c22f3a!important; border-color:#a52834!important; color:#fff!important; }
-		.vlt-btn-danger:hover { background:#a52834!important; }
-		.vlt-dm-preview { display:inline-block; margin-left:8px; font-size:12px; font-style:italic; }
-		</style>
 		<?php
 	}
 
@@ -504,21 +493,8 @@ class VLT_Settings {
 			],
 		];
 		?>
-		<style>
-		.vlt-sc-list { margin-top:16px; }
-		.vlt-sc-card { background:#fff; border:1px solid #c3c4c7; border-radius:6px; padding:20px 24px; margin-bottom:16px; }
-		.vlt-sc-card h3 { margin:0 0 6px; font-size:15px; font-family:Consolas,Monaco,monospace; color:#2271b1; }
-		.vlt-sc-card h3 .vlt-sc-alias { font-size:12px; color:#999; font-weight:400; margin-inline-start:8px; }
-		.vlt-sc-card .vlt-sc-desc { margin:0 0 12px; font-size:13.5px; color:#50575e; line-height:1.7; }
-		.vlt-sc-card table { width:100%; border-collapse:collapse; margin:10px 0; font-size:13px; }
-		.vlt-sc-card th { text-align:left; padding:6px 10px; background:#f0f0f1; font-weight:600; border-bottom:1px solid #c3c4c7; }
-		.vlt-sc-card td { padding:6px 10px; border-bottom:1px solid #f0f0f1; vertical-align:top; }
-		.vlt-sc-card td code { background:#f0f0f1; padding:2px 6px; border-radius:3px; font-size:12px; }
-		.vlt-sc-card .vlt-sc-example { background:#1e1e1e; color:#d4d4d4; padding:12px 16px; border-radius:6px; font-family:Consolas,Monaco,monospace; font-size:12.5px; white-space:pre-wrap; direction:ltr; text-align:left; margin-top:12px; overflow-x:auto; }
-		</style>
-
 		<h2><?php esc_html_e( 'Available Shortcodes', 'video-lead-tracker' ); ?></h2>
-		<p class="description" style="margin-bottom:16px"><?php esc_html_e( 'Use these shortcodes in any post, page, or Elementor template to embed video gates, audio players, and styled content blocks.', 'video-lead-tracker' ); ?></p>
+		<p class="description"><?php esc_html_e( 'Use these shortcodes in any post, page, or Elementor template to embed video gates, audio players, and styled content blocks.', 'video-lead-tracker' ); ?></p>
 
 		<div class="vlt-sc-list">
 		<?php foreach ( $shortcodes as $sc ) : ?>
