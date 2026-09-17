@@ -130,7 +130,10 @@ class VLT_Admin_Ops {
 			'from'        => min( $offset + 1, max( $total, 1 ) ),
 			'to'          => min( $offset + $per_page, $total ),
 			'rows'        => $rows,
-			'export_url'  => VLT_Exporter::export_url( 'leads' ),
+			'export_url'  => VLT_Exporter::export_url(
+				'leads',
+				$video ? [ 'video' => $video ] : []
+			),
 		];
 	}
 
@@ -145,7 +148,7 @@ class VLT_Admin_Ops {
 
 		ob_start();
 		?>
-		<a class="vlt-btn vlt-btn--secondary" href="<?php echo esc_url( $data['export_url'] ); ?>">
+		<a class="vlt-btn vlt-btn--secondary" id="vlt-leads-export" href="<?php echo esc_url( $data['export_url'] ); ?>">
 			<?php esc_html_e( 'Export CSV', 'video-lead-tracker' ); ?>
 		</a>
 		<?php

@@ -445,6 +445,10 @@
 			state.orderby = data.orderby;
 			state.order = data.order;
 			root.setAttribute( 'data-video', data.video || '' );
+			var exportBtn = document.getElementById( 'vlt-leads-export' );
+			if ( exportBtn && data.export_url ) {
+				exportBtn.href = data.export_url;
+			}
 			updateSortIndicators();
 			var count = document.getElementById( 'vlt-leads-count' );
 			if ( count ) {

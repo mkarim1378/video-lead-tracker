@@ -60,22 +60,55 @@ class VLT_Exporter {
 		global $wpdb;
 		$p = $wpdb->prefix;
 
-		$rows = $wpdb->get_results(
-			"SELECT l.primary_name,
-			        l.normalized_mobile,
-			        l.is_verified,
-			        COALESCE( COUNT( DISTINCT s.video_id ), 0 )      AS videos_watched,
-			        COALESCE( AVG( s.unique_watch_percent ), 0 )      AS avg_watch_pct,
-			        COALESCE( SUM( s.sessions_count ), 0 )            AS total_sessions,
-			        l.created_at,
-			        l.updated_at
-			 FROM {$p}vlt_leads l
-			 LEFT JOIN {$p}vlt_video_user_summary s ON s.lead_id = l.id
-			 GROUP BY l.id
-			 ORDER BY l.created_at DESC"
-		);
+		$video         = sanitize_key( $_GET['video'] ?? '' ); // phpcs:ignore WordPress.Security.NonceVerification
+		$filter_vid_id = 0;
+		if ( $video ) {
+			foreach ( VLT_DB::get_all_videos() as $v ) {
+				if ( $v->video_key === $video ) {
+					$filter_vid_id = (int) $v->id;
+					break;
+				}
+			}
+			if ( ! $filter_vid_id ) {
+				$video = '';
+			}
+		}
 
-		self::stream_headers( 'vlt-leads-' . gmdate( 'Y-m-d' ) . '.csv' );
+		if ( $filter_vid_id ) {
+			$rows = $wpdb->get_results( $wpdb->prepare(
+				"SELECT l.primary_name,
+				        l.normalized_mobile,
+				        l.is_verified,
+				        COALESCE( COUNT( DISTINCT s.video_id ), 0 ) AS videos_watched,
+				        COALESCE( AVG( s.unique_watch_percent ), 0 ) AS avg_watch_pct,
+				        COALESCE( SUM( s.sessions_count ), 0 )       AS total_sessions,
+				        l.created_at,
+				        l.updated_at
+				 FROM {$p}vlt_leads l
+				 JOIN {$p}vlt_video_user_summary s ON s.lead_id = l.id AND s.video_id = %d
+				 GROUP BY l.id
+				 ORDER BY l.created_at DESC",
+				$filter_vid_id
+			) );
+			$slug = sanitize_file_name( $video );
+			self::stream_headers( 'vlt-leads-' . $slug . '-' . gmdate( 'Y-m-d' ) . '.csv' );
+		} else {
+			$rows = $wpdb->get_results(
+				"SELECT l.primary_name,
+				        l.normalized_mobile,
+				        l.is_verified,
+				        COALESCE( COUNT( DISTINCT s.video_id ), 0 ) AS videos_watched,
+				        COALESCE( AVG( s.unique_watch_percent ), 0 ) AS avg_watch_pct,
+				        COALESCE( SUM( s.sessions_count ), 0 )       AS total_sessions,
+				        l.created_at,
+				        l.updated_at
+				 FROM {$p}vlt_leads l
+				 LEFT JOIN {$p}vlt_video_user_summary s ON s.lead_id = l.id
+				 GROUP BY l.id
+				 ORDER BY l.created_at DESC"
+			);
+			self::stream_headers( 'vlt-leads-' . gmdate( 'Y-m-d' ) . '.csv' );
+		}
 
 		$out = fopen( 'php://output', 'w' );
 		fputcsv( $out, [ 'Name', 'Mobile', 'Verified', 'Videos Watched', 'Avg Watch %', 'Sessions', 'First Seen', 'Last Seen' ] );
