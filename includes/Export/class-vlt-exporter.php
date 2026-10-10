@@ -342,13 +342,26 @@ class VLT_Exporter {
 	// URL builder (used by admin views)
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Build a raw (unescaped) export URL.
+	 *
+	 * Deliberately avoids wp_nonce_url(), which HTML-encodes & as &amp;.
+	 * That breaks when the URL is assigned via JS (element.href = ...) or
+	 * returned over REST/JSON — PHP then never sees _wpnonce and
+	 * check_admin_referer() fails with "The link you followed has expired."
+	 * Callers that print HTML should wrap with esc_url().
+	 */
 	public static function export_url( $type, $extra = [] ) {
-		return wp_nonce_url(
-			add_query_arg(
-				array_merge( [ 'action' => 'vlt_export', 'vlt_type' => $type ], $extra ),
-				admin_url( 'admin-post.php' )
+		return add_query_arg(
+			array_merge(
+				[
+					'action'   => 'vlt_export',
+					'vlt_type' => $type,
+					'_wpnonce' => wp_create_nonce( 'vlt_export' ),
+				],
+				$extra
 			),
-			'vlt_export'
+			admin_url( 'admin-post.php' )
 		);
 	}
 }
