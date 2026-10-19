@@ -46,6 +46,7 @@ class VLT_Admin_UI {
 			[ 'slug' => 'vlt-funnel',          'label' => __( 'Funnel',          'video-lead-tracker' ), 'icon' => 'dashicons-filter' ],
 			[ 'slug' => 'vlt-heatmap',         'label' => __( 'Heatmap',         'video-lead-tracker' ), 'icon' => 'dashicons-chart-line' ],
 			[ 'slug' => 'vlt-settings',        'label' => __( 'Settings',        'video-lead-tracker' ), 'icon' => 'dashicons-admin-generic' ],
+			[ 'slug' => 'vlt-sms-log',         'label' => __( 'SMS Log',         'video-lead-tracker' ), 'icon' => 'dashicons-email-alt' ],
 			[ 'slug' => 'vlt-logs',            'label' => __( 'Logs',            'video-lead-tracker' ), 'icon' => 'dashicons-media-text' ],
 		];
 	}
@@ -157,7 +158,7 @@ class VLT_Admin_UI {
 	 * @return callable
 	 */
 	public static function wrap_page( $slug, $callback ) {
-		$self_shell = [ 'vlt-overview', 'vlt-video-analytics', 'vlt-funnel', 'vlt-heatmap', 'vlt-leads', 'vlt-logs', 'vlt-videos', 'vlt-settings' ];
+		$self_shell = [ 'vlt-overview', 'vlt-video-analytics', 'vlt-funnel', 'vlt-heatmap', 'vlt-leads', 'vlt-logs', 'vlt-sms-log', 'vlt-videos', 'vlt-settings' ];
 		return static function () use ( $slug, $callback, $self_shell ) {
 			if ( in_array( $slug, $self_shell, true ) ) {
 				call_user_func( $callback );

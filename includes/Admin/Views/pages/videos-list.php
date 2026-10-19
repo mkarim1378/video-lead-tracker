@@ -69,6 +69,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 								<?php if ( $v->enable_otp ) : ?>
 									<span class="vlt-badge vlt-badge--info"><?php esc_html_e( 'OTP', 'video-lead-tracker' ); ?></span>
 								<?php endif; ?>
+								<?php if ( ! empty( $v->enable_sms_triggers ) ) : ?>
+									<span class="vlt-badge vlt-badge--info"><?php esc_html_e( 'SMS', 'video-lead-tracker' ); ?></span>
+								<?php endif; ?>
 							</div>
 						</div>
 						<code class="vlt-mono"><?php echo esc_html( $v->video_key ); ?></code>

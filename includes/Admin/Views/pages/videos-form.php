@@ -6,8 +6,17 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @var bool  $is_edit
  * @var array $f
  * @var object|null $video
+ * @var string $error
+ * @var array  $sms_rows       [ 'id', 'time', 'message' ]
+ * @var array  $sms_stats      trigger_id => [ status => count ]
+ * @var bool   $global_otp
+ * @var bool   $sms_configured
  */
+$settings_url = admin_url( 'admin.php?page=vlt-settings' );
 ?>
+<?php if ( $error ) : ?>
+	<div class="vlt-inline-notice vlt-inline-notice--error"><?php echo esc_html( $error ); ?></div>
+<?php endif; ?>
 <form method="post" class="vlt-video-form">
 	<?php wp_nonce_field( 'vlt_video_save' ); ?>
 	<input type="hidden" name="vlt_video_action" value="save">
@@ -88,6 +97,59 @@ if ( ! defined( 'ABSPATH' ) ) {
 					<input type="checkbox" name="enable_otp" value="1" <?php checked( $f['enable_otp'] ); ?> />
 					<span><?php esc_html_e( 'Require SMS OTP before showing this video', 'video-lead-tracker' ); ?></span>
 				</label>
+				<label class="vlt-check">
+					<input type="checkbox" name="enable_sms_triggers" value="1" id="vlt_enable_sms" <?php checked( $f['enable_sms_triggers'] ); ?> />
+					<span><?php esc_html_e( 'Send SMS during video playback', 'video-lead-tracker' ); ?></span>
+				</label>
+
+				<div id="vlt-sms-triggers" class="vlt-sms-triggers<?php echo $f['enable_sms_triggers'] ? '' : ' is-hidden'; ?>"
+				     data-global-otp="<?php echo $global_otp ? '1' : '0'; ?>">
+
+					<div class="vlt-inline-notice vlt-inline-notice--warning vlt-sms-otp-warning<?php echo ( $f['enable_otp'] && $global_otp ) ? ' is-hidden' : ''; ?>">
+						<?php esc_html_e( 'OTP verification is off for this video, so mobile numbers are not verified and the SMS may be sent to a number that does not belong to the viewer.', 'video-lead-tracker' ); ?>
+						<?php if ( ! $global_otp ) : ?>
+							<a class="vlt-link" href="<?php echo esc_url( $settings_url ); ?>"><?php esc_html_e( 'OTP is also off in Settings.', 'video-lead-tracker' ); ?></a>
+						<?php endif; ?>
+					</div>
+
+					<?php if ( ! $sms_configured ) : ?>
+						<div class="vlt-inline-notice vlt-inline-notice--warning">
+							<?php esc_html_e( 'The SMS provider is not configured yet, so messages will fail.', 'video-lead-tracker' ); ?>
+							<a class="vlt-link" href="<?php echo esc_url( $settings_url ); ?>"><?php esc_html_e( 'Open Settings', 'video-lead-tracker' ); ?></a>
+						</div>
+					<?php endif; ?>
+
+					<div class="vlt-sms-rows">
+						<?php
+						if ( ! $sms_rows ) {
+							$sms_rows = [ [ 'id' => 0, 'time' => '', 'message' => '' ] ];
+						}
+						foreach ( $sms_rows as $i => $row ) {
+							$stats = $sms_stats[ (int) $row['id'] ] ?? [];
+							include __DIR__ . '/../partials/sms-trigger-row.php';
+						}
+						?>
+					</div>
+
+					<template id="vlt-sms-row-template">
+						<?php
+						$i     = '__INDEX__';
+						$row   = [ 'id' => 0, 'time' => '', 'message' => '' ];
+						$stats = [];
+						include __DIR__ . '/../partials/sms-trigger-row.php';
+						?>
+					</template>
+
+					<button type="button" class="vlt-btn vlt-btn--ghost vlt-sms-add">
+						<?php esc_html_e( '+ Add another send time', 'video-lead-tracker' ); ?>
+					</button>
+					<p class="vlt-field-hint">
+						<?php esc_html_e( 'Each lead gets each message once, up to about 10 seconds after they watch past that point. Skipping past it with the seek bar does not count.', 'video-lead-tracker' ); ?>
+						<?php if ( $is_edit ) : ?>
+							<a class="vlt-link" href="<?php echo esc_url( admin_url( 'admin.php?page=vlt-sms-log&video_id=' . (int) $video->id ) ); ?>"><?php esc_html_e( 'View SMS log', 'video-lead-tracker' ); ?></a>
+						<?php endif; ?>
+					</p>
+				</div>
 				<label class="vlt-check">
 					<input type="checkbox" name="is_active" value="1" <?php checked( $f['is_active'] ); ?> />
 					<span><?php esc_html_e( 'Video is active and visible via shortcode', 'video-lead-tracker' ); ?></span>

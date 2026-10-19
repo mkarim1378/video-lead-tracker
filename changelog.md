@@ -5,6 +5,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.5.0] - 2026-10-19
+
+### Added
+- **SMS during video playback**: each video can send one or more plain-text SMS messages when a lead watches past a set time (mm:ss). Configured per video under Videos → Edit → Options; placeholders `{name}`, `{video_title}`, `{site_name}`.
+- Each lead gets each message once (unique per trigger + lead). Seeking past the point does not count. Delivery runs in WP-Cron with up to 3 attempts.
+- Small warning in the video form when OTP is off for that video (numbers are unverified); when OTP is on, only verified leads receive the SMS.
+- **SMS Log** admin page with status filter (sent / queued / failed / skipped) and per-trigger counters in the video form.
+- Settings → SMS & OTP: Kavenegar, SMS.ir and a log-only test provider in the provider list; daily per-mobile SMS limit; **Send Test SMS** button.
+
+### Changed
+- SMS sending moved from `VLT_OTP_Service` into a shared `VLT_SMS_Gateway` (OTP behaviour unchanged).
+- Video form validation errors are shown on the form and keep the typed values.
+- `VLT_VERSION` bumped 1.4.10 → 1.5.0; `VLT_DB_VERSION` 1.4 → 1.5 (new tables `vlt_sms_triggers`, `vlt_sms_log`; column `vlt_videos.enable_sms_triggers`).
+
+### Security
+- SMS recipients are resolved from the visitor record on the server, not from the `lead_id` sent by the browser.
+
+---
+
 ## [1.4.8] - 2026-09-06
 
 ### Fixed

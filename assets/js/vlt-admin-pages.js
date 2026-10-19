@@ -617,6 +617,109 @@
 		}
 	}
 
+	/* ---- Video form: SMS during playback ---- */
+
+	function smsCounterText( text ) {
+		var len     = text.length;
+		var unicode = /[^ -]/.test( text );
+		var single  = unicode ? 70 : 160;
+		var multi   = unicode ? 67 : 153;
+		var parts   = len === 0 ? 0 : ( len <= single ? 1 : Math.ceil( len / multi ) );
+		return i18n( 'smsCounter', '%1$d characters · %2$d SMS' )
+			.replace( '%1$d', len )
+			.replace( '%2$d', parts );
+	}
+
+	function initVideoFormPage() {
+		var box = document.getElementById( 'vlt-sms-triggers' );
+		if ( ! box ) return;
+
+		var toggle   = document.getElementById( 'vlt_enable_sms' );
+		var otpBox   = document.querySelector( '.vlt-video-form input[name="enable_otp"]' );
+		var warning  = box.querySelector( '.vlt-sms-otp-warning' );
+		var rowsWrap = box.querySelector( '.vlt-sms-rows' );
+		var tpl      = document.getElementById( 'vlt-sms-row-template' );
+		var globalOn = box.getAttribute( 'data-global-otp' ) === '1';
+		var nextIdx  = rowsWrap.querySelectorAll( '.vlt-sms-row' ).length;
+
+		function syncVisibility() {
+			box.classList.toggle( 'is-hidden', ! toggle.checked );
+			// Values stay in the DOM while hidden; only require them when the feature is on.
+			box.querySelectorAll( '.vlt-sms-rows .vlt-sms-time, .vlt-sms-rows .vlt-sms-message' ).forEach( function ( el ) {
+				el.required = toggle.checked;
+			} );
+		}
+
+		function syncWarning() {
+			if ( warning ) warning.classList.toggle( 'is-hidden', !! ( otpBox && otpBox.checked && globalOn ) );
+		}
+
+		function bindRow( row ) {
+			var msg     = row.querySelector( '.vlt-sms-message' );
+			var counter = row.querySelector( '.vlt-sms-counter' );
+			var update  = function () { counter.textContent = smsCounterText( msg.value ); };
+			msg.addEventListener( 'input', update );
+			update();
+
+			row.querySelector( '.vlt-sms-remove' ).addEventListener( 'click', function () {
+				if ( rowsWrap.querySelectorAll( '.vlt-sms-row' ).length > 1 ) {
+					row.remove();
+				} else {
+					row.querySelector( 'input[type="hidden"]' ).value = '0';
+					row.querySelector( '.vlt-sms-time' ).value = '';
+					msg.value = '';
+					update();
+				}
+			} );
+		}
+
+		rowsWrap.querySelectorAll( '.vlt-sms-row' ).forEach( bindRow );
+
+		box.querySelector( '.vlt-sms-add' ).addEventListener( 'click', function () {
+			var holder = document.createElement( 'div' );
+			holder.innerHTML = tpl.innerHTML.replace( /__INDEX__/g, String( nextIdx++ ) ).trim();
+			var row = holder.firstElementChild;
+			rowsWrap.appendChild( row );
+			bindRow( row );
+			syncVisibility();
+			row.querySelector( '.vlt-sms-time' ).focus();
+		} );
+
+		toggle.addEventListener( 'change', syncVisibility );
+		if ( otpBox ) otpBox.addEventListener( 'change', syncWarning );
+		syncVisibility();
+		syncWarning();
+	}
+
+	/* ---- Settings: test SMS ---- */
+
+	function initSmsTest() {
+		var wrap = document.querySelector( '.vlt-sms-test' );
+		if ( ! wrap || ! window.vltApi ) return;
+
+		var input = wrap.querySelector( 'input' );
+		var btn   = wrap.querySelector( '.vlt-sms-test-btn' );
+
+		btn.addEventListener( 'click', function () {
+			var mobile = input.value.trim();
+			if ( ! mobile ) {
+				input.focus();
+				return;
+			}
+			btn.disabled = true;
+			window.vltApi.post( 'admin/sms-test', { mobile: mobile } )
+				.then( function () {
+					if ( window.vltUi ) window.vltUi.toast( i18n( 'smsTestSent', 'Test SMS sent.' ), 'success' );
+				} )
+				.catch( function ( err ) {
+					if ( window.vltUi ) window.vltUi.toast( err.message || i18n( 'smsTestFailed', 'Test SMS failed.' ), 'error' );
+				} )
+				.finally( function () {
+					btn.disabled = false;
+				} );
+		} );
+	}
+
 	var pagesScope = null;
 
 	function mountPages() {
@@ -629,6 +732,8 @@
 		initLeadsPage( signal );
 		initLogsPage( signal );
 		initVideosPage( signal );
+		initVideoFormPage();
+		initSmsTest();
 	}
 
 	document.addEventListener( 'DOMContentLoaded', mountPages );

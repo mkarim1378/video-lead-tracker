@@ -92,6 +92,11 @@ body.vlt-admin-screen #wpbody-content > .error {
 	color: #1f8a5b;
 }
 
+.vlt-app[data-theme="light"] .vlt-inline-notice--warning {
+	background: rgba(184, 122, 18, .1);
+	color: #8a5a0b;
+}
+
 .vlt-app[data-theme="light"] .vlt-skeleton {
 	background: linear-gradient(90deg, #e8eef0, #f7fafb, #e8eef0);
 	background-size: 200% 100%;
@@ -1537,6 +1542,7 @@ textarea.vlt-input {
 }
 .vlt-inline-notice--success { background: rgba(47,158,107,.15); color: #7ddeb2; }
 .vlt-inline-notice--error { background: rgba(214,69,69,.15); color: #f0a0a0; }
+.vlt-inline-notice--warning { background: rgba(216,155,42,.15); color: #f0d08a; }
 
 .vlt-form-grid {
 	display: grid;
@@ -1565,6 +1571,27 @@ textarea.vlt-input {
 	display: block;
 }
 .is-hidden { display: none !important; }
+
+/* Video form — SMS during playback */
+.vlt-sms-triggers {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding-inline-start: 24px;
+}
+.vlt-sms-triggers .vlt-inline-notice { margin-bottom: 0; font-size: 12px; padding: 8px 12px; }
+.vlt-sms-rows { display: flex; flex-direction: column; gap: 12px; }
+.vlt-sms-row {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding: 12px;
+	border: 1px solid var(--vlt-border);
+	border-radius: var(--vlt-radius-sm);
+}
+.vlt-sms-row-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12px; }
+.vlt-sms-triggers .vlt-sms-add { align-self: flex-start; }
+.vlt-sms-triggers code { font-size: 11px; }
 
 .vlt-settings-tabs {
 	display: flex;

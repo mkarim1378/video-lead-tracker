@@ -159,6 +159,12 @@ class VLT_REST_Controller {
 			'permission_callback' => function() { return current_user_can( 'manage_options' ); },
 		] );
 
+		register_rest_route( $ns, '/admin/sms-test', [
+			'methods'             => 'POST',
+			'callback'            => [ self::class, 'handle_admin_sms_test' ],
+			'permission_callback' => function () { return current_user_can( 'manage_options' ); },
+		] );
+
 		register_rest_route( $ns, '/otp/send', [
 			'methods'             => 'POST',
 			'callback'            => [ self::class, 'handle_otp_send' ],
@@ -382,6 +388,23 @@ class VLT_REST_Controller {
 			'mobile_hash'       => $mobile_hash,
 			'show_video'        => true,
 		] );
+	}
+
+	public static function handle_admin_sms_test( WP_REST_Request $request ) {
+		$body   = $request->get_json_params() ?: [];
+		$mobile = self::normalize_mobile( sanitize_text_field( $body['mobile'] ?? '' ) );
+		if ( ! $mobile ) {
+			return self::error( 'invalid_mobile', __( 'Invalid mobile number.', 'video-lead-tracker' ), 422 );
+		}
+
+		/* translators: %s: site name */
+		$message = sprintf( __( 'Test message from %s.', 'video-lead-tracker' ), wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ) );
+		$result  = VLT_SMS_Gateway::send( $mobile, $message, 'sms_test' );
+		if ( is_wp_error( $result ) ) {
+			return self::error( $result->get_error_code(), $result->get_error_message(), 502 );
+		}
+
+		return self::success( [ 'sent' => true ] );
 	}
 
 	public static function handle_otp_send( WP_REST_Request $request ) {
@@ -832,6 +855,7 @@ class VLT_REST_Controller {
 
 		VLT_Aggregator::aggregate( (int) $video->id, $lead_id, $visitor_uuid );
 		VLT_Aggregator::update_heatmap( (int) $video->id, $lead_id, $visitor_uuid, $from_second, $to_second );
+		VLT_SMS_Triggers::evaluate( $video, $visitor_uuid, $session_uuid, $from_second, $to_second );
 
 		return self::success();
 	}

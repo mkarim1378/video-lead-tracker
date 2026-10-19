@@ -5,6 +5,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class VLT_Videos_Admin {
 
+	/** @var string Validation error from the current POST, shown on the re-rendered form. */
+	private static $form_error = '';
+
 	// -------------------------------------------------------------------------
 	// Boot
 	// -------------------------------------------------------------------------
@@ -460,8 +463,15 @@ class VLT_Videos_Admin {
 		}
 
 		$data = self::collect_and_sanitize();
+		if ( ! is_wp_error( $data ) ) {
+			$triggers = self::collect_sms_triggers( $data );
+			if ( is_wp_error( $triggers ) ) {
+				$data = $triggers;
+			}
+		}
 		if ( is_wp_error( $data ) ) {
-			set_transient( 'vlt_video_error_' . get_current_user_id(), $data->get_error_message(), 60 );
+			// The form re-renders in this same request, so the message is shown there directly.
+			self::$form_error = $data->get_error_message();
 			return;
 		}
 
@@ -471,11 +481,15 @@ class VLT_Videos_Admin {
 		if ( $video_id ) {
 			$data['updated_at'] = $now;
 			VLT_DB::update_video( $video_id, $data );
+			VLT_DB::save_sms_triggers( $video_id, $triggers );
 			wp_redirect( add_query_arg( [ 'page' => 'vlt-videos', 'updated' => 1 ], admin_url( 'admin.php' ) ) );
 		} else {
 			$data['created_at'] = $now;
 			$data['updated_at'] = $now;
-			VLT_DB::create_video( $data );
+			$video_id = VLT_DB::create_video( $data );
+			if ( $video_id ) {
+				VLT_DB::save_sms_triggers( $video_id, $triggers );
+			}
 			wp_redirect( add_query_arg( [ 'page' => 'vlt-videos', 'added' => 1 ], admin_url( 'admin.php' ) ) );
 		}
 		exit;
@@ -505,9 +519,123 @@ class VLT_Videos_Admin {
 			'mobile_label'       => sanitize_text_field( $_POST['mobile_label']       ?? '' ),
 			'submit_button_text' => sanitize_text_field( $_POST['submit_button_text'] ?? '' ),
 			'success_message'    => sanitize_textarea_field( $_POST['success_message'] ?? '' ),
-			'enable_otp'         => ! empty( $_POST['enable_otp'] ) ? 1 : 0,
-			'is_active'          => ! empty( $_POST['is_active'] )  ? 1 : 0,
+			'enable_otp'          => ! empty( $_POST['enable_otp'] ) ? 1 : 0,
+			'enable_sms_triggers' => ! empty( $_POST['enable_sms_triggers'] ) ? 1 : 0,
+			'is_active'           => ! empty( $_POST['is_active'] )  ? 1 : 0,
 		];
+	}
+
+	/**
+	 * Validate the posted SMS trigger rows. Rows are kept even when the feature is
+	 * switched off, so turning it back on restores them.
+	 *
+	 * @param array $video Sanitized video fields.
+	 * @return array|WP_Error  Rows for VLT_DB::save_sms_triggers().
+	 */
+	private static function collect_sms_triggers( array $video ) {
+		$posted   = self::posted_sms_rows();
+		$duration = (int) $video['duration_seconds'];
+		$rows     = [];
+		$seen     = [];
+
+		foreach ( $posted as $row ) {
+			$time    = $row['time'];
+			$message = $row['message'];
+
+			if ( '' === $time && '' === $message ) {
+				continue;
+			}
+
+			$second = self::parse_time( $time );
+
+			// While the feature is off the rows are hidden, so drop incomplete ones instead of
+			// blocking the save with an error the admin cannot see.
+			if ( ! $video['enable_sms_triggers'] && ( ! $second || '' === $message || isset( $seen[ $second ] ) || ( $duration && $second > $duration ) ) ) {
+				continue;
+			}
+
+			if ( null === $second || $second <= 0 ) {
+				/* translators: %s: value typed by the admin */
+				return new WP_Error( 'sms_time', sprintf( __( 'SMS send time "%s" is not valid. Use mm:ss, e.g. 05:30.', 'video-lead-tracker' ), $time ) );
+			}
+			if ( $duration && $second > $duration ) {
+				/* translators: %s: send time as mm:ss */
+				return new WP_Error( 'sms_time', sprintf( __( 'SMS send time %s is after the end of the video.', 'video-lead-tracker' ), $time ) );
+			}
+			if ( isset( $seen[ $second ] ) ) {
+				/* translators: %s: send time as mm:ss */
+				return new WP_Error( 'sms_time', sprintf( __( 'Two SMS messages use the same send time (%s).', 'video-lead-tracker' ), $time ) );
+			}
+			if ( '' === $message ) {
+				/* translators: %s: send time as mm:ss */
+				return new WP_Error( 'sms_message', sprintf( __( 'The SMS at %s has no message text.', 'video-lead-tracker' ), $time ) );
+			}
+
+			$seen[ $second ] = true;
+			$rows[]          = [
+				'id'               => $row['id'],
+				'trigger_second'   => $second,
+				'message_template' => $message,
+			];
+		}
+
+		if ( $video['enable_sms_triggers'] && ! $rows ) {
+			return new WP_Error( 'sms_empty', __( 'Add at least one send time and message, or turn off SMS during playback.', 'video-lead-tracker' ) );
+		}
+
+		return $rows;
+	}
+
+	/**
+	 * @return array  Sanitized posted rows: [ 'id' => int, 'time' => string, 'message' => string ].
+	 */
+	private static function posted_sms_rows() {
+		$posted = isset( $_POST['sms_triggers'] ) && is_array( $_POST['sms_triggers'] ) ? wp_unslash( $_POST['sms_triggers'] ) : [];
+		$rows   = [];
+		foreach ( $posted as $row ) {
+			if ( ! is_array( $row ) ) {
+				continue;
+			}
+			$rows[] = [
+				'id'      => absint( $row['id'] ?? 0 ),
+				'time'    => trim( sanitize_text_field( $row['time'] ?? '' ) ),
+				'message' => trim( sanitize_textarea_field( $row['message'] ?? '' ) ),
+			];
+		}
+		return $rows;
+	}
+
+	/**
+	 * Parse "ss", "mm:ss" or "hh:mm:ss" into seconds.
+	 *
+	 * @return int|null
+	 */
+	private static function parse_time( $value ) {
+		if ( ! preg_match( '/^\d+(:\d{1,2}){0,2}$/', $value ) ) {
+			return null;
+		}
+
+		$seconds = 0;
+		$parts   = array_map( 'intval', explode( ':', $value ) );
+		$count   = count( $parts );
+		foreach ( $parts as $i => $part ) {
+			if ( $i > 0 && $part > 59 ) {
+				return null;
+			}
+			$seconds += $part * ( 60 ** ( $count - 1 - $i ) );
+		}
+		return $seconds;
+	}
+
+	/**
+	 * @return string  "mm:ss" (or "h:mm:ss" past an hour).
+	 */
+	public static function format_time( $seconds ) {
+		$seconds = (int) round( (float) $seconds );
+		$h       = intdiv( $seconds, 3600 );
+		$m       = intdiv( $seconds % 3600, 60 );
+		$s       = $seconds % 60;
+		return $h ? sprintf( '%d:%02d:%02d', $h, $m, $s ) : sprintf( '%02d:%02d', $m, $s );
 	}
 
 	// -------------------------------------------------------------------------
@@ -596,9 +724,35 @@ class VLT_Videos_Admin {
 			'mobile_label'       => $is_edit ? $video->mobile_label        : __( 'Mobile Number', 'video-lead-tracker' ),
 			'submit_button_text' => $is_edit ? $video->submit_button_text  : __( 'Watch Now', 'video-lead-tracker' ),
 			'success_message'    => $is_edit ? $video->success_message     : __( 'Welcome! Your video is ready.', 'video-lead-tracker' ),
-			'enable_otp'         => $is_edit ? (bool) $video->enable_otp  : false,
-			'is_active'          => $is_edit ? (bool) $video->is_active    : true,
+			'enable_otp'          => $is_edit ? (bool) $video->enable_otp  : false,
+			'enable_sms_triggers' => $is_edit ? (bool) ( $video->enable_sms_triggers ?? false ) : false,
+			'is_active'           => $is_edit ? (bool) $video->is_active    : true,
 		];
+
+		$sms_stats = [];
+		$sms_rows  = [];
+		if ( $is_edit ) {
+			$sms_stats = VLT_DB::get_sms_trigger_stats( (int) $video->id );
+			foreach ( VLT_DB::get_sms_triggers( (int) $video->id ) as $t ) {
+				$sms_rows[] = [
+					'id'      => (int) $t->id,
+					'time'    => self::format_time( $t->trigger_second ),
+					'message' => $t->message_template,
+				];
+			}
+		}
+
+		// After a failed save, keep what the admin typed instead of the stored values.
+		if ( self::$form_error ) {
+			foreach ( $f as $key => $value ) {
+				if ( is_bool( $value ) ) {
+					$f[ $key ] = ! empty( $_POST[ $key ] );
+				} elseif ( isset( $_POST[ $key ] ) && ( 'video_key' !== $key || ! $is_edit ) ) {
+					$f[ $key ] = sanitize_textarea_field( wp_unslash( $_POST[ $key ] ) );
+				}
+			}
+			$sms_rows = self::posted_sms_rows();
+		}
 
 		ob_start();
 		?>
@@ -613,9 +767,14 @@ class VLT_Videos_Admin {
 			'actions_html' => $actions,
 		] );
 		VLT_Admin_UI::render( 'pages/videos-form', [
-			'is_edit' => $is_edit,
-			'f'       => $f,
-			'video'   => $video,
+			'is_edit'        => $is_edit,
+			'f'              => $f,
+			'video'          => $video,
+			'error'          => self::$form_error,
+			'sms_rows'       => $sms_rows,
+			'sms_stats'      => $sms_stats,
+			'global_otp'     => (bool) VLT_Settings::get( 'enable_otp' ),
+			'sms_configured' => VLT_SMS_Gateway::is_configured(),
 		] );
 		VLT_Admin_UI::close();
 	}

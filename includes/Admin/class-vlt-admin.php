@@ -32,6 +32,7 @@ class VLT_Admin {
 			[ 'vlt-funnel',          __( 'Funnel',          'video-lead-tracker' ), [ self::class,        'render_funnel' ] ],
 			[ 'vlt-heatmap',         __( 'Heatmap',         'video-lead-tracker' ), [ self::class,        'render_heatmap' ] ],
 			[ 'vlt-settings',        __( 'Settings',        'video-lead-tracker' ), [ 'VLT_Settings',     'render_page' ] ],
+			[ 'vlt-sms-log',         __( 'SMS Log',         'video-lead-tracker' ), [ 'VLT_SMS_Log_Admin', 'render' ] ],
 			[ 'vlt-logs',            __( 'Logs',            'video-lead-tracker' ), [ self::class,        'render_logs' ] ],
 		];
 

@@ -36,6 +36,7 @@ class VLT_Plugin {
 		VLT_Admin::init();
 		VLT_Exporter::init();
 		VLT_REST_Controller::init();
+		VLT_SMS_Triggers::init();
 		VLT_Frontend::init();
 
 		// Elementor integration — only when Elementor is active.

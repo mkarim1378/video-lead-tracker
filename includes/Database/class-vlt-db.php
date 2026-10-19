@@ -145,6 +145,7 @@ class VLT_DB {
   submit_button_text varchar(190) DEFAULT NULL,
   success_message text DEFAULT NULL,
   enable_otp tinyint(1) NOT NULL DEFAULT 0,
+  enable_sms_triggers tinyint(1) NOT NULL DEFAULT 0,
   is_active tinyint(1) NOT NULL DEFAULT 1,
   created_at datetime NOT NULL,
   updated_at datetime NOT NULL,
@@ -256,6 +257,39 @@ class VLT_DB {
   KEY level (level),
   KEY context (context),
   KEY created_at (created_at)
+) $collate;",
+
+			"CREATE TABLE {$p}vlt_sms_triggers (
+  id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  video_id bigint(20) UNSIGNED NOT NULL,
+  trigger_second decimal(10,3) NOT NULL,
+  message_template text NOT NULL,
+  is_active tinyint(1) NOT NULL DEFAULT 1,
+  created_at datetime NOT NULL,
+  updated_at datetime NOT NULL,
+  PRIMARY KEY  (id),
+  KEY video_active (video_id,is_active)
+) $collate;",
+
+			"CREATE TABLE {$p}vlt_sms_log (
+  id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  trigger_id bigint(20) UNSIGNED NOT NULL,
+  video_id bigint(20) UNSIGNED NOT NULL,
+  lead_id bigint(20) UNSIGNED NOT NULL,
+  normalized_mobile varchar(32) NOT NULL,
+  session_uuid char(36) DEFAULT NULL,
+  message text NOT NULL,
+  status varchar(20) NOT NULL,
+  skip_reason varchar(50) DEFAULT NULL,
+  error text DEFAULT NULL,
+  attempts int(10) UNSIGNED NOT NULL DEFAULT 0,
+  queued_at datetime NOT NULL,
+  sent_at datetime DEFAULT NULL,
+  PRIMARY KEY  (id),
+  UNIQUE KEY trigger_lead (trigger_id,lead_id),
+  KEY video_id (video_id),
+  KEY status (status),
+  KEY mobile_queued (normalized_mobile,queued_at)
 ) $collate;",
 
 		];
@@ -374,6 +408,140 @@ class VLT_DB {
 	public static function delete_video( $id ) {
 		global $wpdb;
 		$wpdb->delete( $wpdb->prefix . 'vlt_videos', [ 'id' => (int) $id ], [ '%d' ] );
+		$wpdb->delete( $wpdb->prefix . 'vlt_sms_triggers', [ 'video_id' => (int) $id ], [ '%d' ] );
+	}
+
+	// -------------------------------------------------------------------------
+	// SMS triggers
+	// -------------------------------------------------------------------------
+
+	/**
+	 * @return object[]  Ordered by trigger_second.
+	 */
+	public static function get_sms_triggers( $video_id, $active_only = false ) {
+		global $wpdb;
+
+		return $wpdb->get_results( $wpdb->prepare(
+			'SELECT * FROM ' . $wpdb->prefix . 'vlt_sms_triggers
+			 WHERE video_id = %d' . ( $active_only ? ' AND is_active = 1' : '' ) . '
+			 ORDER BY trigger_second ASC, id ASC',
+			(int) $video_id
+		) );
+	}
+
+	/**
+	 * Replace a video's trigger set. Rows carrying an existing id are updated in place
+	 * so their send history stays linked; ids missing from $rows are deleted.
+	 *
+	 * @param int   $video_id
+	 * @param array $rows  Each: [ 'id' => int, 'trigger_second' => float, 'message_template' => string ].
+	 */
+	public static function save_sms_triggers( $video_id, array $rows ) {
+		global $wpdb;
+
+		$video_id = (int) $video_id;
+		$table    = $wpdb->prefix . 'vlt_sms_triggers';
+		$now      = current_time( 'mysql', true );
+		$existing = array_map( 'intval', $wpdb->get_col( $wpdb->prepare( "SELECT id FROM $table WHERE video_id = %d", $video_id ) ) );
+		$keep     = [];
+
+		foreach ( $rows as $row ) {
+			$id   = (int) ( $row['id'] ?? 0 );
+			$data = [
+				'trigger_second'   => (float) $row['trigger_second'],
+				'message_template' => (string) $row['message_template'],
+				'is_active'        => 1,
+				'updated_at'       => $now,
+			];
+
+			if ( $id && in_array( $id, $existing, true ) ) {
+				self::update_where( 'vlt_sms_triggers', $data, [ 'id' => $id ] );
+				$keep[] = $id;
+			} else {
+				$data['video_id']   = $video_id;
+				$data['created_at'] = $now;
+				self::insert( 'vlt_sms_triggers', $data );
+			}
+		}
+
+		foreach ( array_diff( $existing, $keep ) as $stale_id ) {
+			$wpdb->delete( $table, [ 'id' => $stale_id ], [ '%d' ] );
+		}
+	}
+
+	/**
+	 * Per-trigger send counters for the video form.
+	 *
+	 * @return array  trigger_id => [ status => count ].
+	 */
+	public static function get_sms_trigger_stats( $video_id ) {
+		global $wpdb;
+
+		$rows = $wpdb->get_results( $wpdb->prepare(
+			'SELECT trigger_id, status, COUNT(*) AS cnt FROM ' . $wpdb->prefix . 'vlt_sms_log
+			 WHERE video_id = %d GROUP BY trigger_id, status',
+			(int) $video_id
+		) );
+
+		$out = [];
+		foreach ( (array) $rows as $row ) {
+			$out[ (int) $row->trigger_id ][ $row->status ] = (int) $row->cnt;
+		}
+		return $out;
+	}
+
+	// -------------------------------------------------------------------------
+	// SMS log
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Insert a log row unless (trigger_id, lead_id) already exists.
+	 *
+	 * @return int  New row ID, or 0 when the lead already has a row for this trigger.
+	 */
+	public static function insert_sms_log( array $data ) {
+		global $wpdb;
+
+		$clean   = array_filter( $data, function ( $v ) { return $v !== null; } );
+		$columns = implode( ', ', array_keys( $clean ) );
+		$holders = implode( ', ', array_fill( 0, count( $clean ), '%s' ) );
+
+		$wpdb->query( $wpdb->prepare(
+			"INSERT IGNORE INTO {$wpdb->prefix}vlt_sms_log ($columns) VALUES ($holders)",
+			array_values( $clean )
+		) );
+
+		return $wpdb->rows_affected ? (int) $wpdb->insert_id : 0;
+	}
+
+	public static function update_sms_log( $id, array $data ) {
+		return self::update_where( 'vlt_sms_log', $data, [ 'id' => $id ] );
+	}
+
+	/**
+	 * @return object|null
+	 */
+	public static function get_sms_log( $id ) {
+		global $wpdb;
+
+		return $wpdb->get_row( $wpdb->prepare(
+			'SELECT * FROM ' . $wpdb->prefix . 'vlt_sms_log WHERE id = %d LIMIT 1',
+			(int) $id
+		) );
+	}
+
+	/**
+	 * Count queued/sent video SMS for a mobile since $since (GMT).
+	 */
+	public static function count_recent_sms( $normalized_mobile, $since ) {
+		global $wpdb;
+
+		return (int) $wpdb->get_var( $wpdb->prepare(
+			"SELECT COUNT(*) FROM {$wpdb->prefix}vlt_sms_log
+			 WHERE normalized_mobile = %s AND queued_at >= %s AND status IN ('queued','sent')",
+			$normalized_mobile,
+			$since
+		) );
 	}
 
 	/**
@@ -635,6 +803,18 @@ class VLT_DB {
 
 	public static function create_lead( array $data ) {
 		return self::insert( 'vlt_leads', $data );
+	}
+
+	/**
+	 * @return object|null
+	 */
+	public static function get_lead_by_id( $lead_id ) {
+		global $wpdb;
+
+		return $wpdb->get_row( $wpdb->prepare(
+			'SELECT * FROM ' . $wpdb->prefix . 'vlt_leads WHERE id = %d LIMIT 1',
+			(int) $lead_id
+		) );
 	}
 
 	public static function update_lead( $id, array $data ) {

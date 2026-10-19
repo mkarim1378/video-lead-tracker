@@ -437,3 +437,136 @@ msgstr ""
 #: includes/Services/class-vlt-otp-service.php
 msgid "Invalid verification code."
 msgstr ""
+
+# Phase 25 — video SMS triggers
+msgid "Send at"
+msgstr ""
+
+msgid "Lead"
+msgstr ""
+
+msgid "Status"
+msgstr ""
+
+msgid "No SMS sent yet."
+msgstr ""
+
+msgid "Send at (mm:ss)"
+msgstr ""
+
+msgid "Placeholders:"
+msgstr ""
+
+msgid "Sent: %1$d · Failed: %2$d · Skipped: %3$d"
+msgstr ""
+
+msgid "Sent"
+msgstr ""
+
+msgid "Queued"
+msgstr ""
+
+msgid "Failed"
+msgstr ""
+
+msgid "Skipped"
+msgstr ""
+
+msgid "Mobile not verified with OTP"
+msgstr ""
+
+msgid "Daily SMS limit reached"
+msgstr ""
+
+msgid "SMS Log"
+msgstr ""
+
+msgid "Messages sent to leads during video playback."
+msgstr ""
+
+msgid "Kavenegar (کاوه‌نگار)"
+msgstr ""
+
+msgid "SMS.ir"
+msgstr ""
+
+msgid "No provider (log only, for testing)"
+msgstr ""
+
+msgid "Test message from %s."
+msgstr ""
+
+msgid "%1$d characters · %2$d SMS"
+msgstr ""
+
+msgid "Test SMS sent."
+msgstr ""
+
+msgid "Test SMS failed."
+msgstr ""
+
+msgid "Send SMS during video playback"
+msgstr ""
+
+msgid "OTP verification is off for this video, so mobile numbers are not verified and the SMS may be sent to a number that does not belong to the viewer."
+msgstr ""
+
+msgid "OTP is also off in Settings."
+msgstr ""
+
+msgid "The SMS provider is not configured yet, so messages will fail."
+msgstr ""
+
+msgid "Open Settings"
+msgstr ""
+
+msgid "+ Add another send time"
+msgstr ""
+
+msgid "Each lead gets each message once, up to about 10 seconds after they watch past that point. Skipping past it with the seek bar does not count."
+msgstr ""
+
+msgid "View SMS log"
+msgstr ""
+
+msgid "SMS"
+msgstr ""
+
+msgid "SMS send time \"%s\" is not valid. Use mm:ss, e.g. 05:30."
+msgstr ""
+
+msgid "SMS send time %s is after the end of the video."
+msgstr ""
+
+msgid "Two SMS messages use the same send time (%s)."
+msgstr ""
+
+msgid "The SMS at %s has no message text."
+msgstr ""
+
+msgid "Add at least one send time and message, or turn off SMS during playback."
+msgstr ""
+
+msgid "Send"
+msgstr ""
+
+msgid "SMS & OTP"
+msgstr ""
+
+msgid "Used for OTP codes and video SMS triggers."
+msgstr ""
+
+msgid "Your Payamito panel username (نام کاربری). Not used by other providers."
+msgstr ""
+
+msgid "Video SMS Daily Limit"
+msgstr ""
+
+msgid "Maximum video-triggered SMS messages per mobile number in 24 hours (all videos combined)."
+msgstr ""
+
+msgid "Send Test SMS"
+msgstr ""
+
+msgid "Sends a test message with the saved provider settings. Save changes first."
+msgstr ""

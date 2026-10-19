@@ -21,6 +21,8 @@ if ( ! empty( $settings['delete_on_uninstall'] ) ) {
 		'vlt_video_heatmap',
 		'vlt_video_heatmap_uniques',
 		'vlt_otp_codes',
+		'vlt_sms_triggers',
+		'vlt_sms_log',
 		'vlt_logs',
 	];
 

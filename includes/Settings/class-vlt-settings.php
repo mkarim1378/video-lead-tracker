@@ -30,6 +30,7 @@ class VLT_Settings {
 		'otp_expiry'              => 120,
 		'otp_resend_cooldown'     => 60,
 		'otp_max_attempts'        => 3,
+		'sms_daily_cap_per_lead'  => 3,
 		// Data Management
 		'event_retention_days'    => 0,
 		// Export
@@ -105,6 +106,8 @@ class VLT_Settings {
 			$val  = $input[ $key ] ?? null;
 
 			switch ( $type ) {
+				case 'sms_test':
+					break; // Action-only field, nothing to store.
 				case 'checkbox':
 					$clean[ $key ] = ! empty( $val );
 					break;
@@ -206,6 +209,14 @@ class VLT_Settings {
 					);
 				}
 				echo '</select>';
+				break;
+
+			case 'sms_test':
+				printf(
+					'<div class="vlt-field-row vlt-sms-test"><input type="tel" id="%s" class="vlt-input vlt-input--sm" placeholder="09121234567" dir="ltr" /> <button type="button" class="vlt-btn vlt-btn--ghost vlt-sms-test-btn">%s</button></div>',
+					esc_attr( $id ),
+					esc_html__( 'Send', 'video-lead-tracker' )
+				);
 				break;
 
 			case 'page_select':
@@ -626,7 +637,7 @@ class VLT_Settings {
 			],
 
 			'otp' => [
-				'title'  => __( 'OTP (optional)', 'video-lead-tracker' ),
+				'title'  => __( 'SMS & OTP', 'video-lead-tracker' ),
 				'fields' => [
 					[
 						'key'         => 'enable_otp',
@@ -639,14 +650,14 @@ class VLT_Settings {
 						'key'     => 'otp_provider',
 						'label'   => __( 'SMS Provider', 'video-lead-tracker' ),
 						'type'    => 'select',
-						'options' => [ 'payamito' => __( 'Payamito (پیامیتو)', 'video-lead-tracker' ) ],
-						'desc'    => __( 'Select your SMS provider for OTP delivery.', 'video-lead-tracker' ),
+						'options' => VLT_SMS_Gateway::providers(),
+						'desc'    => __( 'Used for OTP codes and video SMS triggers.', 'video-lead-tracker' ),
 					],
 					[
 						'key'   => 'otp_username',
 						'label' => __( 'Account Username', 'video-lead-tracker' ),
 						'type'  => 'text',
-						'desc'  => __( 'Your Payamito panel username (نام کاربری).', 'video-lead-tracker' ),
+						'desc'  => __( 'Your Payamito panel username (نام کاربری). Not used by other providers.', 'video-lead-tracker' ),
 					],
 					[
 						'key'   => 'otp_api_key',
@@ -686,6 +697,19 @@ class VLT_Settings {
 						'type'  => 'number',
 						'min'   => 1,
 						'desc'  => __( 'Max wrong OTP entries before the code is invalidated.', 'video-lead-tracker' ),
+					],
+					[
+						'key'   => 'sms_daily_cap_per_lead',
+						'label' => __( 'Video SMS Daily Limit', 'video-lead-tracker' ),
+						'type'  => 'number',
+						'min'   => 1,
+						'desc'  => __( 'Maximum video-triggered SMS messages per mobile number in 24 hours (all videos combined).', 'video-lead-tracker' ),
+					],
+					[
+						'key'   => 'sms_test',
+						'label' => __( 'Send Test SMS', 'video-lead-tracker' ),
+						'type'  => 'sms_test',
+						'desc'  => __( 'Sends a test message with the saved provider settings. Save changes first.', 'video-lead-tracker' ),
 					],
 				],
 			],

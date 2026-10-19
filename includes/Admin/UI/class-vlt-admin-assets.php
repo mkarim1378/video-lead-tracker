@@ -135,6 +135,10 @@ class VLT_Admin_Assets {
 				'themeDark'      => __( 'Dark', 'video-lead-tracker' ),
 				'themeLight'     => __( 'Light', 'video-lead-tracker' ),
 				'navError'       => __( 'Could not load page.', 'video-lead-tracker' ),
+				/* translators: 1: character count 2: SMS part count */
+				'smsCounter'     => __( '%1$d characters · %2$d SMS', 'video-lead-tracker' ),
+				'smsTestSent'    => __( 'Test SMS sent.', 'video-lead-tracker' ),
+				'smsTestFailed'  => __( 'Test SMS failed.', 'video-lead-tracker' ),
 			],
 		] );
 	}

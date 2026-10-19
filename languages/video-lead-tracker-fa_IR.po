@@ -1849,3 +1849,136 @@ msgstr "روشن"
 #: Phase theme/nav
 msgid "Could not load page."
 msgstr "بارگذاری صفحه ممکن نشد."
+
+# Phase 25 — video SMS triggers
+msgid "Send at"
+msgstr "زمان ارسال"
+
+msgid "Lead"
+msgstr "لید"
+
+msgid "Status"
+msgstr "وضعیت"
+
+msgid "No SMS sent yet."
+msgstr "هنوز پیامکی ارسال نشده است."
+
+msgid "Send at (mm:ss)"
+msgstr "زمان ارسال (mm:ss)"
+
+msgid "Placeholders:"
+msgstr "متغیرها:"
+
+msgid "Sent: %1$d · Failed: %2$d · Skipped: %3$d"
+msgstr "ارسال‌شده: %1$d · ناموفق: %2$d · ردشده: %3$d"
+
+msgid "Sent"
+msgstr "ارسال‌شده"
+
+msgid "Queued"
+msgstr "در صف"
+
+msgid "Failed"
+msgstr "ناموفق"
+
+msgid "Skipped"
+msgstr "ردشده"
+
+msgid "Mobile not verified with OTP"
+msgstr "شماره با OTP تأیید نشده"
+
+msgid "Daily SMS limit reached"
+msgstr "سقف روزانه‌ی پیامک پر شده"
+
+msgid "SMS Log"
+msgstr "لاگ پیامک"
+
+msgid "Messages sent to leads during video playback."
+msgstr "پیامک‌هایی که حین پخش ویدیو برای لیدها ارسال شده‌اند."
+
+msgid "Kavenegar (کاوه‌نگار)"
+msgstr "کاوه‌نگار"
+
+msgid "SMS.ir"
+msgstr "SMS.ir"
+
+msgid "No provider (log only, for testing)"
+msgstr "بدون درگاه (فقط ثبت در لاگ، برای تست)"
+
+msgid "Test message from %s."
+msgstr "پیامک آزمایشی از %s."
+
+msgid "%1$d characters · %2$d SMS"
+msgstr "%1$d کاراکتر · %2$d پیامک"
+
+msgid "Test SMS sent."
+msgstr "پیامک آزمایشی ارسال شد."
+
+msgid "Test SMS failed."
+msgstr "ارسال پیامک آزمایشی ناموفق بود."
+
+msgid "Send SMS during video playback"
+msgstr "ارسال پیامک حین پخش ویدیو"
+
+msgid "OTP verification is off for this video, so mobile numbers are not verified and the SMS may be sent to a number that does not belong to the viewer."
+msgstr "تأیید OTP برای این ویدیو فعال نیست؛ شماره‌ها تأیید نمی‌شوند و ممکن است پیامک به شماره‌ای برود که متعلق به بیننده نیست."
+
+msgid "OTP is also off in Settings."
+msgstr "OTP در تنظیمات هم خاموش است."
+
+msgid "The SMS provider is not configured yet, so messages will fail."
+msgstr "درگاه پیامک هنوز تنظیم نشده و ارسال‌ها ناموفق خواهند بود."
+
+msgid "Open Settings"
+msgstr "باز کردن تنظیمات"
+
+msgid "+ Add another send time"
+msgstr "+ افزودن زمان ارسال دیگر"
+
+msgid "Each lead gets each message once, up to about 10 seconds after they watch past that point. Skipping past it with the seek bar does not count."
+msgstr "هر لید هر پیامک را فقط یک بار دریافت می‌کند؛ حداکثر حدود ۱۰ ثانیه بعد از اینکه از آن نقطه عبور کند. پرش از روی آن با نوار پیشرفت حساب نمی‌شود."
+
+msgid "View SMS log"
+msgstr "مشاهده‌ی لاگ پیامک"
+
+msgid "SMS"
+msgstr "پیامک"
+
+msgid "SMS send time \"%s\" is not valid. Use mm:ss, e.g. 05:30."
+msgstr "زمان ارسال «%s» معتبر نیست. از قالب mm:ss استفاده کنید، مثلاً 05:30."
+
+msgid "SMS send time %s is after the end of the video."
+msgstr "زمان ارسال %s بعد از پایان ویدیو است."
+
+msgid "Two SMS messages use the same send time (%s)."
+msgstr "دو پیامک زمان ارسال یکسان دارند (%s)."
+
+msgid "The SMS at %s has no message text."
+msgstr "پیامک زمان %s متن ندارد."
+
+msgid "Add at least one send time and message, or turn off SMS during playback."
+msgstr "حداقل یک زمان ارسال و متن وارد کنید، یا ارسال پیامک حین پخش را خاموش کنید."
+
+msgid "Send"
+msgstr "ارسال"
+
+msgid "SMS & OTP"
+msgstr "پیامک و OTP"
+
+msgid "Used for OTP codes and video SMS triggers."
+msgstr "برای کدهای OTP و پیامک‌های حین پخش ویدیو استفاده می‌شود."
+
+msgid "Your Payamito panel username (نام کاربری). Not used by other providers."
+msgstr "نام کاربری پنل پیامیتو. در درگاه‌های دیگر استفاده نمی‌شود."
+
+msgid "Video SMS Daily Limit"
+msgstr "سقف روزانه‌ی پیامک ویدیو"
+
+msgid "Maximum video-triggered SMS messages per mobile number in 24 hours (all videos combined)."
+msgstr "حداکثر تعداد پیامک‌های حین پخش برای هر شماره در ۲۴ ساعت (مجموع همه‌ی ویدیوها)."
+
+msgid "Send Test SMS"
+msgstr "ارسال پیامک آزمایشی"
+
+msgid "Sends a test message with the saved provider settings. Save changes first."
+msgstr "یک پیامک آزمایشی با تنظیمات ذخیره‌شده‌ی درگاه ارسال می‌کند. ابتدا تغییرات را ذخیره کنید."
